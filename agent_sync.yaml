@@ -1,0 +1,7 @@
+# agent_sync.yaml — единая таблица статусов задач
+# TL заполняет task и роли, агенты обновляют status и notes по мере продвижения.
+- task: example placeholder
+  owner: developer
+  reviewer: reviewer
+  status: planned
+  notes: "замените этот блок на актуальные задачи"
