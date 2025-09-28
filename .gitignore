@@ -1,0 +1,15 @@
+# виртуальное окружение
+.venv/
+# python служебные
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+# env
+.env
+# IDE
+.vscode/
+.idea/
+
+# project env files
+**/.env
