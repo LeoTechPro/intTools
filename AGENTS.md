@@ -1,73 +1,76 @@
 # AGENTS — Stage-Gate Playbook scripts
 
 ## TL;DR
-- Работаем только по stage-gate: Intake (TL) → Архитектура → Реализация → PR в `dev` → QA → InfoSec → DevOps release → Tech Writer.
-- Единственный источник статуса — `agent_sync.yaml` (формат как в IntData/IntBridge). Все записи ведём на русском языке.
-- Ветки: `dev` (рабочая) и `main` (релизная). Прямые коммиты в `main` запрещены; merge `dev → main` делает TL fast-forward’ом.
-- Перед каждым `git push` вручную убеждаемся, что секретов нет в diff и истории. Конфиденциальные значения — только в `.env` (шаблоны публикуем отдельно).
+- Stage-gate пайплайн остаётся основой: Intake (TL) → Архитектура → Реализация → QA → InfoSec → DevOps release → Tech Writer. Gate’ы фиксируют контроль, но не блокируют работу автоматически — итог всегда за TL.
+- Рабочая ветка одна — `dev`. Все изменения делаем прямо в ней; `agent_sync.yaml` служит единственным журналом задач и блокировок файлов.
+- `main` — только релизная. TL fast-forward’ит `dev → main` после прохождения gate’ов и ручной проверки секретов.
+- Перед каждым `git push` выполняем визуальный аудит diff и истории, проверяем, что реальные секреты отсутствуют. Конфиденциальные значения держим в `.env`, в репозитории публикуем лишь шаблоны.
 
 ## Stage-Gate pipeline
-0. **Funnel upkeep** — README.md, `agent_sync.yaml` и `AGENTS.md` поддерживаем в актуальном состоянии; фиксируем идею → vision → conventions → tasklist → workflow.
-1. **Intake / TL-Gate-0** — Team Lead принимает запрос, описывает scope, назначает роли, создаёт запись в `agent_sync.yaml` с `status: Planned`.
-2. **Architecture / TL-Gate-1** — Architect (или сам TL) валидирует инварианты, оформляет ADR/черновик в README, обновляет запись (`status: In Progress`).
-3. **Implementation / TL-Gate-2** — Developers работают в ветках `feature/<epic>/<task>-<role>` от `dev`, пишут тесты, обновляют docs. По завершении переводят запись в `Review`.
-4. **PR → dev / TL-Gate-3** — Reviewer проверяет PR, следит за отсутствием секретов, добавляет вывод ревью в note. Merge в `dev` выполняет TL.
-5. **QA / TL-Gate-4** — QA проверяет функциональность из ветки `dev`, формирует отчёт (`reports/test/*`), статус `QA` → `Done`, note содержит сводку.
-6. **InfoSec advisory / TL-Gate-5** — InfoSec прогоняет сканеры (detect-secrets, semgrep, npm audit и прочее). Результаты фиксируем в отчёте и note.
-7. **DevOps release / TL-Gate-6** — DevOps готовит runbook, smoke, миграции. TL fast-forward’ит `dev → main`, обновляет `agent_sync` и README (Changelog).
-8. **Tech Writer / TL-Gate-7** — Tech Writer оформляет финальную документацию, закрывает запись в `agent_sync.yaml` (`status: Done`), прикладывает ссылки на отчёты.
+0. **Funnel upkeep** — README.md, `agent_sync.yaml`, `AGENTS.md` и handoff-документы актуализируем по мере изменения задач.
+1. **Intake / TL-Gate-0** — TL принимает запрос, описывает scope, назначает роли, создаёт запись в `agent_sync.yaml` (`status: Planned`) с перечислением задач и блокируемых файлов.
+2. **Architecture / TL-Gate-1** — Architect/TL подтверждает инварианты, обновляет ADR/README, отмечает в `agent_sync` переход на `In Progress`.
+3. **Implementation / TL-Gate-2** — Разработчики работают в ветке `dev`, предварительно резервируя файлы в `agent_sync`. Коммиты atomic, регулярно пушим. По готовности меняем `status` на `Review`.
+4. **Review / TL-Gate-3** — Reviewer проверяет изменения в `dev`, фиксирует решения и проверки секретов в `note`. TL нужные фиксы координирует, gate не блокирует.
+5. **QA / TL-Gate-4** — QA запускает тесты, оформляет отчёты в `reports/test/*`, обновляет запись (`status: QA` → `Done`) и освобождает пути.
+6. **InfoSec advisory / TL-Gate-5** — InfoSec прогоняет сканеры (detect-secrets, semgrep и т.д.), добавляет Must/Should/Could в note. Рекомендации обязательны к планированию, но не стопорят релиз.
+7. **DevOps release / TL-Gate-6** — DevOps собирает артефакты, готовит runbook и smoke. TL фиксирует в `agent_sync` готовность к релизу.
+8. **Tech Writer / TL-Gate-7** — Tech Writer обновляет README/Changelog, handoff-отчёты и закрывает запись (`status: Done`).
 
 ## Роли и границы
-- **Team Lead / Router** — intake, декомпозиция, handoff, ревью, merge, контроль `agent_sync`, финальный аудит секретов. Не пишет продуктивный код (кроме аварий).
-- **Architect** — подтверждает технические инварианты, обновляет ADR, фиксирует ограничения. Не мержит код.
-- **Developer (backend/frontend/scripts)** — реализует задачи, покрывает тестами, обновляет README/Changelog, готовит PR.
-- **Reviewer** — проводит code review, следит за отсутствием секретов, фиксирует решение в note.
-- **QA** — запускает тесты/смоук, оформляет отчёты в `reports/test/`.
-- **InfoSec** — выполняет SAST/SCA/secret scan, заносит Must/Should/Could рекомендации.
-- **DevOps** — отвечает за сборки, деплой, runbook, smoke.
-- **Tech Writer** — финализирует документацию, README, Changelog.
+- **Team Lead / Router** — intake, декомпозиция, handoff, ревью, merge `dev → main`, контроль `agent_sync`, аудит секретов.
+- **Architect** — технические инварианты, ADR, ограничения, поддержка TL.
+- **Developer** — реализация в `dev`, тесты, документация, обновление `agent_sync` (задачи/пути/статус).
+- **Reviewer** — code review, контроль секретов, обновление note в `agent_sync`.
+- **QA** — smoke/pytest/manual, отчёты, разблокировка путей.
+- **InfoSec** — сканы, рекомендации, фиксация результатов в `agent_sync`.
+- **DevOps** — сборки, деплой, runbook, smoke, подтверждение готовности релиза.
+- **Tech Writer** — финализация документации и changelog.
 
-Каждый агент обновляет `agent_sync.yaml` при смене статуса и после handoff. TL подписывает GateRecord только после проверки AC и границ ролей.
+Каждое изменение статуса/блокировки обязательно отражаем в `agent_sync.yaml`. Если файлы больше не нужны, удаляем их из `paths` сразу, чтобы освободить коллегам.
 
 ## Git-поток
-- Рабочие ветки: `feature/<epic>/<task>-<role>` от `dev`.
-- Merge в `dev` выполняет TL после ревью. Ребейз перед merge обязателен.
-- Релиз: TL fast-forward’ит `dev → main`, отмечает релиз в README (Changelog) и `agent_sync.yaml`.
-- Force-push разрешён только TL в аварии и фиксируется в note (`status: Incident`).
+- `dev` — единственная рабочая ветка. Коммиты делаем поверх неё, соблюдая порядок gate’ов и резервирование файлов.
+- `main` — релизная, обновляется только TL быстрым fast-forward из `dev` после ручного контроля.
+- Force-push в `dev` и `main` допускается только TL при аварии и фиксируется в `agent_sync` (`status: Incident`).
 
 ## agent_sync.yaml
-- Формат общий:
+- Формат единый для всех проектов:
   ```yaml
   agent_sync:
   - since: '2025-09-28T09:00:00Z'
     owner: codex-cli::teamlead
-    branch: main
-    paths: []
+    branch: dev
+    tasks:
+    - Навести порядок в README
+    paths:
+    - README.md
+    - punctb/env
     ttl: 0
-    status: Planned  # Planned | In Progress | Review | QA | InfoSec | DevOps | TechWriter | Done | Blocked | Incident
-    note: 'Создан intake, задачки декомпозированы.'
+    status: In Progress  # Planned | In Progress | Review | QA | InfoSec | DevOps | TechWriter | Done | Blocked | Incident
+    note: 'Резерв на время правок, gate остаётся консультативным.'
   ```
-- Время (`since`) — UTC, ISO8601. `paths` перечисляет рабочие файлы. `ttl` — минуты блокировки (0 = без тайм-аута).
-- Историю не чистим: завершённые записи остаются для аудита.
-- Скрипты синхронизации (например, `scripts/sync-agents.sh`) читают файл как единый источник правды.
+- Поля `tasks` и `paths` обязательны: перечисляем конкретные задачи и фактически заблокированные файлы/каталоги.
+- `since` — UTC в ISO8601, `ttl` в минутах (0 = без таймаута). Историю не обнуляем, она служит журналом.
+- Если несколько агентов работают параллельно, TL распределяет файлы через отдельные записи в `agent_sync`.
 
 ## Контроль секретов
-- Ежедневно прогоняем `detect-secrets scan` и проверяем diff.
-- Перед пушем: `git diff --stat`, `git diff` визуально, проверяем `.env` и другие игноры.
-- Секрет утёк — незамедлительно ревокуем, чистим историю (BFG/filter-repo), фиксируем инцидент в `agent_sync.yaml` (`status: Incident`).
+- Регулярно запускаем `detect-secrets scan` (или аналог) и проверяем diff.
+- Перед пушем: `git status`, `git diff`, убедиться, что `.env` и прочие секреты не попадут в историю.
+- Обнаружили утечку — немедленно ревокуем, чистим историю (filter-repo/BFG), создаём запись с `status: Incident` и планом устранения.
 
 ## Отчёты и документация
-- README.md содержит roadmap, conventions, workflow и changelog. Обновляем при каждом функциональном изменении.
-- Отчёты (QA, InfoSec, DevOps) складываем в `reports/` с датой в имени.
-- GateRecord/hand-off храним в `reports/` или `sessions/` (если добавим).
+- README.md — основной источник: roadmap, conventions, workflow, changelog.
+- QA/InfoSec/DevOps отчёты складываем в `reports/` с датой и ответственным в названии.
+- GateRecord/handoff докуменируем в `reports/` или `sessions/` (при введении каталога).
 
-## Самопроверка перед merge
-- [ ] Ссылки на эпик/задачу и AC отражены в README.md.
-- [ ] Тесты и линтеры зелёные.
-- [ ] Конфигурации и `.env` не содержат реальных секретов.
-- [ ] Обновлены README/Changelog, agent_sync, handoff.
-- [ ] GateRecords подписаны нужными ролями.
+## Самопроверка TL перед fast-forward `dev → main`
+- [ ] Все записи в `agent_sync` закрыты или переведены в follow-up.
+- [ ] Секреты и конфиги перепроверены.
+- [ ] README/Changelog обновлены.
+- [ ] Тесты/линтеры зелёные, smoke пройден.
+- [ ] Follow-up по Must-рекомендациям InfoSec заведены.
 
 ## Инциденты
-- Любое нарушение процесса, утечка или авария — новая запись в `agent_sync.yaml` с `status: Incident`, описанием и планом стабилизации.
-- TL координирует устранение, закрывает инцидент переводом в `Done` и ссылкой на постморем.
+- Любое нарушение процесса, конфликт или экстренный force-push фиксируется как запись с `status: Incident`, описанием и планом стабилизации.
+- После устранения TL переводит запись в `Done` и добавляет ссылку на постморем/отчёт.

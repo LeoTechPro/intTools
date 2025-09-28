@@ -1,33 +1,23 @@
 agent_sync:
 - since: '2025-09-28T16:00:00Z'
   owner: codex-cli::teamlead
-  branch: main
-  paths: []
-  ttl: 0
-  status: Planned
-  note: 'Intake TL-2025-09-28-01: наведение порядка в README и секьюрность env.'
-- since: '2025-09-28T16:05:00Z'
-  owner: codex-cli::developer
-  branch: feature/ops/readme-sanitizing
+  branch: dev
+  tasks:
+  - Наведение порядка в README.md и очистка секретов
   paths:
   - README.md
   - punctb/env
   ttl: 0
   status: Done
-  note: 'Developer: README переписан, шаблон env добавлен.'
-- since: '2025-09-28T16:20:00Z'
-  owner: codex-cli::teamlead
-  branch: main
-  paths: []
-  ttl: 0
-  status: Done
-  note: 'TL: force-push обновлённой истории, секреты очищены.'
+  note: 'Intake TL-2025-09-28-01: диапазон работ завершён, секреты вынесены.'
 - since: '2025-09-28T17:30:00Z'
   owner: codex-cli::teamlead
-  branch: main
+  branch: dev
+  tasks:
+  - Синхронизация AGENTS.md и agent_sync.yaml с единым стандартом
   paths:
   - AGENTS.md
   - agent_sync.yaml
   ttl: 0
   status: In Progress
-  note: 'Синхронизация AGENTS/agent_sync с единым стандартом.'
+  note: 'TL: обновляем правила под единый dev-поток без feature-веток.'
