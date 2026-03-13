@@ -21,4 +21,8 @@ fi
 repo_root="${PUNCTB_REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 ops_runtime_root="${PUNCTB_OPS_RUNTIME_ROOT:-$HOME/.codex/tmp/punctb}"
 
+export PUNCTB_OPS_HOME="$ops_home"
+export PUNCTB_REPO_ROOT="$repo_root"
+export PUNCTB_OPS_RUNTIME_ROOT="$ops_runtime_root"
+
 mkdir -p "$ops_runtime_root"

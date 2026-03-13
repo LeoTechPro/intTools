@@ -12,12 +12,65 @@ agent_sync:
   note: 'Intake TL-2025-09-28-01: диапазон работ завершён, секреты вынесены.'
 - since: '2025-09-28T17:30:00Z'
   owner: codex-cli::teamlead
-  branch: dev
+  branch: main
   tasks:
-  - Синхронизация AGENTS.md и agent_sync.yaml с единым стандартом
+  - Синхронизация AGENTS.md и agent_sync.yaml с актуальным branch flow
   paths:
   - AGENTS.md
   - agent_sync.yaml
   ttl: 0
-  status: In Progress
-  note: 'TL: обновляем правила под единый dev-поток без feature-веток.'
+  status: Done
+  note: 'Историческая запись закрыта: корневой process repo переведён на single-branch main-only flow без feature/dev-веток.'
+- since: '2026-03-10T10:49:58Z'
+  owner: codex-cli::developer
+  branch: main
+  tasks:
+  - Уточнить recovery-заголовки в Telegram-алертах Probe Monitor
+  - Подавить ночные алерты 2Brain no peers в MSK quiet hours
+  paths:
+  - probe/bridge/probe_bridge.py
+  - probe/probes/machine_health_probe.py
+  - probe/tests/test_probe_bridge_synthetic.py
+  - probe/tests/test_machine_health_probe.py
+  ttl: 60
+  status: Done
+  note: 'Готово: recovery-заголовок стал предметным, ночной 2Brain no peers подавлен; unittest и py_compile зелёные. Runtime state и чужие незавершённые правки не трогал.'
+- since: '2026-03-13T15:14:10Z'
+  owner: codex:impl-probe-dedupe-20260313
+  branch: main
+  tasks:
+  - Вынести probe-maintenance и codex host-tooling из /git/probe в /git/scripts
+  - Очистить scripts от runtime leakage и зафиксировать новые домены codex/probe
+  paths:
+  - README.md
+  - .gitignore
+  - agent_sync.yaml
+  - codex/duplex_bridge.py
+  - codex/README.md
+  - codex/cleanup_agent_orphans.sh
+  - codex/install_orphan_cleaner_cron.sh
+  - probe/README.md
+  - probe/collect_audit.sh
+  - probe/docs/critical_assets.txt
+  - probe/docs/machine-audit-2026-03-02.md
+  ttl: 0
+  status: Done
+  note: 'Готово: codex/probe tooling вынесен в /git/scripts, debate.log удалён из git, probe переключён на external state/runtime defaults; verify/install зелёные.'
+- since: '2026-03-13T21:00:00Z'
+  owner: codex:cleanup-ideal-1239
+  branch: main
+  tasks:
+  - Зафиксировать canonical layout /git/scripts/punctb и починить repo-root resolution во внешнем ops-контуре
+  - Синхронизировать root policy/docs /git/scripts с фактическим main-only flow
+  paths:
+  - README.md
+  - AGENTS.md
+  - agent_sync.yaml
+  - punctb/ops/lib/common.sh
+  - punctb/ops/issue/lock_issue_resolver.py
+  - punctb/ops/issue/branch_policy_audit.py
+  - punctb/ops/issue/lock_release_by_issue.py
+  - punctb/ops/release/release_prepare.py
+  ttl: 0
+  status: Done
+  note: 'Готово: root contract очищен от fictitious dev-flow, canonical layout зафиксирован, Python helpers больше не резолвят /git/scripts вместо target product repo.'

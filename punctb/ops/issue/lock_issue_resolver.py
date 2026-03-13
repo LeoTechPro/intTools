@@ -35,6 +35,16 @@ def _run(cmd: list[str], cwd: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, cwd=cwd, text=True, capture_output=True, check=False)
 
 
+def _git_toplevel(start: Path) -> Path | None:
+    probe = _run(["git", "rev-parse", "--show-toplevel"], cwd=start)
+    if probe.returncode != 0:
+        return None
+    root = probe.stdout.strip()
+    if not root:
+        return None
+    return Path(root).resolve()
+
+
 def _resolve_lockctl_bin() -> str:
     candidate = LOCKCTL_BIN.strip()
     if not candidate:
@@ -51,11 +61,22 @@ def _resolve_lockctl_bin() -> str:
 
 
 def _resolve_repo_root() -> Path:
-    here = Path(__file__).resolve()
-    default_root = here.parents[2]
-    probe = _run(["git", "rev-parse", "--show-toplevel"], cwd=default_root)
-    if probe.returncode == 0:
-        return Path(probe.stdout.strip()).resolve()
+    env_root = os.environ.get("PUNCTB_REPO_ROOT", "").strip()
+    if env_root:
+        candidate = Path(env_root).expanduser().resolve()
+        resolved = _git_toplevel(candidate)
+        if resolved is not None:
+            return resolved
+        return candidate
+
+    cwd_root = _git_toplevel(Path.cwd())
+    if cwd_root is not None:
+        return cwd_root
+
+    default_root = Path(__file__).resolve().parents[2]
+    fallback_root = _git_toplevel(default_root)
+    if fallback_root is not None:
+        return fallback_root
     return default_root
 
 

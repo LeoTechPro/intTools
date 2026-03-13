@@ -4,7 +4,11 @@
 
 ## Структура
 
-- `punctb/` — скрипты проекта «Пункт Б», в том числе `sync_punctb.py` для синхронизации данных между инсталляциями PostgreSQL.
+- `codex/` — versioned host-tooling для Codex/OpenClaw. Runtime/log/tmp этого домена живут в `~/.codex`, а не в git.
+- `probe/` — maintenance/audit утилиты для `Probe Monitor`, которые не нужны для boot prod-сервиса.
+- `punctb/` — внешний ops/tooling-контур проекта «Пункт Б»: `sync_punctb.py`, process-scripts, hooks, internal runbooks и skills, которые не должны жить в product repo `/git/punctb`.
+
+Общее правило для этого репозитория: versioned исходники и инструкции храним здесь, а runtime outputs, логи, временные файлы и mutable state уезжают во внешние host-path.
 
 ## Требования
 
@@ -23,6 +27,21 @@ pip install --upgrade pip
 ## PunctB Sync Script
 
 `sync_punctb.py` синхронизирует данные между исходной и целевой базами данных PostgreSQL. Скрипт поддерживает проверку расхождений, дельтовые загрузки и полный ре-импорт выбранных таблиц.
+
+## PunctB Ops Tooling
+
+`/git/scripts/punctb` теперь также хранит versioned process/ops/tooling для PunctB:
+- `bin/punctb-ops` — единый launcher для `issue:*`, `release:*`, `teamlead:*` и других process-команд;
+- `ops/**` — process-scripts и gate wrappers, которые продукт вызывает через внешний ops-контур;
+- `docs/**` и `templates/**` — versioned internal docs, policy и шаблоны для ops/process use-cases;
+- `git-hooks/**` — git hooks, которые ставятся в checkout продукта внешней командой;
+- `backend-ops/**` — ручные backend utility scripts, не входящие в product-core репозиторий.
+
+Инварианты:
+- product repo `/git/punctb` не хранит versioned ops/tooling вроде `deploy`, `backend/scripts`, `.mcp.json`, `codex.skill` и старых внутренних repo-local process paths;
+- runtime scratch/log/tmp для PunctB ops и Codex живут вне git, по умолчанию в `~/.codex/tmp/punctb` и соседних host-path;
+- команды из product repo вызывают внешний контур через `PUNCTB_OPS_HOME=${PUNCTB_OPS_HOME:-/git/scripts/punctb}`.
+- для самого репозитория `/git/scripts` используем single-branch flow в `main`; dev/main promotion-контракт относится к продуктовым checkout, а не к этому репозиторию.
 
 ### Возможности
 
@@ -118,7 +137,7 @@ pip install --upgrade pip
 Добавляйте новые каталоги со скриптами, следуя правилам:
 - Документация в общем `README.md` или в отдельном файле внутри каталога.
 - Настройки через `.env` с шаблоном `<module>/env`.
-- Никаких чувствительных данных в репозитории.
+- Никаких чувствительных данных, логов и runtime outputs в репозитории.
 
 ## Лицензия
 
