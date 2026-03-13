@@ -1,0 +1,93 @@
+version: 2
+defaults:
+  risk: low
+  checks: lint,build
+  opinions:
+  domains:
+  major_change: false
+  auto_commit: false
+rules:
+  - pattern: "^docs/"
+    risk: low
+    checks: lint,build
+    opinions: techwriter-role
+    domains: docs-user
+    major_change: false
+    auto_commit: false
+  - pattern: "^web/src/app/router/"
+    risk: high
+    checks: lint,build,unit
+    opinions: frontend-role,frontend-design,qa-role,architect-role
+    domains: frontend,visual,routing,qa,architecture
+    major_change: true
+    auto_commit: true
+  - pattern: "^web/.*\\.(css|scss|sass|less)$"
+    risk: medium
+    checks: lint,build,unit
+    opinions: frontend-role,frontend-design
+    domains: frontend,visual
+    major_change: false
+    auto_commit: false
+  - pattern: "^web/src/.*/(pages|ui|styles)/"
+    risk: medium
+    checks: lint,build,unit
+    opinions: frontend-role,frontend-design
+    domains: frontend,visual
+    major_change: false
+    auto_commit: false
+  - pattern: "^web/"
+    risk: medium
+    checks: lint,build,unit
+    opinions: frontend-role
+    domains: frontend
+    major_change: false
+    auto_commit: false
+  - pattern: "^backend/functions/"
+    risk: high
+    checks: lint,build,unit,integration,security
+    opinions: backend-role
+    domains: backend
+    major_change: false
+    auto_commit: false
+  - pattern: "^backend/init/schema\\.sql$"
+    risk: critical
+    checks: lint,build,unit,integration,migration-dry-run,rollback-rationale
+    opinions: dba-role,backend-role,architect-role
+    domains: db,architecture
+    major_change: true
+    auto_commit: true
+  - pattern: "^backend/init/migrations/"
+    risk: critical
+    checks: lint,build,unit,integration,migration-dry-run,rollback-rationale
+    opinions: dba-role,backend-role,architect-role
+    domains: db,architecture
+    major_change: true
+    auto_commit: true
+  - pattern: "^backend/init/"
+    risk: high
+    checks: lint,build,unit,integration,security
+    opinions: dba-role
+    domains: db
+    major_change: true
+    auto_commit: true
+  - pattern: "^openspec/"
+    risk: high
+    checks: lint,build,manual-review
+    opinions: techwriter-role,architect-role
+    domains: process,docs-internal,architecture
+    major_change: true
+    auto_commit: true
+  - pattern: "^[.]agents/"
+    risk: high
+    checks: lint,build,manual-review
+    opinions: techwriter-role,architect-role
+    domains: process,docs-internal,architecture
+    major_change: false
+    auto_commit: false
+  - pattern: "^(README\\.md|AGENTS\\.md|GEMINI\\.md|backend/README\\.md|web/README\\.md)$"
+    risk: medium
+    checks: lint,build
+    opinions: techwriter-role
+    domains: docs-internal,process
+    major_change: false
+    auto_commit: false

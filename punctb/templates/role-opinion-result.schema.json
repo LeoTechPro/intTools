@@ -1,0 +1,81 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "verdict",
+    "summary",
+    "owner_choice_required",
+    "owner_choice_topic",
+    "touched_domains",
+    "findings"
+  ],
+  "properties": {
+    "verdict": {
+      "type": "string",
+      "enum": [
+        "ok",
+        "request_changes",
+        "blocked"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "owner_choice_required": {
+      "type": "boolean"
+    },
+    "owner_choice_topic": {
+      "type": "string"
+    },
+    "touched_domains": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "severity",
+          "title",
+          "file",
+          "details"
+        ],
+        "properties": {
+          "severity": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "file": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "details": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          }
+        }
+      }
+    }
+  }
+}

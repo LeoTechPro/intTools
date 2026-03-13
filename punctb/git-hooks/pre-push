@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$(cd "$script_dir/../ops/lib" && pwd)/common.sh"
+
+repo_root="$(git rev-parse --show-toplevel)"
+resolver="$ops_home/ops/issue/lock_issue_resolver.py"
+docs_guard="$ops_home/ops/gates/docs_boundary_guard.sh"
+branch_policy="$ops_home/ops/issue/branch_policy_audit.py"
+gates_push_script="$ops_home/ops/gates/gates_verify_push.sh"
+
+if [[ ! -x "$resolver" ]]; then
+  echo "[MISSING_RESOLVER] expected executable: $resolver" >&2
+  exit 1
+fi
+if [[ ! -x "$docs_guard" ]]; then
+  echo "[MISSING_DOCS_GUARD] expected executable: $docs_guard" >&2
+  exit 1
+fi
+if [[ ! -x "$branch_policy" ]]; then
+  echo "[MISSING_BRANCH_POLICY] expected executable: $branch_policy" >&2
+  exit 1
+fi
+if [[ ! -x "$gates_push_script" ]]; then
+  echo "[MISSING_GATES_PUSH_SCRIPT] expected executable: $gates_push_script" >&2
+  exit 1
+fi
+
+failed=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [[ -z "$local_ref" ]]; then
+    continue
+  fi
+  target_branch=""
+
+  if [[ "$remote_ref" == refs/heads/* ]]; then
+    target_branch="${remote_ref#refs/heads/}"
+    if [[ "$target_branch" != "dev" && "$target_branch" != "main" ]]; then
+      echo "[PRE_PUSH_BRANCH_REJECTED] target branch must be dev or main, got ${target_branch}" >&2
+      failed=1
+      continue
+    fi
+    if [[ "$target_branch" == "main" && "${PUNCTB_MAIN_PUSH_APPROVED:-NO}" != "YES" ]]; then
+      echo "[PRE_PUSH_MAIN_REJECTED] main is prod-like; set PUNCTB_MAIN_PUSH_APPROVED=YES only after owner-approved full review" >&2
+      failed=1
+      continue
+    fi
+  else
+    continue
+  fi
+
+  if [[ "$local_sha" =~ ^0+$ ]]; then
+    continue
+  fi
+
+  if [[ "$remote_sha" =~ ^0+$ ]]; then
+    audit_range="$local_sha"
+  else
+    audit_range="${remote_sha}..${local_sha}"
+  fi
+
+  if [[ -z "$audit_range" ]]; then
+    continue
+  fi
+
+  if [[ "$target_branch" == "main" ]]; then
+    if ! python3 "$branch_policy" assert-target --target-branch main --local-sha "$local_sha" --remote-sha "$remote_sha"; then
+      echo "[PRE_PUSH_MAIN_POLICY_FAILED] ref=$local_ref -> $remote_ref" >&2
+      failed=1
+      continue
+    fi
+  fi
+
+  if ! bash "$docs_guard" --range "$audit_range" --allow-owner-override; then
+    echo "[PRE_PUSH_DOCS_BOUNDARY_FAILED] range=$audit_range ref=$local_ref -> $remote_ref" >&2
+    failed=1
+    continue
+  fi
+
+  if ! python3 "$branch_policy" audit-range --target-branch "$target_branch" --range "$audit_range"; then
+    echo "[PRE_PUSH_AUDIT_FAILED] range=$audit_range ref=$local_ref -> $remote_ref" >&2
+    failed=1
+    continue
+  fi
+
+  if ! bash "$gates_push_script" --target-branch "$target_branch" --range "$audit_range" >/dev/null; then
+    echo "[PRE_PUSH_GATES_FAILED] range=$audit_range ref=$local_ref -> $remote_ref" >&2
+    failed=1
+  fi
+done
+
+if [[ "$failed" -ne 0 ]]; then
+  echo "[PRE_PUSH_REJECTED] issue binding checks failed" >&2
+  exit 1
+fi
+
+exit 0

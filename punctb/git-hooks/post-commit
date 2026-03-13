@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$(cd "$script_dir/../ops/lib" && pwd)/common.sh"
+
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [[ -z "$repo_root" ]]; then
+  exit 0
+fi
+
+resolver="$ops_home/ops/issue/lock_issue_resolver.py"
+lock_release_script="$ops_home/ops/issue/lock_release_by_issue.py"
+gates_bind_script="$ops_home/ops/gates/gates_bind_commit.sh"
+probe_emit_script="$ops_home/ops/issue/probe_git_event_emit.py"
+
+if [[ ! -x "$resolver" || ! -x "$lock_release_script" ]]; then
+  echo "[LOCK_RELEASE_SKIP] commit=HEAD reason=missing_helper_scripts" >&2
+  exit 0
+fi
+
+if ! verify_json="$("$resolver" verify-commit --commit HEAD --json 2>/dev/null)"; then
+  echo "[LOCK_RELEASE_SKIP] commit=HEAD reason=no_valid_refs_or_issue" >&2
+  exit 0
+fi
+
+issue_id="$(
+  python3 -c 'import json,sys; payload=json.load(sys.stdin); print(str(payload.get("issue_id", "")).strip())' \
+    <<< "$verify_json" 2>/dev/null || true
+)"
+if [[ -z "$issue_id" ]]; then
+  echo "[LOCK_RELEASE_SKIP] commit=HEAD reason=missing_issue_id" >&2
+  exit 0
+fi
+
+if [[ ! -x "$gates_bind_script" ]]; then
+  echo "[GATES_BIND_WARN] issue=#${issue_id} reason=missing_bind_helper" >&2
+elif ! bind_json="$(bash "$gates_bind_script" --issue "$issue_id" --commit HEAD 2>/dev/null)"; then
+  echo "[GATES_BIND_WARN] issue=#${issue_id} reason=bind_failed" >&2
+else
+  bind_receipt_id="$(
+    python3 -c 'import json,sys; payload=json.load(sys.stdin); print(str(payload.get("receipt_id", "")).strip())' \
+      <<< "$bind_json" 2>/dev/null || true
+  )"
+  if [[ -n "$bind_receipt_id" ]]; then
+    echo "GATES_BIND_POST_COMMIT issue=#${issue_id} receipt=${bind_receipt_id}"
+  fi
+fi
+
+mapfile -d '' -t commit_files < <(
+  git -C "$repo_root" show --pretty=format: --name-only -z --diff-filter=ACMRD HEAD
+)
+
+declare -a target_files=()
+for file in "${commit_files[@]}"; do
+  [[ -n "$file" ]] || continue
+  target_files+=("$file")
+done
+
+if [[ ${#target_files[@]} -eq 0 ]]; then
+  echo "[LOCK_RELEASE_SKIP] issue=#${issue_id} reason=no_commit_files" >&2
+  exit 0
+fi
+
+release_cmd=("$lock_release_script" --issue-id "$issue_id" --files)
+for file in "${target_files[@]}"; do
+  release_cmd+=("$file")
+done
+release_cmd+=(--json)
+
+if ! release_json="$("${release_cmd[@]}" 2>/dev/null)"; then
+  echo "[LOCK_RELEASE_WARN] issue=#${issue_id} reason=lock_release_failed" >&2
+  exit 0
+fi
+
+changed="$(
+  python3 -c 'import json,sys; payload=json.load(sys.stdin); print("1" if payload.get("changed") else "0")' \
+    <<< "$release_json" 2>/dev/null || echo "0"
+)"
+removed_paths="$(
+  python3 -c 'import json,sys; payload=json.load(sys.stdin); print(len(payload.get("removed_paths", [])))' \
+    <<< "$release_json" 2>/dev/null || echo "0"
+)"
+removed_entries="$(
+  python3 -c 'import json,sys; payload=json.load(sys.stdin); print(payload.get("removed_entries", 0))' \
+    <<< "$release_json" 2>/dev/null || echo "0"
+)"
+
+echo "LOCK_RELEASE_POST_COMMIT issue=#${issue_id} changed=${changed} removed_paths=${removed_paths} removed_entries=${removed_entries}"
+
+if [[ -f "$probe_emit_script" ]]; then
+  if ! python3 "$probe_emit_script" commit 2>/dev/null; then
+    echo "[PROBE_GIT_EMIT_WARN] commit=HEAD reason=emit_failed" >&2
+  fi
+fi
