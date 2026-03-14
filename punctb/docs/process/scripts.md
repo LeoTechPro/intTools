@@ -390,11 +390,14 @@ bash ops/gates/docs_boundary_guard.sh --range "origin/dev..HEAD" --allow-owner-o
 ## issue_commit.sh
 Безопасный коммит целевых файлов в грязном дереве:
 - принимает обязательный `--issue <id>`, `--message` и `--files`/`--file`;
+- поддерживает два режима: обычный explicit issue-bound path и `--full` для полного pre-push-style gate-loop;
 - проверяет issue (`gh issue view`, state=`OPEN`) и активные lock-конфликты для целевых файлов (`assert-issue-files`);
 - нормализует только автоматические gate-event'ы через global `gatesctl approve`; human-only approvals остаются внешним evidence и не подставляются wrapper'ом автоматически;
-- запускает `docs_sync_gate.sh` и при необходимости расширяет scope auto-updated internal docs/README файлами;
-- для migration scope запускает `dba_review_gate.sh`, а для non-migration scope — `autoreview_gate.sh`;
-- завершает pre-commit цикл через `teamlead_orchestrator.sh --mode milestone`; при `retry_required=true` повторяет весь finish-loop до лимита `PUNCTB_FINISH_LOOP_MAX`;
+- без `--full` запускает `docs_sync_gate.sh` только в advisory-режиме и не расширяет scope автоматически;
+- `--full` включает blocking `docs_sync`; для auto-updated docs вне явного scope требуется `--expand-doc-targets`;
+- для migration scope требует `--full` и запускает `dba_review_gate.sh`;
+- `autoreview_gate.sh` на commit-time запускается только для risky/full scope (`web/**`, `backend/functions/**`, ops/hooks/templates/bin, release/main scope);
+- `teamlead_orchestrator.sh --mode milestone` обязателен только для `--full` major/risky scope; при `retry_required=true` повторяет весь finish-loop до лимита `PUNCTB_FINISH_LOOP_MAX`;
 - перед коммитом вызывает `gates_verify_commit.sh`, получает `receipt_id`/`policy_version` и валидирует machine-wide gates receipt;
 - применяет docs-boundary guard к staged-файлам;
 - дополнительно применяет branch-aware staged policy (`branch_policy_audit.py validate-staged`): работает только на `dev`, а `docs/release.md` разрешён только release issue с label `release`;
@@ -415,10 +418,10 @@ bash ops/issue/issue_commit.sh \
 ```
 
 ### Gate order
-1. `docs_sync_gate.sh`
-2. `dba_review_gate.sh` для `backend/init/migrations/**`
-3. `autoreview_gate.sh` для остального scope
-4. `teamlead_orchestrator.sh --mode milestone`
+1. `docs_sync_gate.sh` (`advisory` по умолчанию, `blocking` только для `--full`)
+2. `dba_review_gate.sh` для migration scope (`--full` only)
+3. `autoreview_gate.sh` только для risky/full scope
+4. `teamlead_orchestrator.sh --mode milestone` только для major/risky/full scope
 5. `gates_verify_commit.sh`
 6. stage/commit/`gates_bind_commit.sh`/lock-release
 
@@ -466,6 +469,8 @@ bash ops/gates/gates_bind_commit.sh \
 - принимает issue-bound scope через `--files` или повторяющийся `--file`, удаляет дубли и вычисляет только существующие allowlist-targets: `README.md`, `web/README.md`, `backend/README.md`, `docs/process/scripts.md`, `docs/process/issue-commit-flow.md`;
 - запрещает менять user-facing `docs/**`;
 - если scope не попадает в поддерживаемые code/process зоны, не найден ни один target-документ, scope является pure process-only (`README.md`, `package.json`, `.gitignore`, `AGENTS.md`, `GEMINI.md`, `openspec/**`) или все вычисленные doc-targets уже явно входят в commit-scope, завершает gate успешным `SKIPPED`;
+- в `advisory`-режиме не пишет файлы и не блокирует commit; используется для fast/обычного `issue:commit`;
+- в `blocking`-режиме разрешён для `issue:commit --full`, `release:prepare` и `issue:push:done`;
 - запускает reviewer-first цикл через `codex exec`: сначала read-only reviewer, затем writer-pass в workspace-write только при `verdict=request_changes`;
 - ограничивает writer-pass и reviewer-pass встроенным file-context и возвращает JSON summary с `ok`, `reason`, `updated_files`, `scope_files`, `doc_targets`, `artifact_dir`.
 
@@ -494,7 +499,8 @@ Issue-bound pre-commit gate для non-migration scope:
 - требует доступный `codex`, schema-файл `templates/autoreview.schema.json` и risk-matrix `templates/swarm-risk-matrix.yaml`;
 - пишет артефакты в `~/.codex/tmp/punctb/autoreview/<issue>/<timestamp>/`, итоговый summary лежит в `final-gate.json`;
 - сначала прогоняет matrix-derived conventional checks, затем независимые `reviewer_a` и `reviewer_b`, после каждого `request_changes` допускает bounded fixer-loop только внутри scope;
-- для pure process-scope (`README.md`, `package.json`, `.gitignore`, `AGENTS.md`, `GEMINI.md`, `openspec/**`) после зелёных conventional checks завершает gate без LLM-review и передаёт дальнейший completeness-контроль в `teamlead_orchestrator.sh`;
+- для pure process/docs-only scope (`README.md`, `package.json`, `.gitignore`, `AGENTS.md`, `GEMINI.md`, `openspec/**`) после зелёных conventional checks завершает gate без LLM-review;
+- основной commit-time caller (`issue_commit.sh`) не запускает gate для pure process/docs-only scope без `--full`; этот scope проверяется либо full-path, либо push-time через `issue:push:done`;
 - для web scope запускает path-aware проверки: `npm --prefix web run check:test-imports`, scoped `eslint` по файлам scope и scoped `vitest` только по тест-файлам из scope;
 - для process-contract scope выполняет локальный syntax-lint (`bash -n`, JSON parse), а неподдержанные non-web/non-agent checks помечает как `skipped`;
 - если scope содержит `backend/init/migrations/**`, немедленно возвращает `HUMAN_GATE_REQUIRED` и не подменяет DBA gate.
@@ -521,7 +527,7 @@ Teamlead-first orchestration для major change:
 - запускает независимые role-opinions (`frontend-role`, `frontend-design`, `backend-role`, `architect-role`, `dba-role`, `qa-role`, `devops-role`, `techwriter-role`) через `codex exec --ephemeral`;
 - для pure process-scope (`README.md`, `package.json`, `.gitignore`, `AGENTS.md`, `GEMINI.md`, `openspec/**`) возвращает зелёный summary сразу после matrix-classification, не плодя nested role-runs поверх process-only diff;
 - в `milestone` режиме допускает bounded main-session-style fixer loop внутри scope;
-- в `finish` режиме работает read-only и используется перед `issue:push:done`;
+- в `finish` режиме работает read-only и используется как часть strict push-gate перед `issue:push:done`;
 - возвращает JSON summary с `required_opinions`, `major_change`, `auto_commit_eligible`, `retry_required`, `owner_choice_required`, `artifact_dir`.
 
 ### Запуск
@@ -596,7 +602,12 @@ bash ops/issue/issue_done.sh --issue 1037
 Единая связка remote-завершения задачи:
 - работает только на `dev`;
 - прогоняет `issue_audit_local` для диапазона `@{upstream}..HEAD`;
+- проверяет, что рабочее дерево чистое;
 - проверяет, что issue `OPEN`;
+- валидирует отсутствие active `lockctl`-конфликтов по файлам commit-range;
+- прогоняет blocking `docs_sync_gate.sh` по range и блокирует push, если появились незакоммиченные doc-updates;
+- для risky range запускает `autoreview_gate.sh`;
+- запускает `teamlead_orchestrator.sh --mode finish`;
 - проверяет acceptance checklist в issue (нет unchecked checkbox);
 - требует bound `gatesctl` receipt у последнего issue-коммита;
 - выполняет `git push`, затем `issue_done.sh`.

@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$(cd "$script_dir/../ops/lib" && pwd)/common.sh"
-
 message_file="${1:-}"
 if [[ -z "$message_file" ]]; then
   echo "[ARGUMENT] commit-msg hook requires message file path" >&2
@@ -11,39 +8,37 @@ if [[ -z "$message_file" ]]; then
 fi
 
 repo_root="$(git rev-parse --show-toplevel)"
-resolver="$ops_home/ops/issue/lock_issue_resolver.py"
-docs_guard="$ops_home/ops/gates/docs_boundary_guard.sh"
-branch_policy="$ops_home/ops/issue/branch_policy_audit.py"
 current_branch="$(git -C "$repo_root" rev-parse --abbrev-ref HEAD)"
-
-if [[ ! -x "$resolver" ]]; then
-  echo "[MISSING_RESOLVER] expected executable: $resolver" >&2
-  exit 1
-fi
-if [[ ! -x "$docs_guard" ]]; then
-  echo "[MISSING_DOCS_GUARD] expected executable: $docs_guard" >&2
-  exit 1
-fi
-if [[ ! -x "$branch_policy" ]]; then
-  echo "[MISSING_BRANCH_POLICY] expected executable: $branch_policy" >&2
-  exit 1
-fi
-
-if [[ "$current_branch" != "dev" ]]; then
+if [[ "$current_branch" != "dev" && "$current_branch" != "main" ]]; then
   exit 0
 fi
 
-"$docs_guard" --staged --allow-owner-override
+mapfile -t staged_files < <(git -C "$repo_root" diff --cached --name-only)
+for path in "${staged_files[@]}"; do
+  case "$path" in
+    docs/release.md)
+      echo "[FORBIDDEN_FAST_COMMIT_TARGET] docs/release.md must go through release:prepare / issue:commit --full" >&2
+      exit 1
+      ;;
+    backend/init/migrations/*|backend/init/migration_manifest.lock)
+      echo "[FORBIDDEN_FAST_COMMIT_TARGET] migration scope must go through migration:apply:guarded or issue:commit --full" >&2
+      exit 1
+      ;;
+  esac
+done
 
-if ! issue_output="$("$resolver" resolve-staged --check-gh --require-open 2>&1)"; then
-  if grep -q '\[NO_STAGED_FILES\]' <<< "$issue_output"; then
-    exit 0
-  fi
-  echo "$issue_output" >&2
-  exit 1
-fi
+python3 - "$message_file" <<'PY'
+from pathlib import Path
+import re
+import sys
 
-issue_id="$(tail -n 1 <<< "$issue_output")"
-python3 "$branch_policy" validate-staged --issue-id "$issue_id"
-
-"$resolver" ensure-message --message-file "$message_file" --issue-id "$issue_id" >/dev/null
+path = Path(sys.argv[1])
+text = path.read_text(encoding="utf-8")
+visible = "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("#"))
+if re.search(r"(?i)\b(?:Fixes|Closes|Resolves)\s*#[0-9]+\b", visible):
+    print(
+        "[FORBIDDEN_CLOSE_KEYWORD] commit message must not contain Fixes/Closes/Resolves #<id>; use `Refs #<id>`",
+        file=sys.stderr,
+    )
+    raise SystemExit(1)
+PY

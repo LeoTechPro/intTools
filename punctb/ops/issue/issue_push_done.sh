@@ -69,6 +69,9 @@ repo_root="$(git rev-parse --show-toplevel)"
 current_branch="$(git -C "$repo_root" rev-parse --abbrev-ref HEAD)"
 teamlead_orchestrator_script="$ops_home/ops/teamlead/teamlead_orchestrator.sh"
 gates_show_cmd=(gatesctl show-receipt --repo-root "$repo_root")
+docs_sync_script="$ops_home/ops/gates/docs_sync_gate.sh"
+autoreview_script="$ops_home/ops/gates/autoreview_gate.sh"
+lockctl_bin="${LOCKCTL_BIN:-lockctl}"
 if [[ "$current_branch" != "dev" ]]; then
   echo "[BRANCH_NOT_DEV] issue:push:done is dev-only; for prod promotion use npm run release:main -- --issue <release_issue_id>" >&2
   exit 2
@@ -99,6 +102,14 @@ if [[ ! -f "$teamlead_orchestrator_script" ]]; then
   echo "[MISSING_TEAMLEAD_ORCHESTRATOR_SCRIPT] expected file: $teamlead_orchestrator_script" >&2
   exit 2
 fi
+if [[ ! -f "$docs_sync_script" ]]; then
+  echo "[MISSING_DOCS_SYNC_SCRIPT] expected file: $docs_sync_script" >&2
+  exit 2
+fi
+if [[ ! -f "$autoreview_script" ]]; then
+  echo "[MISSING_AUTOREVIEW_SCRIPT] expected file: $autoreview_script" >&2
+  exit 2
+fi
 
 audit_range="${upstream_ref}..HEAD"
 refs_pattern="^Refs #${issue_id}$"
@@ -106,6 +117,80 @@ bash "$audit_script" --range "$audit_range" >/dev/null
 
 mapfile -t range_files < <(git -C "$repo_root" diff --name-only "$audit_range")
 if [[ ${#range_files[@]} -gt 0 ]]; then
+  declare -A seen_range=()
+  declare -a unique_range_files=()
+  for file in "${range_files[@]}"; do
+    [[ -n "$file" ]] || continue
+    if [[ -n "${seen_range[$file]:-}" ]]; then
+      continue
+    fi
+    seen_range["$file"]=1
+    unique_range_files+=("$file")
+  done
+  range_files=("${unique_range_files[@]}")
+
+  for file in "${range_files[@]}"; do
+    lock_payload="$("$lockctl_bin" status --repo-root "$repo_root" --path "$file" --format json 2>/dev/null || true)"
+    conflict_ids="$(JSON_PAYLOAD="$lock_payload" python3 - "$issue_id" <<'PY'
+import json
+import os
+import sys
+
+payload = json.loads(os.environ.get("JSON_PAYLOAD") or "{}")
+active = payload.get("active", []) if isinstance(payload, dict) else []
+target = sys.argv[1]
+conflicts = sorted({
+    str(item.get("issue_id"))
+    for item in active
+    if isinstance(item, dict) and item.get("issue_id") and str(item.get("issue_id")) != target
+})
+print(",".join(conflicts))
+PY
+)"
+    if [[ -n "$conflict_ids" ]]; then
+      echo "[LOCK_CONFLICT_IN_RANGE] ${file}: active lock belongs to other issue(s): ${conflict_ids}" >&2
+      exit 2
+    fi
+  done
+
+  docs_sync_cmd=(bash "$docs_sync_script" --issue "$issue_id" --mode blocking)
+  for file in "${range_files[@]}"; do
+    docs_sync_cmd+=(--file "$file")
+  done
+  if ! docs_sync_json="$("${docs_sync_cmd[@]}")"; then
+    echo "[DOCS_SYNC_FAILED] push gate blocked for issue #${issue_id}" >&2
+    exit 2
+  fi
+  docs_sync_updates="$(
+    python3 -c 'import json,sys; payload=json.loads(sys.stdin.read()); print("\n".join(payload.get("updated_files", [])))' \
+      <<< "$docs_sync_json" 2>/dev/null || true
+  )"
+  if [[ -n "$docs_sync_updates" ]]; then
+    echo "[DOCS_SYNC_PENDING_COMMIT] docs_sync updated files; commit them before issue:push:done" >&2
+    printf '%s\n' "$docs_sync_updates" >&2
+    exit 2
+  fi
+
+  run_autoreview=0
+  for file in "${range_files[@]}"; do
+    case "$file" in
+      web/*|backend/functions/*|ops/*|git-hooks/*|bin/*|templates/*)
+        run_autoreview=1
+        break
+        ;;
+    esac
+  done
+  if [[ "$run_autoreview" == "1" ]]; then
+    autoreview_cmd=(bash "$autoreview_script" --issue "$issue_id")
+    for file in "${range_files[@]}"; do
+      autoreview_cmd+=(--file "$file")
+    done
+    if ! autoreview_json="$("${autoreview_cmd[@]}")"; then
+      echo "[AUTOREVIEW_FAILED] push gate blocked for issue #${issue_id}" >&2
+      exit 2
+    fi
+  fi
+
   finish_cmd=(bash "$teamlead_orchestrator_script" --issue "$issue_id" --mode finish)
   for file in "${range_files[@]}"; do
     [[ -n "$file" ]] && finish_cmd+=(--file "$file")

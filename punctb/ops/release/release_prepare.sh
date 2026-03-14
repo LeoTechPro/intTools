@@ -80,7 +80,14 @@ if git -C "$repo_root" diff --quiet -- docs/release.md; then
   exit 0
 fi
 
-commit_cmd=(bash "$ops_home/ops/issue/issue_commit.sh" --issue "$issue_id" --message "docs(release): подготовить релизную запись" --file "docs/release.md")
+commit_cmd=(
+  bash "$ops_home/ops/issue/issue_commit.sh"
+  --issue "$issue_id"
+  --message "docs(release): подготовить релизную запись"
+  --file "docs/release.md"
+  --full
+  --expand-doc-targets
+)
 if [[ -n "$repo_arg" ]]; then
   commit_cmd+=(--repo "$repo_arg")
 fi

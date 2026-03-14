@@ -16,6 +16,8 @@ Options:
   --files <csv>         Comma-separated file paths.
   --file <path>         Repeatable file path argument.
   --repo <owner/repo>   Optional explicit repo for gh checks.
+  --full                Force full pre-push-style gate loop before commit.
+  --expand-doc-targets  Allow docs_sync to auto-extend scope with target docs.
 EOF
 }
 
@@ -23,6 +25,8 @@ issue_id=""
 message=""
 files_csv=""
 repo_arg=""
+full_mode=0
+expand_doc_targets=0
 declare -a files=()
 
 while [[ $# -gt 0 ]]; do
@@ -51,6 +55,14 @@ while [[ $# -gt 0 ]]; do
       [[ $# -ge 2 ]] || { echo "[ARGUMENT] missing value for --repo" >&2; exit 2; }
       repo_arg="$2"
       shift 2
+      ;;
+    --full)
+      full_mode=1
+      shift
+      ;;
+    --expand-doc-targets)
+      expand_doc_targets=1
+      shift
       ;;
     -h|--help)
       usage
@@ -115,6 +127,9 @@ scope_has_process_contract=0
 scope_has_migration=0
 scope_has_release_main=0
 scope_has_major_change=0
+scope_has_web=0
+scope_has_backend_functions=0
+scope_has_ops_runtime=0
 docs_sync_mode="advisory"
 teamlead_required=0
 docs_sync_scope_has_process_contract=0
@@ -234,6 +249,9 @@ refresh_scope_contract_state() {
   scope_has_migration=0
   scope_has_release_main=0
   scope_has_major_change=0
+  scope_has_web=0
+  scope_has_backend_functions=0
+  scope_has_ops_runtime=0
   teamlead_required=0
   docs_sync_mode="advisory"
 
@@ -242,6 +260,15 @@ refresh_scope_contract_state() {
 
   local file
   for file in "${unique_files[@]}"; do
+    if [[ "$file" == web/* ]]; then
+      scope_has_web=1
+    fi
+    if [[ "$file" == backend/functions/* ]]; then
+      scope_has_backend_functions=1
+    fi
+    if [[ "$file" == ops/* || "$file" == git-hooks/* || "$file" == bin/* || "$file" == templates/* ]]; then
+      scope_has_ops_runtime=1
+    fi
     if [[ "$file" == backend/init/migrations/* || "$file" == backend/init/migration_manifest.lock ]]; then
       scope_has_migration=1
     fi
@@ -250,7 +277,7 @@ refresh_scope_contract_state() {
     fi
   done
 
-  if [[ "$scope_has_process_contract" -eq 1 ]]; then
+  if [[ "$full_mode" == "1" ]]; then
     docs_sync_mode="blocking"
   fi
   if [[ "${PUNCTB_DOCS_SYNC_MODE:-auto}" != "auto" ]]; then
@@ -268,7 +295,16 @@ refresh_scope_contract_state() {
     scope_has_major_change="$(python3 -c 'import json,sys; payload=json.loads(sys.stdin.read()); print("1" if payload.get("major_change") else "0")' <<< "$matrix_json" 2>/dev/null || echo "0")"
   fi
 
-  if [[ "$scope_has_major_change" == "1" || "$scope_has_migration" == "1" || "$scope_has_release_main" == "1" || "${PUNCTB_FORCE_TEAMLEAD:-NO}" == "YES" ]]; then
+  if [[ "$scope_has_migration" == "1" && "$full_mode" != "1" ]]; then
+    echo "[FULL_MODE_REQUIRED] migration scope requires issue:commit --full or migration:apply:guarded" >&2
+    exit 2
+  fi
+  if [[ "$scope_has_release_main" == "1" && "$full_mode" != "1" ]]; then
+    echo "[FULL_MODE_REQUIRED] docs/release.md commits require issue:commit --full or release:prepare" >&2
+    exit 2
+  fi
+
+  if [[ "$full_mode" == "1" && ( "$scope_has_major_change" == "1" || "$scope_has_migration" == "1" || "$scope_has_release_main" == "1" || "${PUNCTB_FORCE_TEAMLEAD:-NO}" == "YES" ) ]]; then
     teamlead_required=1
   fi
 }
@@ -468,7 +504,27 @@ for (( finish_loop=1; finish_loop<=finish_loop_max; finish_loop++ )); do
     docs_sync_json='{"ok": true, "reason": "ADVISORY_FAILED", "updated_files": [], "doc_targets": [], "artifact_dir": ""}'
   fi
   if [[ "$docs_sync_mode" == "blocking" ]]; then
-    extend_unique_files_from_contract_json "$docs_sync_json" "updated_files" "doc_targets" "DOCS_SYNC"
+    if [[ "$expand_doc_targets" == "1" ]]; then
+      extend_unique_files_from_contract_json "$docs_sync_json" "updated_files" "doc_targets" "DOCS_SYNC"
+    else
+      docs_sync_needs_expansion="$(
+        JSON_PAYLOAD="$docs_sync_json" python3 - "${unique_files[@]}" <<'PY'
+import json
+import os
+import sys
+
+payload = json.loads(os.environ.get("JSON_PAYLOAD") or "{}")
+updated = [item.strip() for item in payload.get("updated_files", []) if isinstance(item, str) and item.strip()]
+scope = {item.strip() for item in sys.argv[1:] if item.strip()}
+needs = any(item not in scope for item in updated)
+print("1" if needs else "0")
+PY
+      )"
+      if [[ "$docs_sync_needs_expansion" == "1" ]]; then
+        echo "[DOCS_SYNC_SCOPE_EXPANSION_REQUIRED] docs_sync updated files outside explicit scope; rerun with --expand-doc-targets or commit the recommended docs separately" >&2
+        exit 2
+      fi
+    fi
     if ! assert_issue_files; then
       exit 2
     fi
@@ -561,7 +617,12 @@ PY
     done
   fi
 
-  if [[ "${PUNCTB_AUTOREVIEW_BYPASS:-NO}" != "YES" && ${#non_migration_scope[@]} -gt 0 ]]; then
+  run_autoreview=0
+  if [[ "$full_mode" == "1" || "$scope_has_web" == "1" || "$scope_has_backend_functions" == "1" || "$scope_has_ops_runtime" == "1" || "$scope_has_release_main" == "1" ]]; then
+    run_autoreview=1
+  fi
+
+  if [[ "${PUNCTB_AUTOREVIEW_BYPASS:-NO}" != "YES" && "$run_autoreview" == "1" && ${#non_migration_scope[@]} -gt 0 ]]; then
     autoreview_cmd=(bash "$autoreview_script" --issue "$issue_id")
     for file in "${non_migration_scope[@]}"; do
       autoreview_cmd+=(--file "$file")

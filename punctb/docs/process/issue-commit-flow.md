@@ -4,10 +4,10 @@
 Этот регламент фиксирует обязательную привязку каждого коммита к конкретной GitHub Issue в мультиагентном «грязном» дереве без обязательного создания новых веток.
 
 Ключевые инварианты:
-- каждый коммит содержит `Refs #<issue_id>`;
-- один коммит связан только с одной issue;
-- основной commit-контракт: `issue_commit.sh --issue <id>` (явный issue-id);
-- перед issue-bound коммитом обязателен pre-commit loop: `docs_sync -> DBA gate (для migration scope) -> autoreview -> teamlead orchestrator (milestone)`;
+- быстрый локальный `git commit` в `dev` допустим без live GitHub/lock/LLM gates;
+- один issue-bound коммит связан только с одной issue;
+- строгий remote/barrier-контракт живёт в `issue:push:done -- --issue <id>`;
+- явный full-gate commit-контракт: `issue_commit.sh --issue <id>`; blocking `docs_sync` и auto-scope expansion разрешены только для full path;
 - для `issue_commit --issue` каждый файл обязан иметь активный `lockctl` lease той же issue;
 - отсутствие lease, истёкший lease и lease другой issue блокируют коммит;
 - после любого коммита `post-commit` пытается снять lock только по файлам `HEAD` и только для issue из `Refs #<id>`;
@@ -53,6 +53,19 @@ npm run issue:hooks:install
 - активность определяется `expires_utc > now_utc`;
 - просроченный lease не является truth и требует нового `lockctl acquire`.
 
+## Алгоритм fast local commit
+1. Обычный `git commit` в `dev` проходит только дешёвые локальные проверки:
+   - ветка `dev/main`;
+   - запрет `Fixes/Closes/Resolves #...`;
+   - блокировка явных risky-targets (`docs/release.md`, migration scope).
+2. Fast-path не требует:
+   - live GitHub issue;
+   - `lockctl assert`;
+   - `docs_sync`;
+   - `autoreview`;
+   - `teamlead` orchestration.
+3. Перед push такой commit-range всё равно обязан пройти `issue:push:done`.
+
 ## Алгоритм `issue_commit --issue`
 1. Принимается явный `--issue <id>` и проверяется через `gh issue view` (`OPEN`).
 2. Берутся фактические файлы коммита (`--files`/`--file`).
@@ -60,18 +73,18 @@ npm run issue:hooks:install
    - `NO_LOCK` -> блок;
    - `LOCK_EXPIRED` -> блок;
    - `LOCK_CONFLICT` -> блок.
-4. `docs_sync_gate.sh` по scope кода/процесса обновляет только разрешённые internal docs/README и возвращает `updated_files`; после автообновления выполняется повторная `assert-issue-files` проверка.
-5. Если scope содержит `backend/init/migrations/**` или `backend/init/migration_manifest.lock`, запускается `dba_review_gate.sh`: статические migration checks + dual read-only DBA review + bounded auto-fix внутри migration scope.
-6. Для non-migration scope запускается `autoreview_gate.sh`; owner-bypass допустим только через `PUNCTB_AUTOREVIEW_BYPASS=YES`.
-7. `teamlead_orchestrator.sh --mode milestone` классифицирует scope по `path + risk matrix`, запускает независимые role-opinions и, при необходимости, один bounded main-session-style fix loop. Если orchestrator даёт `retry_required`, весь finish-loop повторяется с начала; лимит управляется `PUNCTB_FINISH_LOOP_MAX` (по умолчанию `2`).
-8. Только после зелёного finish-loop `docs_boundary_guard.sh` запрещает новые `docs/**` файлы и любые tracked internal docs внутри product repo; runtime-артефакты должны оставаться только в `~/.codex/tmp/punctb/**`.
-9. `branch_policy_audit.py validate-staged` подтверждает ветку `dev` и разрешает изменение `docs/release.md` только issue с label `release`.
-10. `gates_verify_commit.sh` вызывает global `gatesctl verify --stage commit`, нормализует human/auto gates, проверяет обязательный receipt и возвращает `receipt_id`, `policy_version`, `scope_fingerprint`.
-11. `Refs #<id>` добавляется/валидируется через `ensure-message`, после чего в commit message обязательно дописываются `Gate-Receipt: <receipt_id>` и `Gate-Policy: <policy_version>`.
-12. Выполняется коммит только целевых файлов, включая auto-updated docs/manifest внутри issue scope.
-13. Сразу после успешного коммита `gates_bind_commit.sh` привязывает receipt к фактическому `commit_sha`, а `post-commit` повторяет bind как best-effort fallback для ручных путей.
-14. После bind `post-commit` вызывает `lock_release_by_issue.py` и снимает lock только по путям `HEAD`; пустой entry удаляется.
-15. `issue_commit.sh` дополнительно вызывает `lock_release_by_issue.py` как fallback/idempotent слой (на случай отсутствия hooks).
+4. Без `--full` `docs_sync_gate.sh` работает только в advisory-режиме и не мутирует соседние README/process docs.
+5. С `--full` `docs_sync_gate.sh` работает в blocking-режиме; auto-updated docs вне явного scope требуют явного `--expand-doc-targets`.
+6. Если scope содержит `backend/init/migrations/**` или `backend/init/migration_manifest.lock`, commit-path разрешён только через `--full`, а review идёт через `dba_review_gate.sh`.
+7. Для risky/full scope запускается `autoreview_gate.sh`; pure process/docs-only scope по умолчанию не тянет LLM-review на commit-time.
+8. `teamlead_orchestrator.sh --mode milestone` обязателен только для `--full` major/risky scope или при явном форсинге.
+9. Только после зелёного full-loop `docs_boundary_guard.sh` запрещает новые `docs/**` файлы и любые tracked internal docs внутри product repo; runtime-артефакты должны оставаться только в `~/.codex/tmp/punctb/**`.
+10. `branch_policy_audit.py validate-staged` подтверждает ветку `dev` и разрешает изменение `docs/release.md` только issue с label `release`.
+11. `gates_verify_commit.sh` вызывает global `gatesctl verify --stage commit`, проверяет обязательный receipt и возвращает `receipt_id`, `policy_version`, `scope_fingerprint`.
+12. `Refs #<id>` добавляется/валидируется через `ensure-message`, после чего в commit message обязательно дописываются `Gate-Receipt: <receipt_id>` и `Gate-Policy: <policy_version>`.
+13. Выполняется commit только целевых файлов, включая явно разрешённые auto-updated docs/manifest внутри issue scope.
+14. Сразу после успешного коммита `gates_bind_commit.sh` привязывает receipt к фактическому `commit_sha`, а `post-commit` повторяет bind как best-effort fallback для ручных путей.
+15. После bind `post-commit` вызывает `lock_release_by_issue.py` и снимает lock только по путям `HEAD`; `issue_commit.sh` дополнительно делает тот же release как fallback/idempotent слой.
 
 ## Алгоритм `migration_apply_gate --issue`
 1. Принимается явный `--issue <id>` и migration-only scope (`backend/init/migrations/*`, `backend/init/migration_manifest.lock`).
@@ -111,7 +124,7 @@ npm run issue:hooks:install
 ## Алгоритм release-path
 1. Для заметной пользователю задачи в обычной feature/bug issue хранится публичный текст в `## Release note`, а issue получает label `release-note`.
 2. Для выпуска создаётся отдельная `OPEN` release issue с label `release` и секцией `## Release includes` (или `## Included issues`) со списком включаемых issue-id.
-3. `npm run release:prepare -- --issue <release_issue_id>` работает только на `dev`, собирает `docs/release.md` из закрытых `release-note` issues и коммитит файл через `issue:commit` под release issue.
+3. `npm run release:prepare -- --issue <release_issue_id>` работает только на `dev`, собирает `docs/release.md` из закрытых `release-note` issues и коммитит файл через `issue:commit --full --expand-doc-targets` под release issue.
 4. `PUNCTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue <release_issue_id> [--sha <commit>]` проверяет clean tree, fast-forward topology `main`, достижимость target SHA из `origin/dev`, branch-aware main audit и только затем делает `git push origin <sha>:main`.
 5. После успешного promotion release issue закрывается отдельным комментарием о выпущенном SHA.
 
@@ -121,23 +134,27 @@ npm run issue:hooks:install
 ```bash
 npm run issue:hooks:install
 ```
-3. Сделать коммит только целевых файлов через `issue:commit`:
+3. Для быстрых локальных шагов допустим обычный `git commit`; для fully-gated/risky scope используйте `issue:commit`:
+```bash
+git commit -m "wip: локальная правка"
+```
+4. Сделать fully-gated issue-bound commit только целевых файлов при необходимости:
 ```bash
 npm run issue:commit -- --issue 1037 --message "web: update profile toolbar" --files "web/src/a.tsx,web/src/b.tsx"
 ```
-4. Для реального применения migration scope используйте guarded wrapper:
+5. Для реального применения migration scope используйте guarded wrapper:
 ```bash
 npm run migration:apply:guarded -- --issue 1214 --files "backend/init/migrations/20260310201500_client_home_public_surface.sql,backend/init/migration_manifest.lock"
 ```
-5. Проверить диапазон перед push:
+6. Проверить диапазон перед push:
 ```bash
 npm run issue:audit:local -- --range "@{upstream}..HEAD"
 ```
-6. Если acceptance checklist в issue полностью выполнен, выполнить единый remote-финиш:
+7. Если acceptance checklist в issue полностью выполнен, выполнить единый remote-финиш:
 ```bash
 npm run issue:push:done -- --issue 1037
 ```
-7. Если нужен ручной режим, оставить раздельные шаги:
+8. Если нужен ручной режим, оставить раздельные шаги:
 ```bash
 git push origin dev
 npm run issue:done -- --issue 1037
@@ -156,8 +173,8 @@ PUNCTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue 1205
 ```
 
 ## Finish: local vs remote
-- Команда владельца «Завершайся» закрывает локальный цикл: проверки, документация/worklog, commit через `issue:commit`, cleanup `~/.codex/tmp/punctb`.
-- Для major change после зелёного milestone commit не откладывается: основной агент обязан сразу делать `issue:commit`.
+- Команда владельца «Завершайся» закрывает локальный цикл: проверки, документация/worklog, локальный commit-path и cleanup `~/.codex/tmp/punctb`.
+- Fast local commits в `dev` допустимы, но перед push итоговый range обязан пройти `issue:push:done`.
 - `issue:commit` обязан выпустить bound receipt через `gatesctl verify -> Gate-Receipt/Gate-Policy -> bind-commit`; lock для коммитнутых путей снимается через `post-commit`, а в `issue:commit` сохранён fallback release.
 - При закрытии через `issue:done` дополнительно снимаются оставшиеся активные `lockctl` locks по `GitHub issue id`.
 - Если acceptance checklist выполнен, bound receipt последнего issue-коммита зелёный и нет `owner_choice_required`, следующий обязательный шаг процесса — `npm run issue:push:done -- --issue <id>`.
@@ -167,11 +184,11 @@ PUNCTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue 1205
 
 ## Поведение hooks
 ### `commit-msg`
-- dev-only fallback для ручного `git commit`: резолвит issue по staged файлам только в ветке `dev`;
+- dev/main fast-path для ручного `git commit`;
 - запрещает `Fixes|Closes|Resolves #...`;
-- добавляет `Refs #<id>`, если отсутствует;
-- блокирует коммит при рассинхроне `Refs #X` и lock-resolve issue `Y`;
-- не валится на пустом staged-set и не участвует в release-path для `main`.
+- блокирует явные risky-targets: `docs/release.md`, `backend/init/migrations/**`, `backend/init/migration_manifest.lock`;
+- не требует live GitHub issue, `lockctl`, `docs_sync`, `autoreview` или `teamlead`;
+- не участвует в release-path, потому что `release:prepare` и `issue:commit` коммитят через `--no-verify`.
 
 ### `reference-transaction`
 - блокирует создание новых локальных веток без явного owner override;
@@ -197,9 +214,9 @@ PUNCTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue 1205
 
 ## Команды и назначение
 - `npm run issue:hooks:install` — установка hooks.
-- `npm run issue:commit -- --issue <id> --message "..." --files "a,b"` — безопасный dev-only коммит целевых файлов с pre-commit loop `docs_sync -> DBA gate (if needed) -> autoreview -> teamlead orchestrator -> gatesctl verify/bind`.
+- `npm run issue:commit -- --issue <id> --message "..." --files "a,b"` — explicit issue-bound commit path; без `--full` держит `docs_sync` advisory-only и не запускает commit-time heavy gates для pure process/docs scope.
 - `npm run issue:audit:local -- --range "origin/dev..HEAD"` — локальный dev-only аудит commit-range с branch-policy и `gatesctl audit-range`.
-- `npm run issue:push:done -- --issue <id>` — dev-only push + close issue (с проверкой acceptance checklist и bound receipt последнего issue-коммита).
+- `npm run issue:push:done -- --issue <id>` — dev-only strict push gate: range audit + acceptance checklist + lock conflicts + blocking `docs_sync` + risk-based `autoreview` + `teamlead` finish + push + close issue.
 - `npm run issue:done -- --issue <id>` — dev-only явное закрытие issue после push с обязательной проверкой bound receipt и зачисткой lock по `GitHub issue id`.
 - `npm run migration:apply:guarded -- --issue <id> --files "migration.sql,backend/init/migration_manifest.lock"` — dual-DBA-gated запуск применения миграций.
 - `npm run teamlead:orchestrate -- --issue <id> --mode milestone|finish --files "a,b"` — teamlead-first orchestration независимых role-opinions.
