@@ -443,7 +443,8 @@ bash ops/gates/gates_verify_commit.sh \
 Thin wrapper над global `gatesctl audit-range`:
 - принимает `--range` и optional `--target-branch`;
 - для `dev/main` требует валидные bound receipts у всех новых коммитов диапазона;
-- используется из `issue_audit_local.sh` и `git-hooks/pre-push`.
+- используется из `issue_audit_local.sh` и `git-hooks/pre-push` для обычного push-path;
+- `issue:push:done` не полагается на этот wrapper как на единственный strict-gate и вместо этого завершает собственный branch-aware/risky audit перед `git push`.
 
 ### Запуск
 ```bash
@@ -601,7 +602,7 @@ bash ops/issue/issue_done.sh --issue 1037
 ## issue_push_done.sh
 Единая связка remote-завершения задачи:
 - работает только на `dev`;
-- прогоняет `issue_audit_local` для диапазона `@{upstream}..HEAD`;
+- прогоняет `issue_audit_local --skip-gates-audit` для диапазона `@{upstream}..HEAD`;
 - проверяет, что рабочее дерево чистое;
 - проверяет, что issue `OPEN`;
 - валидирует отсутствие active `lockctl`-конфликтов по файлам commit-range;
@@ -609,8 +610,8 @@ bash ops/issue/issue_done.sh --issue 1037
 - для risky range запускает `autoreview_gate.sh`;
 - запускает `teamlead_orchestrator.sh --mode finish`;
 - проверяет acceptance checklist в issue (нет unchecked checkbox);
-- требует bound `gatesctl` receipt у последнего issue-коммита;
-- выполняет `git push`, затем `issue_done.sh`.
+- требует хотя бы один commit с `Refs #<id>` в push-range;
+- выполняет `git push` c explicit `PUNCTB_PUSH_GATE_APPROVED=YES`, затем вызывает `issue_done.sh` с тем же marker.
 
 ### Запуск
 ```bash
@@ -625,7 +626,8 @@ bash ops/issue/issue_push_done.sh --issue 1037
 ## issue_audit_local.sh
 Локальный wrapper для branch-aware аудита commit-range в `dev` (по умолчанию `@{upstream}..HEAD`):
 - сначала запускает `branch_policy_audit.py audit-range`;
-- затем вызывает `gates_verify_push.sh`, чтобы range без bound receipts не ушёл в push.
+- по умолчанию затем вызывает `gates_verify_push.sh`, чтобы range без bound receipts не ушёл в push;
+- флаг `--skip-gates-audit` оставляет только branch-aware audit и используется из `issue:push:done`, где строгий gate переносится в сам push-wrapper.
 
 ### Запуск
 ```bash

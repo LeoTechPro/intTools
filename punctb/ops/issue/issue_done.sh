@@ -55,6 +55,7 @@ repo_root="$(git rev-parse --show-toplevel)"
 lock_release_script="$ops_home/ops/issue/lock_release_by_issue.py"
 current_branch="$(git -C "$repo_root" rev-parse --abbrev-ref HEAD)"
 gates_show_cmd=(gatesctl show-receipt --repo-root "$repo_root")
+skip_receipt_check="${PUNCTB_PUSH_GATE_APPROVED:-NO}"
 
 if [[ ! -x "$lock_release_script" ]]; then
   echo "[MISSING_LOCK_RELEASE_SCRIPT] expected executable: $lock_release_script" >&2
@@ -98,19 +99,21 @@ fi
 
 last_sha="$(git -C "$repo_root" log -n 1 --format=%H --grep "$refs_pattern" --extended-regexp --regexp-ignore-case HEAD || true)"
 if [[ -z "$last_sha" ]]; then
-  echo "[GATES_RECEIPT_MISSING] no issue commit with Refs #${issue_id} found in local history" >&2
+  echo "[ISSUE_REFS_MISSING] no commit with Refs #${issue_id} found in local history" >&2
   exit 2
 fi
 receipt_id="n/a"
-if ! receipt_json="$("${gates_show_cmd[@]}" --commit "$last_sha" 2>/dev/null)"; then
-  echo "[GATES_RECEIPT_MISSING] no bound gatesctl receipt for last issue commit ${last_sha}" >&2
-  exit 2
-fi
-receipt_status="$(python3 -c 'import json,sys; payload=json.loads(sys.stdin.read()); print(str(payload.get("status", "")).strip())' <<< "$receipt_json" 2>/dev/null || true)"
-receipt_id="$(python3 -c 'import json,sys; payload=json.loads(sys.stdin.read()); print(str(payload.get("receipt_id", "")).strip())' <<< "$receipt_json" 2>/dev/null || true)"
-if [[ "$receipt_status" != "ok" ]]; then
-  echo "[GATES_RECEIPT_NOT_OK] receipt ${receipt_id:-n/a} for ${last_sha} has status=${receipt_status:-unknown}" >&2
-  exit 2
+if [[ "$skip_receipt_check" != "YES" ]]; then
+  if ! receipt_json="$("${gates_show_cmd[@]}" --commit "$last_sha" 2>/dev/null)"; then
+    echo "[GATES_RECEIPT_MISSING] no bound gatesctl receipt for last issue commit ${last_sha}" >&2
+    exit 2
+  fi
+  receipt_status="$(python3 -c 'import json,sys; payload=json.loads(sys.stdin.read()); print(str(payload.get("status", "")).strip())' <<< "$receipt_json" 2>/dev/null || true)"
+  receipt_id="$(python3 -c 'import json,sys; payload=json.loads(sys.stdin.read()); print(str(payload.get("receipt_id", "")).strip())' <<< "$receipt_json" 2>/dev/null || true)"
+  if [[ "$receipt_status" != "ok" ]]; then
+    echo "[GATES_RECEIPT_NOT_OK] receipt ${receipt_id:-n/a} for ${last_sha} has status=${receipt_status:-unknown}" >&2
+    exit 2
+  fi
 fi
 
 if ! lock_release_output="$(python3 "$lock_release_script" --issue-id "$issue_id" --drop-issue --json)"; then

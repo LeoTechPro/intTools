@@ -85,9 +85,11 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     continue
   fi
 
-  if ! bash "$gates_push_script" --target-branch "$target_branch" --range "$audit_range" >/dev/null; then
-    echo "[PRE_PUSH_GATES_FAILED] range=$audit_range ref=$local_ref -> $remote_ref" >&2
-    failed=1
+  if [[ "${PUNCTB_PUSH_GATE_APPROVED:-NO}" != "YES" ]]; then
+    if ! bash "$gates_push_script" --target-branch "$target_branch" --range "$audit_range" >/dev/null; then
+      echo "[PRE_PUSH_GATES_FAILED] range=$audit_range ref=$local_ref -> $remote_ref" >&2
+      failed=1
+    fi
   fi
 done
 

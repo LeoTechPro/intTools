@@ -6,7 +6,7 @@
 Ключевые инварианты:
 - быстрый локальный `git commit` в `dev` допустим без live GitHub/lock/LLM gates;
 - один issue-bound коммит связан только с одной issue;
-- строгий remote/barrier-контракт живёт в `issue:push:done -- --issue <id>`;
+- строгий remote/barrier-контракт живёт в `issue:push:done -- --issue <id>` и завершается explicit push-gate approval marker для собственного `git push`;
 - явный full-gate commit-контракт: `issue_commit.sh --issue <id>`; blocking `docs_sync` и auto-scope expansion разрешены только для full path;
 - для `issue_commit --issue` каждый файл обязан иметь активный `lockctl` lease той же issue;
 - отсутствие lease, истёкший lease и lease другой issue блокируют коммит;
@@ -15,7 +15,7 @@
 - после успешного `issue_commit --issue` lock release дополнительно выполняется внутри скрипта как fallback/idempotent;
 - локальные `Fixes/Closes/Resolves #...` запрещены;
 - закрытие issue выполняется через `issue:done` или `issue:push:done`;
-- `issue:done` перед закрытием делает обязательную проверку и release всех активных `lockctl` locks по `GitHub issue id`;
+- `issue:done` перед закрытием всегда делает release всех активных `lockctl` locks по `GitHub issue id`;
 - новые agent-docs вне `docs/process/**` и `docs/runbooks/**` запрещены;
 - `docs/release.md` меняется только release issue с label `release`, а user-visible feature issue публикует текст через `label: release-note` + `## Release note`.
 
@@ -118,8 +118,9 @@ npm run issue:hooks:install
 ## Алгоритм `issue_done --issue`
 1. Проверка, что у issue нет незапушенных локальных коммитов с `Refs #<id>`.
 2. Проверка, что GitHub issue находится в состоянии `OPEN`.
-3. Обязательный release всех активных `lockctl` locks по `issue_id = GitHub issue id`.
-4. Закрытие issue через `gh issue close`.
+3. По умолчанию — проверка bound `gatesctl` receipt у последнего issue-коммита; если `issue_done` вызван из `issue:push:done`, эта проверка пропускается, потому что strict push-gate уже выполнен.
+4. Обязательный release всех активных `lockctl` locks по `issue_id = GitHub issue id`.
+5. Закрытие issue через `gh issue close`.
 
 ## Алгоритм release-path
 1. Для заметной пользователю задачи в обычной feature/bug issue хранится публичный текст в `## Release note`, а issue получает label `release-note`.
@@ -177,7 +178,7 @@ PUNCTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue 1205
 - Fast local commits в `dev` допустимы, но перед push итоговый range обязан пройти `issue:push:done`.
 - `issue:commit` обязан выпустить bound receipt через `gatesctl verify -> Gate-Receipt/Gate-Policy -> bind-commit`; lock для коммитнутых путей снимается через `post-commit`, а в `issue:commit` сохранён fallback release.
 - При закрытии через `issue:done` дополнительно снимаются оставшиеся активные `lockctl` locks по `GitHub issue id`.
-- Если acceptance checklist выполнен, bound receipt последнего issue-коммита зелёный и нет `owner_choice_required`, следующий обязательный шаг процесса — `npm run issue:push:done -- --issue <id>`.
+- Если acceptance checklist выполнен и нет `owner_choice_required`, следующий обязательный шаг процесса — `npm run issue:push:done -- --issue <id>`.
 - При необходимости допускается ручной split: `git push` и `issue:done` отдельными командами.
 - `issue:done` и `issue:push:done` не используются в `main`; release-flow закрывается через `release:main`.
 - Если issue добавлена в GitHub Project, перед handoff агент обновляет `Status` и пишет worklog; отдельное поле `Updation Date` вручную не поддерживается.
@@ -203,7 +204,7 @@ PUNCTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue 1205
 - для `dev` требует ровно один `Refs #<id>` на коммит и `OPEN` issue;
 - для `main` разрешает closed issues, но требует fast-forward topology и достижимость target SHA из `origin/dev`;
 - применяет docs/agent boundary guard к range перед push;
-- для `dev/main` дополнительно запускает `gates_verify_push.sh` / `gatesctl audit-range` и блокирует range без валидных bound receipts.
+- для `dev/main` дополнительно запускает `gates_verify_push.sh` / `gatesctl audit-range`, кроме случая когда `issue:push:done` уже выполнил strict push-gate и передал explicit approval marker `PUNCTB_PUSH_GATE_APPROVED=YES`.
 
 ### `post-commit`
 - извлекает issue из `Refs #<id>` последнего коммита (`HEAD`) через `verify-commit`;
@@ -215,9 +216,9 @@ PUNCTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue 1205
 ## Команды и назначение
 - `npm run issue:hooks:install` — установка hooks.
 - `npm run issue:commit -- --issue <id> --message "..." --files "a,b"` — explicit issue-bound commit path; без `--full` держит `docs_sync` advisory-only и не запускает commit-time heavy gates для pure process/docs scope.
-- `npm run issue:audit:local -- --range "origin/dev..HEAD"` — локальный dev-only аудит commit-range с branch-policy и `gatesctl audit-range`.
-- `npm run issue:push:done -- --issue <id>` — dev-only strict push gate: range audit + acceptance checklist + lock conflicts + blocking `docs_sync` + risk-based `autoreview` + `teamlead` finish + push + close issue.
-- `npm run issue:done -- --issue <id>` — dev-only явное закрытие issue после push с обязательной проверкой bound receipt и зачисткой lock по `GitHub issue id`.
+- `npm run issue:audit:local -- --range "origin/dev..HEAD"` — локальный dev-only аудит commit-range с branch-policy и, по умолчанию, `gatesctl audit-range`.
+- `npm run issue:push:done -- --issue <id>` — dev-only strict push gate: branch-aware range audit + acceptance checklist + lock conflicts + blocking `docs_sync` + risk-based `autoreview` + `teamlead` finish + push + close issue.
+- `npm run issue:done -- --issue <id>` — dev-only явное закрытие issue после push; вне `issue:push:done` требует bound receipt и всегда чистит lock по `GitHub issue id`.
 - `npm run migration:apply:guarded -- --issue <id> --files "migration.sql,backend/init/migration_manifest.lock"` — dual-DBA-gated запуск применения миграций.
 - `npm run teamlead:orchestrate -- --issue <id> --mode milestone|finish --files "a,b"` — teamlead-first orchestration независимых role-opinions.
 - `bash ops/gates/gates_verify_commit.sh --issue <id> --files "a,b"` — thin wrapper над global `gatesctl verify --stage commit`.

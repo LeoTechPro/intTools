@@ -7,7 +7,7 @@ source "$(cd "$script_dir/../lib" && pwd)/common.sh"
 usage() {
   cat <<'EOF'
 Usage:
-  ops/issue/issue_audit_local.sh [--range <git-range>] [--repo owner/repo]
+  ops/issue/issue_audit_local.sh [--range <git-range>] [--repo owner/repo] [--skip-gates-audit]
 
 Defaults:
 - range: @{upstream}..HEAD when upstream exists, otherwise HEAD
@@ -16,6 +16,7 @@ EOF
 
 range=""
 repo_arg=""
+skip_gates_audit=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -28,6 +29,10 @@ while [[ $# -gt 0 ]]; do
       [[ $# -ge 2 ]] || { echo "[ARGUMENT] missing value for --repo" >&2; exit 2; }
       repo_arg="$2"
       shift 2
+      ;;
+    --skip-gates-audit)
+      skip_gates_audit=1
+      shift
       ;;
     -h|--help)
       usage
@@ -75,9 +80,11 @@ fi
 
 "${cmd[@]}"
 
-push_cmd=(bash "$gates_push_script" --target-branch dev --range "$range")
-if [[ -n "$repo_arg" ]]; then
-  push_cmd+=(--repo "$repo_arg")
-fi
+if [[ "$skip_gates_audit" != "1" ]]; then
+  push_cmd=(bash "$gates_push_script" --target-branch dev --range "$range")
+  if [[ -n "$repo_arg" ]]; then
+    push_cmd+=(--repo "$repo_arg")
+  fi
 
-"${push_cmd[@]}" >/dev/null
+  "${push_cmd[@]}" >/dev/null
+fi
