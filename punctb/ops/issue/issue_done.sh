@@ -55,7 +55,7 @@ repo_root="$(git rev-parse --show-toplevel)"
 lock_release_script="$ops_home/ops/issue/lock_release_by_issue.py"
 current_branch="$(git -C "$repo_root" rev-parse --abbrev-ref HEAD)"
 gates_show_cmd=(gatesctl show-receipt --repo-root "$repo_root")
-skip_receipt_check="${PUNCTB_PUSH_GATE_APPROVED:-NO}"
+approval_file="${PUNCTB_PUSH_GATE_APPROVAL_FILE:-}"
 
 if [[ ! -x "$lock_release_script" ]]; then
   echo "[MISSING_LOCK_RELEASE_SCRIPT] expected executable: $lock_release_script" >&2
@@ -65,6 +65,64 @@ if [[ "$current_branch" != "dev" ]]; then
   echo "[BRANCH_NOT_DEV] issue:done is dev-only; for prod promotion use npm run release:main -- --issue <release_issue_id>" >&2
   exit 2
 fi
+
+validate_issue_done_approval() {
+  local file_path="$1"
+  local expected_repo_root="$2"
+  local expected_branch="$3"
+  local expected_issue_id="$4"
+  local expected_last_issue_commit="$5"
+  python3 - "$file_path" "$expected_repo_root" "$expected_branch" "$expected_issue_id" "$expected_last_issue_commit" <<'PY'
+from datetime import datetime, timezone
+import json
+import re
+import sys
+
+file_path, expected_repo_root, expected_branch, expected_issue_id, expected_last_issue_commit = sys.argv[1:6]
+try:
+    with open(file_path, "r", encoding="utf-8") as fh:
+        payload = json.load(fh)
+except FileNotFoundError:
+    print("[ISSUE_DONE_APPROVAL_MISSING] approval artifact not found", file=sys.stderr)
+    raise SystemExit(1)
+except Exception as exc:
+    print(f"[ISSUE_DONE_APPROVAL_INVALID] cannot read approval artifact: {exc}", file=sys.stderr)
+    raise SystemExit(1)
+
+created_raw = str(payload.get("created_utc", "")).strip()
+try:
+    created_at = datetime.strptime(created_raw, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+except ValueError:
+    print("[ISSUE_DONE_APPROVAL_INVALID] created_utc is missing or malformed", file=sys.stderr)
+    raise SystemExit(1)
+
+age_seconds = (datetime.now(timezone.utc) - created_at).total_seconds()
+if age_seconds < 0 or age_seconds > 900:
+    print("[ISSUE_DONE_APPROVAL_STALE] approval artifact is older than 15 minutes", file=sys.stderr)
+    raise SystemExit(1)
+
+checks = (
+    ("repo_root", expected_repo_root),
+    ("branch", expected_branch),
+    ("issue_id", expected_issue_id),
+    ("last_issue_commit", expected_last_issue_commit),
+)
+for key, expected in checks:
+    actual = str(payload.get(key, "")).strip()
+    if actual != expected:
+        print(f"[ISSUE_DONE_APPROVAL_MISMATCH] {key}={actual!r}, expected {expected!r}", file=sys.stderr)
+        raise SystemExit(1)
+
+range_value = str(payload.get("range", "")).strip()
+if not range_value:
+    print("[ISSUE_DONE_APPROVAL_INVALID] range is missing", file=sys.stderr)
+    raise SystemExit(1)
+
+if not re.fullmatch(r"[0-9a-f]{40}", str(payload.get("last_issue_commit", "")).strip()):
+    print("[ISSUE_DONE_APPROVAL_INVALID] last_issue_commit is malformed", file=sys.stderr)
+    raise SystemExit(1)
+PY
+}
 
 upstream_ref="$(git -C "$repo_root" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
 if [[ -z "$upstream_ref" ]]; then
@@ -103,7 +161,15 @@ if [[ -z "$last_sha" ]]; then
   exit 2
 fi
 receipt_id="n/a"
-if [[ "$skip_receipt_check" != "YES" ]]; then
+skip_receipt_check=0
+if [[ -n "$approval_file" ]]; then
+  if ! validate_issue_done_approval "$approval_file" "$repo_root" "$current_branch" "$issue_id" "$last_sha"; then
+    exit 2
+  fi
+  skip_receipt_check=1
+fi
+
+if [[ "$skip_receipt_check" != "1" ]]; then
   if ! receipt_json="$("${gates_show_cmd[@]}" --commit "$last_sha" 2>/dev/null)"; then
     echo "[GATES_RECEIPT_MISSING] no bound gatesctl receipt for last issue commit ${last_sha}" >&2
     exit 2

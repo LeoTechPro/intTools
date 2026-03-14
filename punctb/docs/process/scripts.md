@@ -444,7 +444,7 @@ Thin wrapper над global `gatesctl audit-range`:
 - принимает `--range` и optional `--target-branch`;
 - для `dev/main` требует валидные bound receipts у всех новых коммитов диапазона;
 - используется из `issue_audit_local.sh` и `git-hooks/pre-push` для обычного push-path;
-- `issue:push:done` не полагается на этот wrapper как на единственный strict-gate и вместо этого завершает собственный branch-aware/risky audit перед `git push`.
+- `issue:push:done` не подменяет этот wrapper для обычного push-path: вместо receipt-based range audit он завершает собственный branch-aware/risky strict gate и передаёт scoped approval artifact только на свой внутренний `git push`.
 
 ### Запуск
 ```bash
@@ -590,7 +590,8 @@ python3 ops/issue/lock_release_by_issue.py --issue-id 1037 --drop-issue --json
 - работает только на `dev`;
 - проверяет, что issue открыта;
 - проверяет отсутствие незапушенных коммитов с `Refs #<issue>`;
-- требует bound `gatesctl` receipt у последнего issue-коммита;
+- по умолчанию требует bound `gatesctl` receipt у последнего issue-коммита;
+- при вызове из `issue:push:done` принимает только scoped approval artifact той же issue/repo/branch/last_issue_commit и требует непустой `range` внутри артефакта;
 - выполняет обязательную проверку и release активных `lockctl` locks по `issue_id = GitHub issue id`;
 - закрывает issue через `gh issue close --comment`.
 
@@ -602,7 +603,7 @@ bash ops/issue/issue_done.sh --issue 1037
 ## issue_push_done.sh
 Единая связка remote-завершения задачи:
 - работает только на `dev`;
-- прогоняет `issue_audit_local --skip-gates-audit` для диапазона `@{upstream}..HEAD`;
+- прогоняет `issue_audit_local --skip-gates-audit --expected-issue <id>` для диапазона `@{upstream}..HEAD`;
 - проверяет, что рабочее дерево чистое;
 - проверяет, что issue `OPEN`;
 - валидирует отсутствие active `lockctl`-конфликтов по файлам commit-range;
@@ -610,8 +611,9 @@ bash ops/issue/issue_done.sh --issue 1037
 - для risky range запускает `autoreview_gate.sh`;
 - запускает `teamlead_orchestrator.sh --mode finish`;
 - проверяет acceptance checklist в issue (нет unchecked checkbox);
-- требует хотя бы один commit с `Refs #<id>` в push-range;
-- выполняет `git push` c explicit `PUNCTB_PUSH_GATE_APPROVED=YES`, затем вызывает `issue_done.sh` с тем же marker.
+- требует, чтобы весь push-range состоял из commit'ов одной issue `Refs #<id>`;
+- создаёт scoped approval artifact для конкретных `repo/branch/range/issue/last_issue_commit`;
+- выполняет `git push` с этим scoped artifact, затем вызывает `issue_done.sh` с тем же scoped artifact.
 
 ### Запуск
 ```bash
@@ -627,7 +629,8 @@ bash ops/issue/issue_push_done.sh --issue 1037
 Локальный wrapper для branch-aware аудита commit-range в `dev` (по умолчанию `@{upstream}..HEAD`):
 - сначала запускает `branch_policy_audit.py audit-range`;
 - по умолчанию затем вызывает `gates_verify_push.sh`, чтобы range без bound receipts не ушёл в push;
-- флаг `--skip-gates-audit` оставляет только branch-aware audit и используется из `issue:push:done`, где строгий gate переносится в сам push-wrapper.
+- опция `--expected-issue <id>` требует, чтобы все commit'ы диапазона ссылались на одну и ту же issue;
+- флаг `--skip-gates-audit` оставляет только branch-aware audit и используется из `issue:push:done` перед созданием scoped approval artifact.
 
 ### Запуск
 ```bash

@@ -9,6 +9,7 @@ resolver="$ops_home/ops/issue/lock_issue_resolver.py"
 docs_guard="$ops_home/ops/gates/docs_boundary_guard.sh"
 branch_policy="$ops_home/ops/issue/branch_policy_audit.py"
 gates_push_script="$ops_home/ops/gates/gates_verify_push.sh"
+approval_file="${PUNCTB_PUSH_GATE_APPROVAL_FILE:-}"
 
 if [[ ! -x "$resolver" ]]; then
   echo "[MISSING_RESOLVER] expected executable: $resolver" >&2
@@ -28,6 +29,65 @@ if [[ ! -x "$gates_push_script" ]]; then
 fi
 
 failed=0
+
+read_push_gate_approval() {
+  local file_path="$1"
+  local expected_repo_root="$2"
+  local expected_branch="$3"
+  local expected_range="$4"
+  python3 - "$file_path" "$expected_repo_root" "$expected_branch" "$expected_range" <<'PY'
+from datetime import datetime, timezone
+import json
+import re
+import sys
+
+file_path, expected_repo_root, expected_branch, expected_range = sys.argv[1:5]
+try:
+    with open(file_path, "r", encoding="utf-8") as fh:
+        payload = json.load(fh)
+except FileNotFoundError:
+    print("[PUSH_GATE_APPROVAL_MISSING] approval artifact not found", file=sys.stderr)
+    raise SystemExit(1)
+except Exception as exc:
+    print(f"[PUSH_GATE_APPROVAL_INVALID] cannot read approval artifact: {exc}", file=sys.stderr)
+    raise SystemExit(1)
+
+created_raw = str(payload.get("created_utc", "")).strip()
+try:
+    created_at = datetime.strptime(created_raw, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+except ValueError:
+    print("[PUSH_GATE_APPROVAL_INVALID] created_utc is missing or malformed", file=sys.stderr)
+    raise SystemExit(1)
+
+age_seconds = (datetime.now(timezone.utc) - created_at).total_seconds()
+if age_seconds < 0 or age_seconds > 900:
+    print("[PUSH_GATE_APPROVAL_STALE] approval artifact is older than 15 minutes", file=sys.stderr)
+    raise SystemExit(1)
+
+checks = (
+    ("repo_root", expected_repo_root),
+    ("branch", expected_branch),
+    ("range", expected_range),
+)
+for key, expected in checks:
+    actual = str(payload.get(key, "")).strip()
+    if actual != expected:
+        print(f"[PUSH_GATE_APPROVAL_MISMATCH] {key}={actual!r}, expected {expected!r}", file=sys.stderr)
+        raise SystemExit(1)
+
+issue_id = str(payload.get("issue_id", "")).strip()
+if not re.fullmatch(r"[1-9][0-9]*", issue_id):
+    print("[PUSH_GATE_APPROVAL_INVALID] issue_id is missing or malformed", file=sys.stderr)
+    raise SystemExit(1)
+
+last_issue_commit = str(payload.get("last_issue_commit", "")).strip()
+if not re.fullmatch(r"[0-9a-f]{40}", last_issue_commit):
+    print("[PUSH_GATE_APPROVAL_INVALID] last_issue_commit is missing or malformed", file=sys.stderr)
+    raise SystemExit(1)
+
+print(f"{issue_id}\t{last_issue_commit}")
+PY
+}
 
 while read -r local_ref local_sha remote_ref remote_sha; do
   if [[ -z "$local_ref" ]]; then
@@ -79,13 +139,42 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     continue
   fi
 
-  if ! python3 "$branch_policy" audit-range --target-branch "$target_branch" --range "$audit_range"; then
+  approval_issue_id=""
+  approval_last_issue_commit=""
+  if [[ -n "$approval_file" ]]; then
+    if ! approval_payload="$(read_push_gate_approval "$approval_file" "$repo_root" "$target_branch" "$audit_range")"; then
+      echo "[PRE_PUSH_APPROVAL_FAILED] range=$audit_range ref=$local_ref -> $remote_ref" >&2
+      failed=1
+      continue
+    fi
+    approval_issue_id="${approval_payload%%$'\t'*}"
+    approval_last_issue_commit="${approval_payload#*$'\t'}"
+  fi
+
+  audit_cmd=(python3 "$branch_policy" audit-range --target-branch "$target_branch" --range "$audit_range")
+  if [[ -n "$approval_issue_id" ]]; then
+    audit_cmd+=(--expected-issue "$approval_issue_id")
+  fi
+  if ! "${audit_cmd[@]}"; then
     echo "[PRE_PUSH_AUDIT_FAILED] range=$audit_range ref=$local_ref -> $remote_ref" >&2
     failed=1
     continue
   fi
 
-  if [[ "${PUNCTB_PUSH_GATE_APPROVED:-NO}" != "YES" ]]; then
+  if [[ -n "$approval_file" ]]; then
+    refs_pattern="^Refs #${approval_issue_id}$"
+    expected_last_issue_commit="$(git -C "$repo_root" log -n 1 --format=%H "$audit_range" --grep "$refs_pattern" --extended-regexp --regexp-ignore-case || true)"
+    if [[ -z "$expected_last_issue_commit" ]]; then
+      echo "[PRE_PUSH_APPROVAL_FAILED] no commit with ${refs_pattern} found in $audit_range" >&2
+      failed=1
+      continue
+    fi
+    if [[ "$expected_last_issue_commit" != "$approval_last_issue_commit" ]]; then
+      echo "[PRE_PUSH_APPROVAL_MISMATCH] last_issue_commit=${approval_last_issue_commit}, expected ${expected_last_issue_commit}" >&2
+      failed=1
+      continue
+    fi
+  else
     if ! bash "$gates_push_script" --target-branch "$target_branch" --range "$audit_range" >/dev/null; then
       echo "[PRE_PUSH_GATES_FAILED] range=$audit_range ref=$local_ref -> $remote_ref" >&2
       failed=1
