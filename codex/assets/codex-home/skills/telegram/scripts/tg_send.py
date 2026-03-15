@@ -3,7 +3,7 @@
 Send a text message via TDLib using the same config as the `tg` TUI client.
 
 Usage examples:
-  python3 tg_send.py --to @leotechru --text "hello"
+  python3 tg_send.py --to @LeoTechPro --text "hello"
   python3 tg_send.py --chat-id 123456 --text "hello"
   python3 tg_send.py --chat-id <forum_chat_id> --forum-topic-id <id> --text "hello topic"
 

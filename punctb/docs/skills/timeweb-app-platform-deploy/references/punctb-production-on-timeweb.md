@@ -7,7 +7,7 @@
 ## 1. Краткий вывод
 - `web` публикуется как отдельный Timeweb `Frontend App`.
 - `backend` больше не публикуется в Timeweb App Platform: актуальный production backend живёт на отдельном VDS `5.42.105.191`.
-- Production checkout backend на VDS: `/punctb` как отдельный clone `git@github.com:LeoTechRu/PunctB.git`, только ветка `main`.
+- Production checkout backend на VDS: `/punctb` как отдельный clone `git@github.com:LeoTechPro/PunctB.git`, только ветка `main`.
 - Для миграции backend старой платформы допускается второй отдельный clone `/punkt-b/backend` из `git@github.com:punktbDev/punktb.git`, только ветка `master`.
 - Dev-контур на `vds.intdata.pro` не мигрирует и запускается только через явные `*.dev.yml`.
 
