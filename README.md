@@ -1,15 +1,16 @@
 # intTools
 
-`intTools` — репозиторий вспомогательных утилит, скриптов и небольших подсистем `intData.pro`, не являющихся обязательной частью конкретных продуктовых репозиториев. Каждый каталог содержит автономный набор tooling-артефактов и инструкций. Основной принцип — конфигурация исключительно через переменные окружения и `.env` файлы, чтобы не хранить секреты в исходном коде.
+`intTools` — репозиторий `LeoTechPro/intTools` (канонический путь `/git/tools`) с вспомогательными утилитами, скриптами и подсистемами для `intData.pro`, не являющимися частью product-core репозиториев. Каждый каталог содержит автономный набор tooling-артефактов и инструкций. Основной принцип — конфигурация исключительно через переменные окружения и шаблоны `.env.example`, чтобы не хранить реальные значения в репозитории.
 
 Канонический путь этого репозитория — `/git/tools`; старое имя допустимо только в historical references и не должно использоваться в живых runtime-контрактах.
 
 ## Структура
 
 - `codex/` — versioned host-tooling для Codex/OpenClaw. Managed assets, bootstrap и policy лежат в репозитории; живой секретный слой вынесен в `/git/.runtime/codex-secrets`, а Codex-generated runtime/state остаётся в `~/.codex`.
-- `openclaw/` — versioned overlay для локального OpenClaw: helper scripts, systemd drop-ins и runbook'и; живой runtime должен жить в `~/.openclaw`, а не в git.
 - `probe/` — maintenance/audit утилиты для `Probe Monitor`, которые не нужны для boot prod-сервиса.
 - `punctb/` — внешний ops/tooling-контур проекта «Пункт Б»: `sync_punctb.py`, process-scripts, hooks, internal runbooks и skills, которые не должны жить в product repo `/git/punctb`.
+
+`openclaw/` — это legacy-слой, который оставлен как исторический архивный контур для decommission-перехода; живой runtime для него находится в `~/.openclaw` и не публикуется через этот репозиторий.
 
 Общее правило для этого репозитория: versioned исходники и инструкции храним здесь, а runtime outputs, логи, временные файлы и mutable state уезжают во внешние host-path.
 
@@ -73,7 +74,7 @@ pip install --upgrade pip
    - `SRC_HOST`, `SRC_PORT`, `SRC_DB`, `SRC_USER`, `SRC_PASSWORD`, `SRC_SSLMODE`
    - `DST_HOST`, `DST_PORT`, `DST_DB`, `DST_USER`, `DST_PASSWORD`, `DST_SSLMODE`, `DST_SSLROOTCERT`
 
-   Файл `.env` добавлен в `.gitignore` и не попадёт в репозиторий. При утечке значений немедленно измените пароли и токены на стороне баз данных.
+   Реальные значения кладите в локальный `punctb/.env`; `.env`-файлы не попадают в репозиторий. Перед публикацией всегда проверяйте наличие только шаблонов в `.env.example` и немедленно обновляйте креды во внешней системе при утечке.
 
 ### Запуск
 
