@@ -1,6 +1,8 @@
-# Скрипты автоматизации
+# intTools
 
-Репозиторий для вспомогательных сценариев, не привязанных к конкретной инфраструктуре. Каждый каталог содержит автономный набор утилит и инструкций. Основной принцип — конфигурация исключительно через переменные окружения и `.env` файлы, чтобы не хранить секреты в исходном коде.
+`intTools` — репозиторий вспомогательных утилит, скриптов и небольших подсистем `intData.pro`, не являющихся обязательной частью конкретных продуктовых репозиториев. Каждый каталог содержит автономный набор tooling-артефактов и инструкций. Основной принцип — конфигурация исключительно через переменные окружения и `.env` файлы, чтобы не хранить секреты в исходном коде.
+
+Канонический путь этого репозитория — `/git/tools`; старое имя допустимо только в historical references и не должно использоваться в живых runtime-контрактах.
 
 ## Структура
 
@@ -32,7 +34,7 @@ pip install --upgrade pip
 
 ## PunctB Ops Tooling
 
-`/git/scripts/punctb` теперь также хранит versioned process/ops/tooling для PunctB:
+`/git/tools/punctb` теперь также хранит versioned process/ops/tooling для PunctB:
 - `bin/punctb-ops` — единый launcher для `issue:*`, `release:*`, `teamlead:*` и других process-команд;
 - `ops/**` — process-scripts и gate wrappers, которые продукт вызывает через внешний ops-контур;
 - `docs/**` и `templates/**` — versioned internal docs, policy и шаблоны для ops/process use-cases;
@@ -42,8 +44,8 @@ pip install --upgrade pip
 Инварианты:
 - product repo `/git/punctb` не хранит versioned ops/tooling вроде `deploy`, `backend/scripts`, `.mcp.json`, `codex.skill` и старых внутренних repo-local process paths;
 - runtime scratch/log/tmp для PunctB ops и Codex живут вне git, по умолчанию в `~/.codex/tmp/punctb` и соседних host-path;
-- команды из product repo вызывают внешний контур через `PUNCTB_OPS_HOME=${PUNCTB_OPS_HOME:-/git/scripts/punctb}`.
-- для самого репозитория `/git/scripts` используем single-branch flow в `main`; dev/main promotion-контракт относится к продуктовым checkout, а не к этому репозиторию.
+- команды из product repo вызывают внешний контур через `PUNCTB_OPS_HOME=${PUNCTB_OPS_HOME:-/git/tools/punctb}`.
+- для самого репозитория `/git/tools` используем single-branch flow в `main`; dev/main promotion-контракт относится к продуктовым checkout, а не к этому репозиторию.
 
 ### Возможности
 
@@ -136,7 +138,7 @@ pip install --upgrade pip
 
 ## Вклад
 
-Добавляйте новые каталоги со скриптами, следуя правилам:
+Добавляйте новые каталоги с tooling-утилитами, следуя правилам:
 - Документация в общем `README.md` или в отдельном файле внутри каталога.
 - Настройки через `.env` с шаблоном `<module>/env`.
 - Никаких чувствительных данных, логов и runtime outputs в репозитории.

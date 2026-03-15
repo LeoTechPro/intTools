@@ -2,7 +2,7 @@
 
 Scope: `Probe Monitor` + `openclaw gateway`.
 
-Этот snapshot сохранён как historical reference после выноса audit-артефактов из `/git/probe` в `/git/scripts/probe`.
+Этот snapshot сохранён как historical reference после выноса audit-артефактов из `/git/probe` во внешний tooling-контур. Исторические пути ниже намеренно оставлены в старом виде `/git/scripts/...`; канонический путь после миграции — `/git/tools/...`.
 
 | Asset | Current Location | Git Status | Risk | Mitigation |
 |---|---|---|---|---|

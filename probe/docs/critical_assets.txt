@@ -30,9 +30,9 @@ ops/systemd/probe-lockctl.service
 ops/systemd/probe-lockctl.timer
 
 # Shared tooling outside /git/probe
-/git/scripts/probe/collect_audit.sh
-/git/scripts/codex/cleanup_agent_orphans.sh
-/git/scripts/codex/install_orphan_cleaner_cron.sh
+/git/tools/probe/collect_audit.sh
+/git/tools/codex/cleanup_agent_orphans.sh
+/git/tools/codex/install_orphan_cleaner_cron.sh
 
 # Host runtime/state outside git
 $HOME/.local/state/probe-monitor

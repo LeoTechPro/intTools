@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 
 
-MODULE_PATH = Path("/git/scripts/codex/bin/mcp-bizon365.py")
+MODULE_PATH = Path("/git/tools/codex/bin/mcp-bizon365.py")
 SPEC = importlib.util.spec_from_file_location("mcp_bizon365", MODULE_PATH)
 assert SPEC and SPEC.loader
 MODULE = importlib.util.module_from_spec(SPEC)

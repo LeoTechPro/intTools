@@ -30,7 +30,7 @@ ensure_dirs() {
   mkdir -p "$CACHE_DIR" "$LOG_DIR" "$MOUNT_ROOT/gdrive" "$MOUNT_ROOT/yadisk"
   if [[ ! -e "$RCLONE_CONFIG" ]]; then
     cat >"$RCLONE_CONFIG" <<'EOF'
-# Managed by /git/scripts/codex/cloud_access.sh
+# Managed by /git/tools/codex/cloud_access.sh
 # Run `RCLONE_CONFIG=/git/.runtime/cloud-access/rclone.conf rclone config`
 # to create the `gdrive` and `yadisk` remotes with headless OAuth.
 EOF

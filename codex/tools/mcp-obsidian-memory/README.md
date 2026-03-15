@@ -18,7 +18,7 @@
 ## Run
 
 ```bash
-cd /git/scripts/codex/tools/mcp-obsidian-memory
+cd /git/tools/codex/tools/mcp-obsidian-memory
 npm start
 ```
 
@@ -26,5 +26,5 @@ npm start
 
 ```bash
 /home/leon/.nvm/versions/node/v24.8.0/bin/node \
-  /git/scripts/codex/tools/mcp-obsidian-memory/scripts/smoke-client.mjs
+  /git/tools/codex/tools/mcp-obsidian-memory/scripts/smoke-client.mjs
 ```

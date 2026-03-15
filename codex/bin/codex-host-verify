@@ -58,12 +58,12 @@ def verify_config(issues: list[str]) -> None:
         return
     config_text = config_path.read_text(encoding="utf-8")
     required_fragments = [
-        "/git/scripts/codex/bin/mcp-github-from-gh.sh",
-        "/git/scripts/codex/bin/mcp-postgres-from-backend-env.sh",
-        "/git/scripts/codex/bin/mcp-obsidian-memory.sh",
-        "/git/scripts/codex/bin/mcp-timeweb.sh",
-        "/git/scripts/codex/bin/mcp-timeweb-readonly.sh",
-        "/git/scripts/codex/bin/mcp-bitrix24.sh",
+        "/git/tools/codex/bin/mcp-github-from-gh.sh",
+        "/git/tools/codex/bin/mcp-postgres-from-backend-env.sh",
+        "/git/tools/codex/bin/mcp-obsidian-memory.sh",
+        "/git/tools/codex/bin/mcp-timeweb.sh",
+        "/git/tools/codex/bin/mcp-timeweb-readonly.sh",
+        "/git/tools/codex/bin/mcp-bitrix24.sh",
         "/git/cloud/gdrive",
         "/git/cloud/yadisk",
         str(CODEX_HOME),

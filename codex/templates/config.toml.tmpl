@@ -59,7 +59,7 @@ hide_rate_limit_model_nudge = true
 "gpt-5.1-codex-mini" = "gpt-5.2-codex"
 
 [mcp_servers.github]
-command = "/git/scripts/codex/bin/mcp-github-from-gh.sh"
+command = "/git/tools/codex/bin/mcp-github-from-gh.sh"
 
 [mcp_servers.filesystem]
 command = "npx"
@@ -74,7 +74,7 @@ command = "npx"
 args = ["-y", "@modelcontextprotocol/server-filesystem", "/git/cloud/yadisk"]
 
 [mcp_servers.postgres]
-command = "/git/scripts/codex/bin/mcp-postgres-from-backend-env.sh"
+command = "/git/tools/codex/bin/mcp-postgres-from-backend-env.sh"
 
 [mcp_servers.playwright]
 command = "npx"
@@ -84,13 +84,13 @@ args = ["@playwright/mcp@latest"]
 url = "https://mcp.figma.com/mcp"
 
 [mcp_servers.obsidian_memory]
-command = "/git/scripts/codex/bin/mcp-obsidian-memory.sh"
+command = "/git/tools/codex/bin/mcp-obsidian-memory.sh"
 
 [mcp_servers.timeweb]
-command = "/git/scripts/codex/bin/mcp-timeweb.sh"
+command = "/git/tools/codex/bin/mcp-timeweb.sh"
 
 [mcp_servers.timeweb_readonly]
-command = "/git/scripts/codex/bin/mcp-timeweb-readonly.sh"
+command = "/git/tools/codex/bin/mcp-timeweb-readonly.sh"
 
 [mcp_servers.bitrix24]
-command = "/git/scripts/codex/bin/mcp-bitrix24.sh"
+command = "/git/tools/codex/bin/mcp-bitrix24.sh"

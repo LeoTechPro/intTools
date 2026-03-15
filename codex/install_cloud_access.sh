@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_ROOT="/git/scripts/codex"
+SCRIPT_ROOT="/git/tools/codex"
 SYSTEMD_ROOT="$HOME/.config/systemd/user"
 CANONICAL_SYSTEMD="$SCRIPT_ROOT/systemd"
 
@@ -17,7 +17,7 @@ cat <<'EOF'
 Cloud access runtime is prepared.
 
 Next steps:
-  1. Run `/git/scripts/codex/cloud_access.sh config`
+  1. Run `/git/tools/codex/cloud_access.sh config`
   2. Create remotes `gdrive` (drive) and `yadisk` (yandex)
   3. Start the mounts:
      systemctl --user start rclone-mount-gdrive.service

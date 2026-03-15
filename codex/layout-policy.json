@@ -41,17 +41,17 @@
     "session_index.jsonl.bak*"
   ],
   "required_repo_paths": [
-    "/git/scripts/codex/assets/codex-home/AGENTS.md",
-    "/git/scripts/codex/templates/config.toml.tmpl",
-    "/git/scripts/codex/bin/codex-host-bootstrap",
-    "/git/scripts/codex/bin/codex-host-verify",
-    "/git/scripts/codex/bin/codex-recovery-bundle",
-    "/git/scripts/codex/bin/mcp-github-from-gh.sh",
-    "/git/scripts/codex/bin/mcp-postgres-from-backend-env.sh",
-    "/git/scripts/codex/bin/mcp-obsidian-memory.sh",
-    "/git/scripts/codex/bin/mcp-timeweb.sh",
-    "/git/scripts/codex/bin/mcp-timeweb-readonly.sh",
-    "/git/scripts/codex/bin/mcp-bitrix24.sh",
+    "/git/tools/codex/assets/codex-home/AGENTS.md",
+    "/git/tools/codex/templates/config.toml.tmpl",
+    "/git/tools/codex/bin/codex-host-bootstrap",
+    "/git/tools/codex/bin/codex-host-verify",
+    "/git/tools/codex/bin/codex-recovery-bundle",
+    "/git/tools/codex/bin/mcp-github-from-gh.sh",
+    "/git/tools/codex/bin/mcp-postgres-from-backend-env.sh",
+    "/git/tools/codex/bin/mcp-obsidian-memory.sh",
+    "/git/tools/codex/bin/mcp-timeweb.sh",
+    "/git/tools/codex/bin/mcp-timeweb-readonly.sh",
+    "/git/tools/codex/bin/mcp-bitrix24.sh",
     "/git/openclaw/openclaw.json"
   ],
   "required_runtime_dirs": [
