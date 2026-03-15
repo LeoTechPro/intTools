@@ -34,3 +34,4 @@ bash /git/tools/openclaw/ops/verify.sh
 
 - [reinstall-and-restore.md](/git/tools/openclaw/docs/reinstall-and-restore.md)
 - [openclaw-concurrency-audit-2026-03-09.md](/git/tools/openclaw/docs/openclaw-concurrency-audit-2026-03-09.md)
+- [decommission-openclaw-2026-03-15.md](/git/tools/openclaw/reports/decommission-openclaw-2026-03-15.md)

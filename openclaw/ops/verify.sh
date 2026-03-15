@@ -23,6 +23,11 @@ trap 'rm -f "$TMP_STATUS"' EXIT
 
 openclaw gateway status --json --no-probe >"$TMP_STATUS"
 
+if ! command -v jq >/dev/null 2>&1; then
+  echo "openclaw verify: jq is required for config-path checks" >&2
+  exit 1
+fi
+
 systemctl --user cat openclaw-gateway.service | rg -n '/git/openclaw/bin/openclaw|/git/openclaw/node_modules|OPENCLAW_GATEWAY_TOKEN=' -S && {
   echo "openclaw verify: service still references legacy /git/openclaw runtime or embedded token" >&2
   exit 1
@@ -32,5 +37,10 @@ rg -n '"/git/openclaw/bin/openclaw"|"/git/openclaw/openclaw.json"|"/git/openclaw
   echo "openclaw verify: gateway status still reports legacy /git/openclaw paths" >&2
   exit 1
 } || true
+
+jq -e --arg openclawConfig "$HOME/.openclaw/openclaw.json" '.config.cli.path == $openclawConfig and .config.daemon.path == $openclawConfig' "$TMP_STATUS" >/dev/null || {
+  echo "openclaw verify: gateway status does not point to canonical ~/.openclaw/openclaw.json" >&2
+  exit 1
+}
 
 echo "openclaw verify: ok"
