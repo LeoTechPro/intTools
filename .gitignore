@@ -8,7 +8,7 @@ __pycache__/
 # env
 .env
 *.env
-**/*.env.*
+*.env.*
 !.env.example
 !*.env.example
 !**/*.env.example
@@ -19,3 +19,4 @@ __pycache__/
 # project env files
 **/.env
 **/*.log
+
