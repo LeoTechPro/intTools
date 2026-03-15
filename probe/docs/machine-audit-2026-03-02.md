@@ -8,13 +8,13 @@ Scope: `Probe Monitor` + `openclaw gateway`.
 |---|---|---|---|---|
 | Orphan cleaner logic | `/git/scripts/codex/cleanup_agent_orphans.sh` | Tracked | Script can be lost on host failure | Keep canonical script in `scripts/codex` and install cron from repo |
 | Orphan cleaner schedule | `crontab -l` (`probe-agent-orphan-cleaner`) | Outside git | Manual drift, duplicates, loss after rebuild | Manage via `/git/scripts/codex/install_orphan_cleaner_cron.sh` |
-| OpenClaw gateway unit | `~/.config/systemd/user/openclaw-gateway.service` | Outside git (generated) | Unit drift and non-reproducible setup | Keep canonical config in `tools/openclaw/openclaw.json`; restart via systemd |
-| OpenClaw runtime config | `~/.codex/tools/openclaw/openclaw.json` | Tracked by policy | Wrong ACL/runtimes can break bot routing | Keep config in critical assets and back up before edits |
-| OpenClaw runtime state | `~/.codex/tools/openclaw/state` | Ignored (runtime) | Session memory loss on disk failure | Include in runtime backup checklist |
+| OpenClaw gateway unit | `~/.config/systemd/user/openclaw-gateway.service` | Outside git (generated) | Unit drift and non-reproducible setup | Keep canonical drop-ins and runbooks in `/git/tools/openclaw`; restart via systemd |
+| OpenClaw runtime config | `~/.openclaw/openclaw.json` | Outside git (runtime) | Wrong ACL/runtimes can break bot routing | Keep live config in `~/.openclaw` and sync versioned tooling from `/git/tools/openclaw` |
+| OpenClaw runtime state | `~/.openclaw/state` | Outside git (runtime) | Session memory loss on disk failure | Include in runtime backup checklist |
 | Probe Monitor compose stack | `/git/probe/config/docker-compose.yml` | Tracked | Path hardcode blocks portability | Use env-driven runtime mounts and external state roots |
 | Fleet runtime data | `~/.local/share/probe-monitor/**` | Ignored (runtime) | Runtime loss on disk failure | Keep runtime artifacts outside git and document backup/restore |
 | Alert bridge state map | `~/.local/state/probe-monitor/topic_map.json` | Ignored (runtime) | Alert routing memory loss | Keep canonical state outside git and back it up separately |
-| Secrets (`.env`) | `/git/probe/.env`, `tools/openclaw/openclaw.json` | Tracked by policy | Secret exposure if repo leaked | Allowed by owner decision for private repo |
+| Secrets (`.env`) | `/git/probe/.env`, `~/.openclaw/secrets/*` | Mixed: tracked + runtime | Secret exposure if repo leaked or runtime backup is lost | Probe `.env` tracked by owner decision; OpenClaw secrets keep only in `~/.openclaw/secrets/` |
 
 ## Out of Scope Backlog
 

@@ -6,7 +6,7 @@ ROOT_DIR="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
 CODEX_RUNTIME_ROOT="${CODEX_RUNTIME_ROOT:-/git/.runtime}"
 CODEX_SECRETS_ROOT="${CODEX_SECRETS_ROOT:-$CODEX_RUNTIME_ROOT/codex-secrets}"
 CLOUD_ACCESS_ROOT="${CLOUD_ACCESS_ROOT:-$CODEX_RUNTIME_ROOT/cloud-access}"
-OPENCLAW_SECRETS_ROOT="${OPENCLAW_SECRETS_ROOT:-/git/openclaw/secrets}"
+OPENCLAW_SECRETS_ROOT="${OPENCLAW_SECRETS_ROOT:-$HOME/.openclaw/secrets}"
 PASS_ENV_VAR="CODEX_RECOVERY_PASSPHRASE"
 
 usage() {
@@ -40,13 +40,13 @@ case "$cmd" in
   export)
     tmp_dir="$(mktemp -d)"
     trap 'rm -rf "$tmp_dir"' EXIT
-    mkdir -p "$tmp_dir/git/.runtime" "$tmp_dir/git/openclaw"
+    mkdir -p "$tmp_dir/git/.runtime" "$tmp_dir/home/.openclaw"
     rsync -a "$CODEX_SECRETS_ROOT/" "$tmp_dir/git/.runtime/codex-secrets/"
     if [[ -f "$CLOUD_ACCESS_ROOT/rclone.conf" ]]; then
       mkdir -p "$tmp_dir/git/.runtime/cloud-access"
       rsync -a "$CLOUD_ACCESS_ROOT/rclone.conf" "$tmp_dir/git/.runtime/cloud-access/"
     fi
-    rsync -a "$OPENCLAW_SECRETS_ROOT/" "$tmp_dir/git/openclaw/secrets/"
+    rsync -a "$OPENCLAW_SECRETS_ROOT/" "$tmp_dir/home/.openclaw/secrets/"
     python3 - <<'PY' "$tmp_dir/manifest.json"
 from datetime import datetime, timezone
 from pathlib import Path
@@ -59,7 +59,7 @@ payload = {
     "paths": [
         "/git/.runtime/codex-secrets/",
         "/git/.runtime/cloud-access/rclone.conf",
-        "/git/openclaw/secrets/",
+        "~/.openclaw/secrets/",
     ],
 }
 manifest_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
@@ -81,8 +81,8 @@ PY
       mkdir -p "$CLOUD_ACCESS_ROOT"
       rsync -a "$tmp_dir/git/.runtime/cloud-access/rclone.conf" "$CLOUD_ACCESS_ROOT/"
     fi
-    if [[ -d "$tmp_dir/git/openclaw/secrets" ]]; then
-      rsync -a "$tmp_dir/git/openclaw/secrets/" "$OPENCLAW_SECRETS_ROOT/"
+    if [[ -d "$tmp_dir/home/.openclaw/secrets" ]]; then
+      rsync -a "$tmp_dir/home/.openclaw/secrets/" "$OPENCLAW_SECRETS_ROOT/"
     fi
     echo "imported recovery bundle from $bundle_path"
     ;;

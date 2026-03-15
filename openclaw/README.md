@@ -12,9 +12,9 @@
 Этот каталог хранит только versioned tooling:
 
 - `bin/` — helper wrapper'ы для доменных запросов;
-- `ops/` — install/verify helper'ы вокруг official install;
+- `ops/` — install/verify/restart helper'ы вокруг official install;
 - `systemd/` — versioned drop-in templates;
-- `docs/` — runbook'и по backup/reinstall/restore.
+- `docs/` — runbook'и и исторические audit-артефакты по migration/decommission.
 
 Инварианты:
 
@@ -33,3 +33,4 @@ bash /git/tools/openclaw/ops/verify.sh
 Основной runbook:
 
 - [reinstall-and-restore.md](/git/tools/openclaw/docs/reinstall-and-restore.md)
+- [openclaw-concurrency-audit-2026-03-09.md](/git/tools/openclaw/docs/openclaw-concurrency-audit-2026-03-09.md)

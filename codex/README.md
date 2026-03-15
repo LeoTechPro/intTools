@@ -1,7 +1,7 @@
 # Codex Scripts
 
 `codex/` хранит versioned host-tooling для Codex CLI и смежного MCP-окружения.
-Канонические wrapper'ы и install/runbook-обвязка живут здесь; OpenClaw вынесен в `/git/openclaw`, а managed assets для `~/.codex` лежат в `assets/codex-home/`.
+Канонические wrapper'ы и install/runbook-обвязка живут здесь; live runtime OpenClaw вынесен в `~/.openclaw`, а versioned overlay лежит в `/git/tools/openclaw`. Managed assets для `~/.codex` лежат в `assets/codex-home/`.
 
 ## Контракт
 
@@ -21,7 +21,8 @@
 
 - логи: `~/.codex/log/`
 - временные файлы: `~/.codex/tmp/`
-- OpenClaw runtime: `/git/openclaw/`
+- OpenClaw runtime: `~/.openclaw/`
+- OpenClaw overlay/runbooks: `/git/tools/openclaw/`
 - прочий Codex runtime/state: `~/.codex/`
 - Codex MCP secrets runtime: `/git/.runtime/codex-secrets/`
 - Cloud runtime: `/git/.runtime/cloud-access/`
@@ -48,7 +49,8 @@
 - `~/.codex` должен содержать только Codex-generated runtime/state и синхронизируемые managed-assets.
 - Наши wrapper'ы, templates и policy остаются в `/git/tools/codex`.
 - Живые секреты для MCP храним в `/git/.runtime/codex-secrets/`.
-- `OpenClaw` остаётся в `/git/openclaw`, а его секретный слой входит в recovery bundle.
+- `OpenClaw` runtime живёт в `~/.openclaw`, а versioned overlay остаётся в `/git/tools/openclaw`.
+- Секретный слой OpenClaw для recovery bundle берётся из `~/.openclaw/secrets/`.
 - `sync_runtime_from_repo.sh` теперь синхронизирует не только `assets/codex-home`, но и tracked `projects/`.
 
 ### Базовая процедура восстановления
@@ -57,7 +59,7 @@
 2. Восстановить секретный слой через `codex-recovery-bundle import`.
 3. Запустить `/git/tools/codex/bin/codex-host-bootstrap`.
 4. При необходимости выполнить `codex login`.
-5. Проверить контур через `/git/tools/codex/bin/codex-host-verify` и `/git/openclaw/ops/verify.sh`.
+5. Проверить контур через `/git/tools/codex/bin/codex-host-verify` и `/git/tools/openclaw/ops/verify.sh`.
 
 ## Cloud Access
 

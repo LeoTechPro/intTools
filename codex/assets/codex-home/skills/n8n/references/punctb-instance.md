@@ -4,8 +4,8 @@
 
 - URL: `https://n8n.punctb.pro`
 - Health endpoint: `https://n8n.punctb.pro/healthz`
-- API key (owner-provided):
-  - `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzMzVjNDBiMS04MzVlLTQ1MzQtOTRlNy04OWMxOTM2Y2VlMjMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiZDdhMDFjMzAtMTZjMy00YThjLThjYTQtNGJlMzAxZGYyZmNiIiwiaWF0IjoxNzcxNTk3NjMzfQ.t-IX4bOitMQGBlzgRcbC8rgyhkhfEN5In8BJ41Ceduw`
+- API key:
+  - `N8N_API_KEY` should be set via local environment only (например, `export N8N_API_KEY=<SECRET>`).
 - Container name: `n8n`
 - Compose file: `/opt/n8n/docker-compose.yml`
 - Env file: `/opt/n8n/.env`
@@ -102,7 +102,7 @@ curl -fsS https://n8n.punctb.pro/healthz
 Owner provided default for this instance:
 
 ```bash
-export N8N_API_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzMzVjNDBiMS04MzVlLTQ1MzQtOTRlNy04OWMxOTM2Y2VlMjMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiZDdhMDFjMzAtMTZjMy00YThjLThjYTQtNGJlMzAxZGYyZmNiIiwiaWF0IjoxNzcxNTk3NjMzfQ.t-IX4bOitMQGBlzgRcbC8rgyhkhfEN5In8BJ41Ceduw'
+export N8N_API_KEY="${N8N_API_KEY:-<SECRET>}"
 ```
 
 Example endpoints:
@@ -112,7 +112,7 @@ curl -sS -H "X-N8N-API-KEY: $N8N_API_KEY" https://n8n.punctb.pro/api/v1/workflow
 curl -sS -H "X-N8N-API-KEY: $N8N_API_KEY" "https://n8n.punctb.pro/api/v1/executions?limit=20" | jq
 ```
 
-Key is intentionally stored here by explicit owner request.
+Key must be injected via environment; do not persist in docs/repo history.
 
 ## 7) Backup / Restore
 

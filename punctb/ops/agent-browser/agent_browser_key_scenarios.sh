@@ -5,16 +5,16 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$(cd "$script_dir/../lib" && pwd)/common.sh"
 
 BASE_URL="${BASE_URL:-https://dev.punctb.pro}"
-WORKSPACE_PASSWORD="${WORKSPACE_PASSWORD:-REDACTED}"
+WORKSPACE_PASSWORD="${WORKSPACE_PASSWORD:-<SECRET>}"
 
-ADMIN_EMAIL="${ADMIN_EMAIL:-qa.admin02@punctb.test}"
-SPECIALIST_EMAIL="${SPECIALIST_EMAIL:-demo.manager90@punctb.test}"
-CLIENT_EMAIL="${CLIENT_EMAIL:-client.specialist02@punctb.test}"
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin.demo@punctb.test}"
+SPECIALIST_EMAIL="${SPECIALIST_EMAIL:-specialist.demo@punctb.test}"
+CLIENT_EMAIL="${CLIENT_EMAIL:-client.demo@punctb.test}"
 
 PUBLIC_CLIENT_FIRST_NAME="${PUBLIC_CLIENT_FIRST_NAME:-Тестовый}"
 PUBLIC_CLIENT_FAMILY_NAME="${PUBLIC_CLIENT_FAMILY_NAME:-Клиент}"
-PUBLIC_CLIENT_PHONE="${PUBLIC_CLIENT_PHONE:-+7 901 444 55 66}"
-PUBLIC_CLIENT_EMAIL="${PUBLIC_CLIENT_EMAIL:-qa.public.new.client@punctb.test}"
+PUBLIC_CLIENT_PHONE="${PUBLIC_CLIENT_PHONE:-+7 900 000 00 00}"
+PUBLIC_CLIENT_EMAIL="${PUBLIC_CLIENT_EMAIL:-public.demo@punctb.test}"
 
 normalize_base_url() {
   printf '%s' "${1%/}"

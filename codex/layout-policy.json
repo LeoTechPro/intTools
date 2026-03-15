@@ -52,13 +52,13 @@
     "/git/tools/codex/bin/mcp-timeweb.sh",
     "/git/tools/codex/bin/mcp-timeweb-readonly.sh",
     "/git/tools/codex/bin/mcp-bitrix24.sh",
-    "/git/openclaw/openclaw.json"
+    "/git/tools/openclaw/ops/install.sh",
+    "/git/tools/openclaw/ops/verify.sh"
   ],
   "required_runtime_dirs": [
     "/git/.runtime/codex-secrets",
     "/git/.runtime/cloud-access",
     "/git/cloud/gdrive",
-    "/git/cloud/yadisk",
-    "/git/openclaw/secrets"
+    "/git/cloud/yadisk"
   ]
 }

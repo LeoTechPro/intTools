@@ -102,7 +102,7 @@ metadata:
 Для задач через Telegram-ботов использовать текущий контур:
 - `@AgentIDClawBot` (`OpenClaw`) как мост задач.
 - `@intProbeBot` (`Probe Monitor`) как watcher/алерт-канал.
-- Конфигурация runtime: `/git/openclaw/openclaw.json`.
+- Конфигурация runtime: `~/.openclaw/openclaw.json`.
 - Сервис: `systemctl --user status openclaw-gateway.service --no-pager`.
 
 Если пользователь просит операции Bot API вручную, не возвращаться к старому мосту; работать через OpenClaw-конфиг и его runtime-политики.

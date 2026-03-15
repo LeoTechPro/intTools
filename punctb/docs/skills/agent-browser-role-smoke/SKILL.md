@@ -23,9 +23,9 @@ For business-priority checks (client full diag + specialist/admin key flows), us
 Environment variables:
 - `BASE_URL` (default: `https://punctb.pro`)
 - `WORKSPACE_PASSWORD` (default for e2e smoke context)
-- `ADMIN_EMAIL` (default: `qa.admin02@punctb.test`)
-- `SPECIALIST_EMAIL` (default: `demo.manager90@punctb.test`)
-- `CLIENT_EMAIL` (default: `client.specialist02@punctb.test`)
+- `ADMIN_EMAIL` (default: `admin.demo@punctb.test`)
+- `SPECIALIST_EMAIL` (default: `specialist.demo@punctb.test`)
+- `CLIENT_EMAIL` (default: `client.demo@punctb.test`)
 - `REPORT_PATH` (optional; default in `~/.codex/tmp/punctb`)
 
 ## Run
@@ -37,9 +37,9 @@ Custom accounts/base URL:
 ```bash
 BASE_URL=https://punctb.pro \
 WORKSPACE_PASSWORD='******' \
-ADMIN_EMAIL='qa.admin02@punctb.test' \
-SPECIALIST_EMAIL='demo.manager90@punctb.test' \
-CLIENT_EMAIL='client.specialist02@punctb.test' \
+ADMIN_EMAIL='admin.demo@punctb.test' \
+SPECIALIST_EMAIL='specialist.demo@punctb.test' \
+CLIENT_EMAIL='client.demo@punctb.test' \
 bash ops/agent-browser/agent_browser_role_smoke.sh
 ```
 
@@ -58,8 +58,8 @@ What this suite validates:
 Extra env for public new-client scenario:
 - `PUBLIC_CLIENT_FIRST_NAME` (default `Тестовый`)
 - `PUBLIC_CLIENT_FAMILY_NAME` (default `Клиент`)
-- `PUBLIC_CLIENT_PHONE` (default `+7 901 444 55 66`)
-- `PUBLIC_CLIENT_EMAIL` (default `qa.public.new.client@punctb.test`)
+- `PUBLIC_CLIENT_PHONE` (default `+7 900 000 00 00`)
+- `PUBLIC_CLIENT_EMAIL` (default `public.demo@punctb.test`)
 
 ## Process Gate Mode
 Use the process runner to integrate this into role pipelines:

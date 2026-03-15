@@ -87,7 +87,7 @@ Ambiguity считается значимой только при неяснос
 - Если применение миграции входит в исходную задачу и контур локальный, `devops-role` выполняет миграцию без отдельной команды владельца.
 
 ## Telegram (OpenClaw)
-- Использовать runtime: `openclaw-gateway.service` + `/git/openclaw/openclaw.json`.
+- Использовать runtime: `openclaw-gateway.service` + `~/.openclaw/openclaw.json`.
 - Legacy bridge `/home/leon/.codex/tools/telegram_bridge` удалён и больше не используется.
 - Доступ `exec/write/process` разрешён только владельцу (по allowlist в OpenClaw-конфиге).
 - Мониторинг и алерты идут через `/git/probe/bridge/probe_bridge.py` в `@AgentIntDataBot`.

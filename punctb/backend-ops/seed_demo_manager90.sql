@@ -1,4 +1,4 @@
--- Demo dataset for specialist demo.manager90@punctb.test
+-- Demo dataset for specialist seed-001@punctb.test
 -- Creates ~10 clients with 4-5 diagnostic results each so the new React UI can be demonstrated.
 -- Usage (adjust connection string as needed):
 --   psql postgresql://supabase_admin:***@localhost:5432/punctbpro -f backend/scripts/seed_demo_manager90.sql
@@ -33,13 +33,13 @@ ON CONFLICT (id) DO UPDATE
 
 DO $$
 DECLARE
-  v_specialist_email constant text := 'demo.manager90@punctb.test';
+  v_specialist_email constant text := 'seed-002@punctb.test';
   v_specialist_id uuid;
   v_clients jsonb := $_clients$[
     {
       "name": "Анна Карева",
-      "email": "demo.client01@punctb.test",
-      "phone": "+7 (999) 100-01-01",
+      "email": "seed-003@punctb.test",
+      "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": true,
       "diagnostics": [
@@ -52,8 +52,8 @@ DECLARE
     },
     {
       "name": "Борис Лоскутов",
-      "email": "demo.client02@punctb.test",
-      "phone": "+7 (999) 100-01-02",
+      "email": "seed-004@punctb.test",
+      "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": true,
       "diagnostics": [
@@ -66,8 +66,8 @@ DECLARE
     },
     {
       "name": "Виктория Нестерова",
-      "email": "demo.client03@punctb.test",
-      "phone": "+7 (999) 100-01-03",
+      "email": "seed-005@punctb.test",
+      "phone": "+7 (900) 000-00-00",
       "contact_permission": false,
       "is_phone_adult": true,
       "diagnostics": [
@@ -80,8 +80,8 @@ DECLARE
     },
     {
       "name": "Глеб Савинов",
-      "email": "demo.client04@punctb.test",
-      "phone": "+7 (999) 100-01-04",
+      "email": "seed-006@punctb.test",
+      "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": true,
       "diagnostics": [
@@ -94,8 +94,8 @@ DECLARE
     },
     {
       "name": "Дарья Селиванова",
-      "email": "demo.client05@punctb.test",
-      "phone": "+7 (999) 100-01-05",
+      "email": "seed-007@punctb.test",
+      "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": false,
       "diagnostics": [
@@ -108,8 +108,8 @@ DECLARE
     },
     {
       "name": "Егор Матвеев",
-      "email": "demo.client06@punctb.test",
-      "phone": "+7 (999) 100-01-06",
+      "email": "seed-008@punctb.test",
+      "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": true,
       "diagnostics": [
@@ -122,8 +122,8 @@ DECLARE
     },
     {
       "name": "Жанна Лазарева",
-      "email": "demo.client07@punctb.test",
-      "phone": "+7 (999) 100-01-07",
+      "email": "seed-009@punctb.test",
+      "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": true,
       "diagnostics": [
@@ -136,8 +136,8 @@ DECLARE
     },
     {
       "name": "Зоя Полянская",
-      "email": "demo.client08@punctb.test",
-      "phone": "+7 (999) 100-01-08",
+      "email": "seed-010@punctb.test",
+      "phone": "+7 (900) 000-00-00",
       "contact_permission": false,
       "is_phone_adult": true,
       "diagnostics": [
@@ -150,8 +150,8 @@ DECLARE
     },
     {
       "name": "Илья Романов",
-      "email": "demo.client09@punctb.test",
-      "phone": "+7 (999) 100-01-09",
+      "email": "seed-011@punctb.test",
+      "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": true,
       "diagnostics": [
@@ -164,8 +164,8 @@ DECLARE
     },
     {
       "name": "Кира Шевцова",
-      "email": "demo.client10@punctb.test",
-      "phone": "+7 (999) 100-01-10",
+      "email": "seed-012@punctb.test",
+      "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": false,
       "diagnostics": [

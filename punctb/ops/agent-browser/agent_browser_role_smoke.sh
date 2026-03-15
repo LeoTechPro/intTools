@@ -5,11 +5,11 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$(cd "$script_dir/../lib" && pwd)/common.sh"
 
 BASE_URL="${BASE_URL:-https://dev.punctb.pro}"
-WORKSPACE_PASSWORD="${WORKSPACE_PASSWORD:-REDACTED}"
+WORKSPACE_PASSWORD="${WORKSPACE_PASSWORD:-<SECRET>}"
 
-ADMIN_EMAIL="${ADMIN_EMAIL:-qa.admin02@punctb.test}"
-SPECIALIST_EMAIL="${SPECIALIST_EMAIL:-demo.manager90@punctb.test}"
-CLIENT_EMAIL="${CLIENT_EMAIL:-client.specialist02@punctb.test}"
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin.demo@punctb.test}"
+SPECIALIST_EMAIL="${SPECIALIST_EMAIL:-specialist.demo@punctb.test}"
+CLIENT_EMAIL="${CLIENT_EMAIL:-client.demo@punctb.test}"
 
 normalize_base_url() {
   printf '%s' "${1%/}"

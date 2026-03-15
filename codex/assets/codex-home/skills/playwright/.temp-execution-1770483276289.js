@@ -5,7 +5,10 @@
 const { chromium } = require('playwright');
 
 const TARGET_URL = 'https://punctb.pro';
-const ACCOUNT = { email: 'specialist@punctb.pro', password: 'REDACTED' };
+const ACCOUNT = {
+  email: process.env.WORKSPACE_EMAIL || 'user.example@punctb.test',
+  password: process.env.WORKSPACE_PASSWORD || '<SECRET>',
+};
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 

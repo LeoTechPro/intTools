@@ -59,7 +59,7 @@ if (( verify_only == 0 )); then
   fi
 
   if (( skip_openclaw == 0 )); then
-    /git/openclaw/ops/install.sh
+    /git/tools/openclaw/ops/install.sh
   fi
 
   if (( skip_cloud == 0 )); then
