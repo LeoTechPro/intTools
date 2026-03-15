@@ -35,16 +35,18 @@ rg -n "/git/openclaw" /git/README.md /git/tools /git/openclaw \
 На момент аудита критичных runtime-ссылок на `/git/openclaw` в активных контуров нет.  
 Оставшиеся вхождения — исторические или целевые guard-проверки.
 
-## Что нужно сделать перед фактическим `rm -rf /git/openclaw`
+## Результат post-delete проверки
 
-1. Принять решение по архиву `.openclaw` исторических артефактов (`runtime/logs`, `workspace`, `state`) в `/git/openclaw`:
-   - переместить в `/git/.archive/openclaw-*` или явно пометить как исторические;
-   - зафиксировать, что recovery/bootstrap их больше не использует.
-2. Сделать dry-run backup целевого дерева.
-3. Запросить подтверждение на удаление GitHub-репозитория `LeoTechPro/openclaw`.
+- `/git/openclaw` уже отсутствует физически.
+- `/git/.archive/openclaw-decommission-2026-03-15.tar.gz` создан.
+- Архивы/исторические артефакты также сохранены в:
+  - `/git/.archive/openclaw-systemd-legacy`
+  - `/git/.archive/openclaw-workspace-git-20260315T091047Z`
+- Ключевые active контуры не содержат runtime references на `/git/openclaw`.
+- Дополнительный smoke-этап:
+  - `bash /git/tools/openclaw/ops/verify.sh` — проходит.
+  - `bash /git/tools/codex/bin/codex-host-bootstrap --verify-only` — блокируется внешней инфраструктурной ошибкой mount `/git/cloud/yadisk`, не относящейся к decommission.
 
 ## Следующий шаг
 
-- После подтверждения выполнить инвентарный backup:
-  - `tar -czf /git/.archive/openclaw-decommission-2026-03-15.tar.gz /git/openclaw`
-- Сделать `rm -rf /git/openclaw` только после ручного green-light.
+- Отдельная задача: удалить удалённый репозиторий `LeoTechPro/openclaw` после ручного подтверждения владельца.

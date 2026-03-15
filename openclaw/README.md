@@ -2,6 +2,8 @@
 
 `/git/tools/openclaw` — versioned overlay для локального OpenClaw.
 
+`/git/openclaw` уже decommissioned и больше не является runtime-источником; исторические артефакты сохранены в `/git/.archive` и в отчётах decommission.
+
 Канонический runtime теперь должен жить вне git:
 
 - binary: `openclaw` из глобального install (`npm/pnpm/bun`)
