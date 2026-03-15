@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="${GATESCTL_REPO_ROOT:-}"
+if [[ -z "$repo_root" ]]; then
+  echo "[GATESCTL_REPO_ROOT_REQUIRED] export GATESCTL_REPO_ROOT=/path/to/repo-checkout" >&2
+  exit 1
+fi
+
+target_branch_override="${GATESCTL_TARGET_BRANCH:-}"
+
+while read -r old_sha new_sha ref_name; do
+  [[ -n "$ref_name" ]] || continue
+  if [[ "$ref_name" != refs/heads/* ]]; then
+    continue
+  fi
+
+  target_branch="${ref_name#refs/heads/}"
+  if [[ -n "$target_branch_override" ]]; then
+    target_branch="$target_branch_override"
+  fi
+
+  if [[ "$target_branch" != "dev" && "$target_branch" != "main" ]]; then
+    echo "[PRE_RECEIVE_BRANCH_REJECTED] target branch must be dev or main, got ${target_branch}" >&2
+    exit 1
+  fi
+
+  if [[ "$new_sha" =~ ^0+$ ]]; then
+    continue
+  fi
+
+  if [[ "$old_sha" =~ ^0+$ ]]; then
+    root_sha="$(git -C "$repo_root" rev-list --max-parents=0 "$new_sha" | tail -n 1)"
+    audit_range="${root_sha}..${new_sha}"
+  else
+    audit_range="${old_sha}..${new_sha}"
+  fi
+
+  if ! gatesctl audit-range --repo-root "$repo_root" --target-branch "$target_branch" --range "$audit_range" >/dev/null; then
+    echo "[PRE_RECEIVE_GATES_FAILED] range=${audit_range} ref=${ref_name}" >&2
+    exit 1
+  fi
+done
+
+exit 0
