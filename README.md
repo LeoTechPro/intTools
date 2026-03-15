@@ -7,6 +7,7 @@
 ## Структура
 
 - `codex/` — versioned host-tooling для Codex/OpenClaw. Managed assets, bootstrap и policy лежат в репозитории; живой секретный слой вынесен в `/git/.runtime/codex-secrets`, а Codex-generated runtime/state остаётся в `~/.codex`.
+- `openclaw/` — versioned overlay для локального OpenClaw: helper scripts, systemd drop-ins и runbook'и; живой runtime должен жить в `~/.openclaw`, а не в git.
 - `probe/` — maintenance/audit утилиты для `Probe Monitor`, которые не нужны для boot prod-сервиса.
 - `punctb/` — внешний ops/tooling-контур проекта «Пункт Б»: `sync_punctb.py`, process-scripts, hooks, internal runbooks и skills, которые не должны жить в product repo `/git/punctb`.
 
