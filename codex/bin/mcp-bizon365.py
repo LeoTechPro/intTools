@@ -12,7 +12,13 @@ from mcp.server.fastmcp import FastMCP
 from mcp.types import ToolAnnotations
 
 
-DEFAULT_ENV_PATH = Path.home() / ".codex" / "var" / "bizon365-punctb.env"
+def resolve_default_env_path() -> Path:
+    primary = Path(os.environ.get("CODEX_SECRETS_ROOT", "/git/.runtime/codex-secrets")) / "bizon365-punctb.env"
+    legacy = Path.home() / ".codex" / "var" / "bizon365-punctb.env"
+    return primary if primary.exists() else legacy
+
+
+DEFAULT_ENV_PATH = resolve_default_env_path()
 DEFAULT_DOWNLOAD_DIR = Path.home() / ".codex" / "tmp" / "bizon365" / "downloads"
 DEFAULT_PROFILE_ROLES = {"codex": "operator", "openclaw": "admin"}
 ROLE_ORDER = {"viewer": 0, "operator": 1, "admin": 2}

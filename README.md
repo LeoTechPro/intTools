@@ -4,11 +4,13 @@
 
 ## Структура
 
-- `codex/` — versioned host-tooling для Codex/OpenClaw. Runtime/log/tmp этого домена живут в `~/.codex`, а не в git.
+- `codex/` — versioned host-tooling для Codex/OpenClaw. Managed assets, bootstrap и policy лежат в репозитории; живой секретный слой вынесен в `/git/.runtime/codex-secrets`, а Codex-generated runtime/state остаётся в `~/.codex`.
 - `probe/` — maintenance/audit утилиты для `Probe Monitor`, которые не нужны для boot prod-сервиса.
 - `punctb/` — внешний ops/tooling-контур проекта «Пункт Б»: `sync_punctb.py`, process-scripts, hooks, internal runbooks и skills, которые не должны жить в product repo `/git/punctb`.
 
 Общее правило для этого репозитория: versioned исходники и инструкции храним здесь, а runtime outputs, логи, временные файлы и mutable state уезжают во внешние host-path.
+
+Исключение по явному решению владельца: cloud-access контур для `rclone` держит mountpoints и runtime config в `/git/.runtime/cloud-access` и `/git/cloud/*`, а secret runtime Codex/MCP держится в `/git/.runtime/codex-secrets`, чтобы восстановление рабочей машины шло из `/git` без раскладывания кастомных env по `~/.codex`.
 
 ## Требования
 

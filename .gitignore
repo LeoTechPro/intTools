@@ -13,3 +13,4 @@ __pycache__/
 
 # project env files
 **/.env
+**/*.log

@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "bizon365": {
+      "command": "bash",
+      "args": [
+        "-lc",
+        "set -a; if [ -f /git/.runtime/codex-secrets/bizon365-punctb.env ]; then . /git/.runtime/codex-secrets/bizon365-punctb.env; elif [ -f \"$HOME/.codex/var/bizon365-punctb.env\" ]; then . \"$HOME/.codex/var/bizon365-punctb.env\"; fi; set +a; export BIZON365_MCP_CLIENT_PROFILE=\"${BIZON365_MCP_CLIENT_PROFILE:-codex}\"; exec python3 /git/scripts/codex/bin/mcp-bizon365.py"
+      ]
+    },
+    "salebot": {
+      "command": "node",
+      "args": [
+        "/git/scripts/codex/bin/mcp-salebot.mjs"
+      ]
+    },
+    "playwright-test": {
+      "command": "npx",
+      "args": [
+        "playwright",
+        "run-test-mcp-server"
+      ]
+    }
+  }
+}

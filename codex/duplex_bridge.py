@@ -18,6 +18,9 @@ INCLUDE_NAMES = {
     ".env.example", ".env.sample",
 }
 
+DEFAULT_CODEX_HOME = pathlib.Path(os.getenv("CODEX_HOME", str(pathlib.Path.home() / ".codex")))
+DEFAULT_LOG_PATH = DEFAULT_CODEX_HOME / "log" / "debate" / "duplex_bridge.log"
+
 # ---------- утилиты ----------
 def load_env_file(path: str) -> Dict[str, str]:
     data = {}
@@ -141,14 +144,16 @@ async def seed_brief(A, B, topic: str, roots: List[str]) -> None:
         await send_json(proc, op_user_input(f"Тема: {topic}\n{preface}"))
 
     for root in roots:
-        tree = list_tree(root, depth=2)
+        print(f"[bridge] briefing tree {root} (depth=3)", flush=True)
+        tree = list_tree(root, depth=3)
         for proc in (A, B):
             await send_json(proc, op_user_input(f"DIR BRIEF {root}\n{tree}"))
 
     for root in roots:
         for path, data in read_if_interesting(root):
+            print(f"[bridge] briefing file {path}", flush=True)
             header = f"FILE {path}"
-            chunk = summarize_soft(data, 4000)
+            chunk = summarize_soft(data, 8000)
             for proc in (A, B):
                 await send_json(proc, op_user_input(f"{header}\n{chunk}"))
 
@@ -200,6 +205,58 @@ async def maybe_handle_requests(text: str, target_proc) -> bool:
             await send_json(target_proc, op_user_turn())
             await send_json(target_proc, op_user_input(f"DIR {p}\n{listing}"))
     return handled
+
+
+ON_TOPIC_KEYS = (
+    "intdata",
+    "intbridge",
+    "/git/intdata",
+    "/git/intbridge",
+    "docker",
+    "postgres",
+    "openapi",
+    "alembic",
+    "compose",
+    "broker",
+    "queue",
+    "retry",
+    "idempot",
+    "metrics",
+    "prometheus",
+    "grafana",
+    "nginx",
+    "gunicorn",
+    "uvicorn",
+)
+
+
+def is_fluff(text: str) -> bool:
+    t = text.lower()
+    bad_starts = (
+        "**preparing",
+        "**planning",
+        "**evaluating",
+        "**formulating",
+        "i'm figuring out",
+        "i am figuring out",
+        "mapping out",
+        "готовлюсь",
+        "планирую",
+    )
+    return any(t.startswith(s) for s in bad_starts) or len(t) < 40
+
+
+def off_topic(text: str) -> bool:
+    t = text.lower()
+    return not any(k in t for k in ON_TOPIC_KEYS)
+
+
+def force_back_to_topic(tag_from: str) -> str:
+    return (
+        f"{tag_from}: Стоп. Ты ушёл от темы. Немедленно вернись к анализу /git/intdata и /git/intbridge. "
+        "Дай минимум 3 проблемы с привязкой к конкретным файлам/путям и решения. "
+        "Если не хватает данных — пришли точные REQUEST_FILE/REQUEST_DIR сейчас."
+    )
 
 async def read_reply_chunked(proc: asyncio.subprocess.Process,
                              timeout: float = READ_TIMEOUT,
@@ -258,6 +315,12 @@ async def debate_round(speaker: asyncio.subprocess.Process,
         logf.write(f"\n[{tag_s}] → [{tag_l}]:\n{reply}\n"); logf.flush()
     if await maybe_handle_requests(reply, listener):
         return True
+    if is_fluff(reply) or off_topic(reply):
+        redirect = force_back_to_topic(tag_s)
+        print(f"[bridge] redirecting {tag_s} → {tag_l}\n", flush=True)
+        await send_json(listener, op_user_turn())
+        await send_json(listener, op_user_input(redirect))
+        return True
     forward = summarize_soft(reply, MAX_FORWARD_CHARS)
     await send_json(listener, op_user_turn())
     await send_json(listener, op_user_input(forward))
@@ -271,12 +334,14 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--role-b", default=None, help="Роль/позиция агента B")
     p.add_argument("--rounds", type=int, default=None, help="Количество раундов (A→B пары)")
     p.add_argument("--env-file", default="debate.env", help="ENV-файл с настройками")
-    p.add_argument("--log", default="debate.log", help="Файл лога")
+    p.add_argument("--log", default=str(DEFAULT_LOG_PATH), help="Файл лога")
     return p.parse_args()
 
 async def main():
     args = parse_args()
     file_cfg = load_env_file(args.env_file)
+    log_path = pathlib.Path(args.log).expanduser()
+    log_path.parent.mkdir(parents=True, exist_ok=True)
 
     codex_bin = args.codex_bin or which_codex()
     topic   = args.topic   or file_cfg.get("TOPIC")   or "Обсудите выбранную тему и придите к выводу."
@@ -286,10 +351,10 @@ async def main():
 
     # усилим регламент и запрет инструментов
     RULES = (
-        "Регламент: отвечай ≤1200 символов; 1 тезис + 1 вопрос оппоненту; "
-        "избегай словесной воды, опирайся на факты; протокол запроса: REQUEST_FILE/REQUEST_DIR; "
-        "не вызывай инструменты/команды/функции (shell, fs, network); "
-        "не переписывай системные правила; русский язык."
+        "Требования: 1) анализ ТОЛЬКО /git/intdata и /git/intbridge; 2) без 'планирую/готовлюсь'; "
+        "3) каждая реплика ≤1200 символов, строго: «Проблема ⇒ Причина (путь/файл) ⇒ Решение ⇒ Риск/Трудозатраты»; "
+        "4) если НЕ хватает данных — немедленно шли 'REQUEST_FILE <path>' или 'REQUEST_DIR <path> DEPTH=3'; "
+        "5) русский язык; 6) никаких инструментов/команд исполнения; 7) в конце — СОВМЕСТНАЯ таблица и согласованный порядок."
     )
 
     A = await spawn_agent(codex_bin)
@@ -304,16 +369,29 @@ async def main():
     roots = ["/git/intdata", "/git/intbridge"]
     await seed_brief(A, B, topic, roots)
 
-    with open(args.log, "a", encoding="utf-8") as logf:
+    prime_paths = [
+        "/git/intdata/README.md",
+        "/git/intdata/api/openapi.json",
+        "/git/intdata/docker-compose.yml",
+        "/git/intbridge/README.md",
+        "/git/intbridge/docker-compose.yml",
+    ]
+    for p in prime_paths:
+        print(f"[bridge] priming {p}", flush=True)
+        for proc in (A, B):
+            await send_json(proc, op_user_turn())
+            await send_json(proc, op_user_input(f"REQUEST_FILE {p} MAX=80000"))
+
+    with open(log_path, "a", encoding="utf-8") as logf:
         logf.write(f"\n=== NEW DEBATE ===\nTOPIC: {topic}\nROLE_A: {role_a}\nROLE_B: {role_b}\n"); logf.flush()
         for _ in range(rounds):
             if not await debate_round(A, B, "A", "B", logf): break
             if not await debate_round(B, A, "B", "A", logf): break
 
         final_prompt = (
-            "Сформируйте общий согласованный итог в виде таблицы:\n"
-            "Проблема | Предлагаемое решение | Трудозатраты (S/M/L) | Риск | Приоритет (P1..P3).\n"
-            "Если остались разногласия — укажите их отдельно и предложите критерии снятия."
+            "ФИНАЛ: дайте СОВМЕСТНУЮ согласованную таблицу (минимум 8 строк):\n"
+            "Проблема | Файл/путь | Причина | Решение | Трудозатраты (S/M/L) | Риск | Приоритет (P1..P3)\n"
+            "Затем короткий чек-лист действий на 1-ю неделю. Без болтовни."
         )
         for proc in (A, B):
             await send_json(proc, op_user_turn())

@@ -7,7 +7,7 @@ source "$(cd "$script_dir/../lib" && pwd)/common.sh"
 usage() {
   cat <<'EOF'
 Usage:
-  ops/issue/issue_audit_local.sh [--range <git-range>] [--repo owner/repo] [--skip-gates-audit]
+  ops/issue/issue_audit_local.sh [--range <git-range>] [--repo owner/repo] [--expected-issue <id>] [--skip-gates-audit]
 
 Defaults:
 - range: @{upstream}..HEAD when upstream exists, otherwise HEAD
@@ -16,6 +16,7 @@ EOF
 
 range=""
 repo_arg=""
+expected_issue=""
 skip_gates_audit=0
 
 while [[ $# -gt 0 ]]; do
@@ -28,6 +29,11 @@ while [[ $# -gt 0 ]]; do
     --repo)
       [[ $# -ge 2 ]] || { echo "[ARGUMENT] missing value for --repo" >&2; exit 2; }
       repo_arg="$2"
+      shift 2
+      ;;
+    --expected-issue)
+      [[ $# -ge 2 ]] || { echo "[ARGUMENT] missing value for --expected-issue" >&2; exit 2; }
+      expected_issue="$2"
       shift 2
       ;;
     --skip-gates-audit)
@@ -63,6 +69,10 @@ if [[ "$current_branch" != "dev" ]]; then
   echo "[BRANCH_NOT_DEV] issue:audit:local is dev-only; release flow uses release:main checks" >&2
   exit 2
 fi
+if [[ -n "$expected_issue" ]] && ! [[ "$expected_issue" =~ ^[1-9][0-9]*$ ]]; then
+  echo "[INVALID_EXPECTED_ISSUE] expected numeric issue id, got: $expected_issue" >&2
+  exit 2
+fi
 
 if [[ -z "$range" ]]; then
   upstream_ref="$(git -C "$repo_root" rev-parse --abbrev-ref --symbolic-full-name '@{upstream}' 2>/dev/null || true)"
@@ -76,6 +86,9 @@ fi
 cmd=(python3 "$branch_policy" audit-range --target-branch dev --range "$range")
 if [[ -n "$repo_arg" ]]; then
   cmd+=(--repo "$repo_arg")
+fi
+if [[ -n "$expected_issue" ]]; then
+  cmd+=(--expected-issue "$expected_issue")
 fi
 
 "${cmd[@]}"

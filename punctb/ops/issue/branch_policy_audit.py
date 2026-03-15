@@ -145,6 +145,7 @@ def _verify_commit_issue_id(
     commit: str,
     require_open: bool,
     repo: str | None,
+    expected_issue: str | None = None,
 ) -> str:
     resolver = _resolver_path(repo_root)
     if not resolver.exists():
@@ -160,7 +161,12 @@ def _verify_commit_issue_id(
     if cp.returncode != 0:
         message = cp.stderr.strip() or cp.stdout.strip() or f"commit verification failed: {commit}"
         raise AuditError(message)
-    return cp.stdout.strip().splitlines()[-1]
+    issue_id = cp.stdout.strip().splitlines()[-1]
+    if expected_issue and issue_id != expected_issue:
+        raise AuditError(
+            f"[RANGE_MULTI_ISSUE] {commit}: commit belongs to issue #{issue_id}, expected only #{expected_issue} in this range"
+        )
+    return issue_id
 
 
 def _require_release_label(
@@ -249,6 +255,7 @@ def cmd_audit_range(args: argparse.Namespace, repo_root: Path) -> int:
             commit=commit,
             require_open=require_open,
             repo=args.repo,
+            expected_issue=args.expected_issue,
         )
         changes = _commit_changes(repo_root=repo_root, commit=commit)
         _check_local_only_file_policy(changes=changes)
@@ -286,6 +293,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_range.add_argument("--target-branch", required=True, choices=["dev", "main"])
     p_range.add_argument("--range", required=True, help="Git revision range")
     p_range.add_argument("--repo", help="Optional OWNER/REPO for gh commands")
+    p_range.add_argument("--expected-issue", help="Require every commit in the range to reference the same issue id")
 
     p_target = sub.add_parser("assert-target", help="Validate target-branch topology before push")
     p_target.add_argument("--target-branch", required=True, choices=["dev", "main"])

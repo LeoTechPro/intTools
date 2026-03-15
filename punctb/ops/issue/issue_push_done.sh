@@ -112,7 +112,7 @@ fi
 
 audit_range="${upstream_ref}..HEAD"
 refs_pattern="^Refs #${issue_id}$"
-bash "$audit_script" --range "$audit_range" --skip-gates-audit >/dev/null
+bash "$audit_script" --range "$audit_range" --expected-issue "$issue_id" --skip-gates-audit >/dev/null
 
 mapfile -t range_files < <(git -C "$repo_root" diff --name-only "$audit_range")
 if [[ ${#range_files[@]} -gt 0 ]]; then
@@ -252,13 +252,35 @@ if [[ -z "$last_issue_commit" ]]; then
   exit 2
 fi
 
-PUNCTB_PUSH_GATE_APPROVED=YES git -C "$repo_root" push
+approval_dir="$ops_runtime_root/push-gate/$issue_id"
+mkdir -p "$approval_dir"
+approval_file="$approval_dir/approval-$(date -u +%Y%m%dT%H%M%SZ)-$$.json"
+python3 - "$approval_file" "$repo_root" "$current_branch" "$issue_id" "$audit_range" "$last_issue_commit" <<'PY'
+from datetime import datetime, timezone
+import json
+import sys
+
+approval_file, repo_root, branch, issue_id, rev_range, last_commit = sys.argv[1:7]
+payload = {
+    "repo_root": repo_root,
+    "branch": branch,
+    "issue_id": issue_id,
+    "range": rev_range,
+    "last_issue_commit": last_commit,
+    "created_utc": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+}
+with open(approval_file, "w", encoding="utf-8") as fh:
+    json.dump(payload, fh, ensure_ascii=True)
+PY
+trap '[[ -n "${approval_file:-}" ]] && rm -f -- "$approval_file"' EXIT
+
+PUNCTB_PUSH_GATE_APPROVAL_FILE="$approval_file" git -C "$repo_root" push
 
 done_cmd=(bash "$done_script" --issue "$issue_id")
 if [[ -n "$repo_arg" ]]; then
   done_cmd+=( --repo "$repo_arg" )
 fi
-PUNCTB_PUSH_GATE_APPROVED=YES "${done_cmd[@]}" >/dev/null
+PUNCTB_PUSH_GATE_APPROVAL_FILE="$approval_file" "${done_cmd[@]}" >/dev/null
 
 cleanup_targets=(
   "$ops_runtime_root/autoreview/$issue_id"
