@@ -7,6 +7,7 @@
 ## Структура
 
 - `codex/` — versioned host-tooling для Codex/OpenClaw. Managed assets, bootstrap и policy лежат в репозитории; живой секретный слой вынесен в `/git/.runtime/codex-secrets`, а Codex-generated runtime/state остаётся в `~/.codex`.
+- `gemini-openai-proxy/` — internal-vendor модуль OpenAI-compatible proxy для Gemini, перенесённый в tooling-контур из отдельного checkout. В каталоге храним versioned исходники, `LICENSE` upstream и локальный `README.md` с ссылкой на исходный внешний репозиторий.
 - `probe/` — maintenance/audit утилиты для `Probe Monitor`, которые не нужны для boot prod-сервиса.
 - `punctb/` — внешний ops/tooling-контур проекта «Пункт Б»: `sync_punctb.py`, process-scripts, hooks, internal runbooks и skills, которые не должны жить в product repo `/git/punctb`.
 

@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    /* ---- target & module ---- */
+    "target": "ES2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+
+    /* ---- quality-of-life ---- */
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* ---- output dir ---- */
+    "outDir": "dist"
+  },
+  "include": ["src/**/*"]
+}
