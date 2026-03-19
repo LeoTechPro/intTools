@@ -34,6 +34,10 @@
 - Отдельный release/promote-контур для `/git/tools` не используется; ручной review и секрет-аудит обязательны перед каждым push.
 - Force-push в `main` допускается только TL при аварии и фиксируется в incident/handoff-отчёте.
 
+## Запуски и кэши
+- Любые команды, создающие кэши и временные артефакты, запускаем из `/git/tools` или из корня конкретного вложенного инструмента, если у него есть собственный runtime-контур.
+- Cross-repo запуск `pytest`, `mypy` и похожих инструментов из чужого `cwd` запрещён; если это неизбежно, явно фиксируем target root и отправляем cache/artifacts в repo-local ignored path или `/git/.tmp/tools`.
+
 ## lockctl
 - Machine-wide runtime source-of-truth по локам — `lockctl`; legacy YAML-журнал больше не используем.
 - Минимальный цикл для одного файла:
