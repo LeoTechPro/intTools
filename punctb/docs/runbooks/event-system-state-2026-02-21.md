@@ -1,7 +1,7 @@
 # Аудит event-системы и legacy-cleanup (2026-02-21)
 
 ## 1. Контекст и объём
-- Контур: локальный репозиторий `/git/punctb`, локальная БД `punctbpro`, read-only smoke `https://api.punctb.pro`.
+- Контур: локальный репозиторий `/git/punctb`, локальная БД `intdata`, read-only smoke `https://api.punctb.pro`.
 - Цель: проверить и зафиксировать реальное состояние event-centric модели (`event_log` + timeline + notifications), устранить runtime-остатки legacy, синхронизировать документацию.
 - Вне scope: архивные миграции (`backend/init/migrations/archive/**`) как historical/no-runtime.
 
@@ -30,7 +30,7 @@
 - `openspec/changes/notifications-core/tasks.md` синхронизирован с `event_*` RPC/таблицами.
 
 ## 4. Проверка runtime-состояния БД
-Выполнено в `punctbpro`:
+Выполнено в `intdata`:
 
 ```sql
 -- Миграция зарегистрирована

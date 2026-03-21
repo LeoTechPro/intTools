@@ -19,7 +19,7 @@ DB_NAME="${POSTGRES_DB:-}"
 if [[ -z "${DB_NAME}" && -f "${REPO_ROOT}/.env.example" ]]; then
   DB_NAME="$(grep -E '^POSTGRES_DB=' "${REPO_ROOT}/.env.example" | tail -n1 | cut -d= -f2- | tr -d '[:space:]')"
 fi
-DB_NAME="${DB_NAME:-punctbpro}"
+DB_NAME="${DB_NAME:-intdata}"
 
 QUEUE_LAG_THRESHOLD_MIN="${QUEUE_LAG_THRESHOLD_MIN:-15}"
 FAIL_WINDOW_MIN="${FAIL_WINDOW_MIN:-15}"

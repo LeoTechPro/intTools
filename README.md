@@ -2,6 +2,32 @@
 
 `intTools` — репозиторий `LeoTechPro/intTools` (канонический путь `/git/tools`) с вспомогательными утилитами, скриптами и подсистемами для `intData.pro`, не являющимися частью product-core репозиториев. Каждый каталог содержит автономный набор tooling-артефактов и инструкций. Основной принцип — конфигурация исключительно через переменные окружения и шаблоны `.env.example`, чтобы не хранить реальные значения в репозитории.
 
+## Target Role
+
+`/git/tools` — `ops-tooling`: внешний machine-wide contour для process tooling, hooks, ops scripts, Codex/OpenClaw assets и host helpers.
+
+## Canonical Ownership
+
+- owner machine-wide tooling, но не owner business product-core;
+- хранит внешние ops/process контуры проектов, включая `punctb`, `probe`, `codex`, `gemini-openai-proxy`;
+- runtime/state живут вне repo в host paths.
+
+## What Lives Here
+
+- hooks, scripts, process wrappers, internal runbooks, shared ops helpers;
+- versioned tooling для проектов семейства и машины;
+- maintenance tooling для host/runtime contour.
+
+## What Must Not Live Here
+
+- canonical product-core бизнесовых репозиториев;
+- mutable runtime-state продуктов;
+- попытки хранить здесь product-owned DB schema/source-of-truth.
+
+## Relations to `intdata core`
+
+`/git/tools` обслуживает `intdata core` и соседние репозитории внешним tooling-контуром, но сам не является частью canonical backend-core.
+
 Канонический путь этого репозитория — `/git/tools`; старое имя допустимо только в historical references и не должно использоваться в живых runtime-контрактах.
 
 ## Структура

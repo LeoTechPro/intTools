@@ -24,7 +24,7 @@ resolve_db_name() {
     fi
   fi
 
-  printf '%s\n' "punctbpro"
+  printf '%s\n' "intdata"
 }
 
 DB_NAME="$(resolve_db_name)"

@@ -1,5 +1,35 @@
 # AGENTS — Stage-Gate Playbook scripts
 
+## Repo Role (2026-03-21)
+
+### Allowed scope
+
+- machine-wide ops/process/tooling, hooks, bootstrap, shared scripts и runbooks;
+- external tooling contours для `punctb`, `probe`, `codex` и других repos.
+
+### Source-of-truth ownership
+
+- `/git/tools` не владеет business product-core и не подменяет локальные product repos;
+- runtime state и секреты остаются во внешних host paths;
+- product-level schema/contracts остаются в соответствующих product repos.
+
+### What not to mutate
+
+- не складывать сюда canonical product domains;
+- не превращать tooling repo в runtime data storage;
+- не дублировать здесь product README как source-of-truth по бизнес-архитектуре.
+
+### Integration expectations
+
+- проекты обращаются к tooling через внешний контур `PUNCTB_OPS_HOME` и соседние launcher paths;
+- `intdata core` и другие repos используют `/git/tools` как machine-wide helper layer.
+
+### Escalation triggers
+
+- попытка перенести бизнесовую ownership-логику продукта в tooling repo;
+- хранение живых секретов или runtime-state вместо внешних host paths;
+- смешение process/docs/tooling и product-core в одном каталоге.
+
 ## TL;DR
 - Stage-gate пайплайн остаётся основой: Intake (TL) → Архитектура → Реализация → QA → InfoSec → DevOps release → Tech Writer. Gate’ы фиксируют контроль, но не блокируют работу автоматически — итог всегда за TL.
 - Рабочая ветка одна — `main`. Все изменения делаем прямо в ней; runtime-локи на файлы ведём через machine-wide `lockctl`.

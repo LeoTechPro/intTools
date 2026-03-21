@@ -238,7 +238,7 @@ bash ops/db/check_notification_delivery_health.sh
 
 ### Требования
 - локальный доступ к БД через `sudo -u postgres psql`
-- база берётся из root `.env` (`POSTGRES_DB`), fallback: `.env.example`, затем `punctbpro`
+- база берётся из root `.env` (`POSTGRES_DB`), fallback: `.env.example`, затем `intdata`
 - lock-manifest `backend/init/migration_manifest.lock`
 - нижняя граница анализа версий (`VERSION_FLOOR`, по умолчанию `20260126000000`)
 
@@ -264,7 +264,7 @@ Read-only smoke-матрица для RLS/GRANT (без auto-remediation):
 
 ### Требования
 - локальный доступ к БД через `sudo -u postgres psql`
-- база берётся из root `.env` (`POSTGRES_DB`), fallback: `.env.example`, затем `punctbpro`
+- база берётся из root `.env` (`POSTGRES_DB`), fallback: `.env.example`, затем `intdata`
 
 ### Запуск
 ```bash

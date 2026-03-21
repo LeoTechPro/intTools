@@ -1,7 +1,7 @@
 -- Demo dataset for specialist seed-001@punctb.test
 -- Creates ~10 clients with 4-5 diagnostic results each so the new React UI can be demonstrated.
 -- Usage (adjust connection string as needed):
---   psql postgresql://supabase_admin:***@localhost:5432/punctbpro -f backend/scripts/seed_demo_manager90.sql
+--   psql postgresql://supabase_admin:***@localhost:5432/intdata -f backend/scripts/seed_demo_manager90.sql
 
 BEGIN;
 
