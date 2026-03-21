@@ -2,7 +2,7 @@ model = "gpt-5.4"
 sandbox_mode = "danger-full-access"
 dangerously_bypass_approvals_and_sandbox = true
 model_reasoning_effort = "high"
-default_cwd = "/git"
+default_cwd = "/int"
 personality = "pragmatic"
 web_search = "live"
 suppress_unstable_features_warning = true
@@ -16,22 +16,16 @@ steer = true
 [projects."/home/leon/"]
 trust_level = "trusted"
 
-[projects."/sd"]
+[projects."/int/data"]
 trust_level = "trusted"
 
-[projects."/sd/leonidpro"]
+[projects."/int"]
 trust_level = "trusted"
 
-[projects."/intdata"]
+[projects."/int/leonid"]
 trust_level = "trusted"
 
-[projects."/git"]
-trust_level = "trusted"
-
-[projects."/git/leonid"]
-trust_level = "trusted"
-
-[projects."/git/punctb"]
+[projects."/int/punctb"]
 trust_level = "trusted"
 
 [projects."/home/leon"]
@@ -56,22 +50,22 @@ hide_rate_limit_model_nudge = true
 "gpt-5.1-codex-mini" = "gpt-5.2-codex"
 
 [mcp_servers.github]
-command = "/git/tools/codex/bin/mcp-github-from-gh.sh"
+command = "/int/tools/codex/bin/mcp-github-from-gh.sh"
 
 [mcp_servers.filesystem]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "/git", "/2brain", "__CODEX_HOME__"]
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/int", "/2brain", "__CODEX_HOME__"]
 
 [mcp_servers.gdrive_fs]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "/git/cloud/gdrive"]
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/int/cloud/gdrive"]
 
 [mcp_servers.yadisk_fs]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "/git/cloud/yadisk"]
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/int/cloud/yadisk"]
 
 [mcp_servers.postgres]
-command = "/git/tools/codex/bin/mcp-postgres-from-backend-env.sh"
+command = "/int/tools/codex/bin/mcp-postgres-from-backend-env.sh"
 
 [mcp_servers.playwright]
 command = "npx"
@@ -81,13 +75,13 @@ args = ["@playwright/mcp@latest"]
 url = "https://mcp.figma.com/mcp"
 
 [mcp_servers.obsidian_memory]
-command = "/git/tools/codex/bin/mcp-obsidian-memory.sh"
+command = "/int/tools/codex/bin/mcp-obsidian-memory.sh"
 
 [mcp_servers.timeweb]
-command = "/git/tools/codex/bin/mcp-timeweb.sh"
+command = "/int/tools/codex/bin/mcp-timeweb.sh"
 
 [mcp_servers.timeweb_readonly]
-command = "/git/tools/codex/bin/mcp-timeweb-readonly.sh"
+command = "/int/tools/codex/bin/mcp-timeweb-readonly.sh"
 
 [mcp_servers.bitrix24]
-command = "/git/tools/codex/bin/mcp-bitrix24.sh"
+command = "/int/tools/codex/bin/mcp-bitrix24.sh"

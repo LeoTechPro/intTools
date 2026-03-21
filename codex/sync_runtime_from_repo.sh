@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ASSETS_ROOT="${ASSETS_ROOT:-/git/tools/codex/assets/codex-home}"
+ASSETS_ROOT="${ASSETS_ROOT:-/int/tools/codex/assets/codex-home}"
 CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-PROJECTS_ROOT="${PROJECTS_ROOT:-/git/tools/codex/projects}"
+PROJECTS_ROOT="${PROJECTS_ROOT:-/int/tools/codex/projects}"
 RSYNC_OPTS=(-a --no-group --exclude '__pycache__/' --exclude '*.pyc')
 
 if [[ "${1:-}" == "--dry-run" ]]; then

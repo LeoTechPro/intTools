@@ -1,0 +1,4 @@
+# docker-compose.yaml for Intelligent Data Configs
+#
+# Добавьте сервисы модуля здесь. Используйте профили для dev/test стендов.
+# Этот шаблон оставлен пустым намеренно.

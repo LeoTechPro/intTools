@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ASSETS_ROOT="${ASSETS_ROOT:-/git/tools/codex/assets/codex-home}"
+ASSETS_ROOT="${ASSETS_ROOT:-/int/tools/codex/assets/codex-home}"
 CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
 DRY_RUN=0
 
@@ -51,7 +51,7 @@ cat >"$CODEX_HOME/.git-detached" <<EOF
 detached_at_utc=$STAMP
 assets_root=$ASSETS_ROOT
 git_backup=$BACKUP_DIR
-note=edit managed assets in /git/tools/codex/assets/codex-home and refresh runtime via /git/tools/codex/sync_runtime_from_repo.sh
+note=edit managed assets in /int/tools/codex/assets/codex-home and refresh runtime via /int/tools/codex/sync_runtime_from_repo.sh
 EOF
 
 echo "detached ~/.codex git into $BACKUP_DIR"

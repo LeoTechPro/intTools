@@ -33,22 +33,22 @@ Runtime files:
 
 ```bash
 lockctl acquire \
-  --repo-root /git/punctb \
+  --repo-root /int/punctb \
   --path README.md \
   --owner codex:session-1 \
   --issue 1217 \
   --lease-sec 60 \
   --format json
 
-lockctl status --repo-root /git/punctb --issue 1217 --format json
+lockctl status --repo-root /int/punctb --issue 1217 --format json
 
 lockctl release-path \
-  --repo-root /git/punctb \
+  --repo-root /int/punctb \
   --path README.md \
   --owner codex:session-1 \
   --format json
 
-lockctl release-issue --repo-root /git/punctb --issue 1217 --format json
+lockctl release-issue --repo-root /int/punctb --issue 1217 --format json
 
 lockctl gc --format json
 ```

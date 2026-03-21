@@ -20,7 +20,7 @@
 - `docs/release.md` меняется только release issue с label `release`, а user-visible feature issue публикует текст через `label: release-note` + `## Release note`.
 
 ## Где работает
-- локальный контур разработки (`/git/punctb`);
+- локальный контур разработки (`/int/punctb`);
 - рабочая ветка `dev`; `main` обновляется только owner-approved fast-forward promotion из уже существующего commit в `origin/dev`;
 - GitHub Free/private (без rulesets/branch protection enforcement);
 - versioned внутренний регламент хранится в `docs/process` и `docs/runbooks` (без публикации в `/docs/*`).
@@ -43,7 +43,7 @@
 ```bash
 npm run issue:hooks:install
 ```
-3. Machine-wide source-of-truth по локам: shell-команда `lockctl` (runtime backend в `/git/tools/lockctl`).
+3. Machine-wide source-of-truth по локам: shell-команда `lockctl` (runtime backend в `/int/tools/lockctl`).
 4. Для PunctB любой write-scope должен быть предварительно закрыт активными `lockctl` lease-locks с числовым `GitHub issue id`.
 
 ## Контракт `lockctl`

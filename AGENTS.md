@@ -9,7 +9,7 @@
 
 ### Source-of-truth ownership
 
-- `/git/tools` не владеет business product-core и не подменяет локальные product repos;
+- `/int/tools` не владеет business product-core и не подменяет локальные product repos;
 - runtime state и секреты остаются во внешних host paths;
 - product-level schema/contracts остаются в соответствующих product repos.
 
@@ -22,7 +22,7 @@
 ### Integration expectations
 
 - проекты обращаются к tooling через внешний контур `PUNCTB_OPS_HOME` и соседние launcher paths;
-- `intdata core` и другие repos используют `/git/tools` как machine-wide helper layer.
+- `intdata core` и другие repos используют `/int/tools` как machine-wide helper layer.
 
 ### Escalation triggers
 
@@ -33,7 +33,7 @@
 ## TL;DR
 - Stage-gate пайплайн остаётся основой: Intake (TL) → Архитектура → Реализация → QA → InfoSec → DevOps release → Tech Writer. Gate’ы фиксируют контроль, но не блокируют работу автоматически — итог всегда за TL.
 - Рабочая ветка одна — `main`. Все изменения делаем прямо в ней; runtime-локи на файлы ведём через machine-wide `lockctl`.
-- Отдельного `dev`-контура у `/git/tools` нет; любые process/docs changes фиксируются локально в `main`, а push требует обычного ручного контроля diff и секретов.
+- Отдельного `dev`-контура у `/int/tools` нет; любые process/docs changes фиксируются локально в `main`, а push требует обычного ручного контроля diff и секретов.
 - Перед каждым `git push` выполняем визуальный аудит diff и истории, проверяем, что реальные секреты отсутствуют. Конфиденциальные значения держим в `.env`, в репозитории публикуем лишь шаблоны.
 
 ## Stage-Gate pipeline
@@ -61,20 +61,20 @@
 
 ## Git-поток
 - `main` — единственная рабочая ветка. Коммиты делаем поверх неё, соблюдая порядок gate’ов и резервирование файлов.
-- Отдельный release/promote-контур для `/git/tools` не используется; ручной review и секрет-аудит обязательны перед каждым push.
+- Отдельный release/promote-контур для `/int/tools` не используется; ручной review и секрет-аудит обязательны перед каждым push.
 - Force-push в `main` допускается только TL при аварии и фиксируется в incident/handoff-отчёте.
 
 ## Запуски и кэши
-- Любые команды, создающие кэши и временные артефакты, запускаем из `/git/tools` или из корня конкретного вложенного инструмента, если у него есть собственный runtime-контур.
-- Cross-repo запуск `pytest`, `mypy` и похожих инструментов из чужого `cwd` запрещён; если это неизбежно, явно фиксируем target root и отправляем cache/artifacts в repo-local ignored path или `/git/.tmp/tools`.
+- Любые команды, создающие кэши и временные артефакты, запускаем из `/int/tools` или из корня конкретного вложенного инструмента, если у него есть собственный runtime-контур.
+- Cross-repo запуск `pytest`, `mypy` и похожих инструментов из чужого `cwd` запрещён; если это неизбежно, явно фиксируем target root и отправляем cache/artifacts в repo-local ignored path или `/int/.tmp/tools`.
 
 ## lockctl
 - Machine-wide runtime source-of-truth по локам — `lockctl`; legacy YAML-журнал больше не используем.
 - Минимальный цикл для одного файла:
   ```bash
-  lockctl acquire --repo-root /git/tools --path AGENTS.md --owner codex:<session> --lease-sec 900
-  lockctl status --repo-root /git/tools --path AGENTS.md --format json
-  lockctl release-path --repo-root /git/tools --path AGENTS.md --owner codex:<session>
+  lockctl acquire --repo-root /int/tools --path AGENTS.md --owner codex:<session> --lease-sec 900
+  lockctl status --repo-root /int/tools --path AGENTS.md --format json
+  lockctl release-path --repo-root /int/tools --path AGENTS.md --owner codex:<session>
   ```
 - Локи ставим только на конкретные файлы; каталоги не резервируем.
 - Lease держим коротким и продлеваем при долгой правке; истёкшую запись не считаем активной.

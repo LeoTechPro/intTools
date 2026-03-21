@@ -5,10 +5,10 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-Environment=RCLONE_CONFIG=/git/.runtime/cloud-access/rclone.conf
-ExecStartPre=/git/tools/codex/cloud_access.sh ensure-dirs
-ExecStart=/git/tools/codex/cloud_access.sh mount gdrive /git/cloud/gdrive
-ExecStop=/git/tools/codex/cloud_access.sh umount /git/cloud/gdrive
+Environment=RCLONE_CONFIG=/int/.runtime/cloud-access/rclone.conf
+ExecStartPre=/int/tools/codex/cloud_access.sh ensure-dirs
+ExecStart=/int/tools/codex/cloud_access.sh mount gdrive /int/cloud/gdrive
+ExecStop=/int/tools/codex/cloud_access.sh umount /int/cloud/gdrive
 Restart=on-failure
 RestartPreventExitStatus=3
 RestartSec=5

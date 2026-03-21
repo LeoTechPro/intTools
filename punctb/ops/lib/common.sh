@@ -9,11 +9,11 @@ else
     */ops/*)
       ops_home="$(cd "$script_dir/../.." && pwd)"
       ;;
-    */git-hooks)
+    */int-hooks)
       ops_home="$(cd "$script_dir/.." && pwd)"
       ;;
     *)
-      ops_home="/git/tools/punctb"
+      ops_home="/int/tools/punctb"
       ;;
   esac
 fi

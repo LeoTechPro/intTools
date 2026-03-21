@@ -1,0 +1,338 @@
+{
+  "before": [
+    {
+      "method": "GET",
+      "path": "/users"
+    },
+    {
+      "method": "GET",
+      "path": "/users/{username}"
+    },
+    {
+      "method": "POST",
+      "path": "/users/{username}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/habits"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/habits"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/habits/{habit_id}/toggle"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/habits/{habit_id}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks/today"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/{task_id}/done"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/{task_id}/start_timer"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/{task_id}/stop_timer"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notes"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/notes"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/notes/{note_id}/assign"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notes/{note_id}/backlinks"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/notes/{note_id}"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/notes/{note_id}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/areas"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/areas"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/areas/{area_id}/move"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/areas/{area_id}/rename"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/resources"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/resources"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/inbox/notes"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/calendar/today"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/calendar"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/calendar"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/time/start"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/time/{entry_id}/stop"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/time"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/time/running"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/time/resume/{task_id}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/time/{entry_id}/assign_task"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/telegram"
+    },
+    {
+      "method": "GET",
+      "path": "/auth"
+    },
+    {
+      "method": "POST",
+      "path": "/restore"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/restore"
+    },
+    {
+      "method": "POST",
+      "path": "/login"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login"
+    },
+    {
+      "method": "POST",
+      "path": "/register"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/register"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/logout"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/tg/callback"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/tg/callback"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/magic/request"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/magic"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/create_web_account"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/create_web_account"
+    },
+    {
+      "method": "GET",
+      "path": "/admin"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/role/{telegram_id}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/web/role/{user_id}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/web/link"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/web/unlink"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/restart"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/admin/settings"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/admin/settings/branding"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/admin/settings/telegram"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/tg-webapp/exchange"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/user/favorites"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/user/favorites"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/user/favorites/{fav_id}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/user/favorites/{fav_id}"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/app-settings"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/app-settings"
+    }
+  ],
+  "after": [
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/role/{telegram_id}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/web/role/{user_id}"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/web/link"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/web/unlink"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/admin/restart"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/admin/settings"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/admin/settings/branding"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/admin/settings/telegram"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/app-settings"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/app-settings"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/tg-webapp/exchange"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/user/favorites"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/user/favorites"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/user/favorites/{fav_id}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/user/favorites/{fav_id}"
+    }
+  ]
+}

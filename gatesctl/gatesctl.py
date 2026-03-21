@@ -466,7 +466,7 @@ def resolve_repo_name(repo_root: Path, explicit_repo: str | None) -> str:
         raise GatesCtlError("ISSUE_SYNC_FAILED", "cannot resolve remote.origin.url; pass --repo OWNER/REPO")
     remote = cp.stdout.strip()
     ssh_match = re.match(r"git@github\.com:(?P<repo>[^/]+/[^/]+?)(?:\.git)?$", remote)
-    https_match = re.match(r"https://github\.com/(?P<repo>[^/]+/[^/]+?)(?:\.git)?$", remote)
+    https_match = re.match(r"https://inthub\.com/(?P<repo>[^/]+/[^/]+?)(?:\.git)?$", remote)
     match = ssh_match or https_match
     if not match:
         raise GatesCtlError("ISSUE_SYNC_FAILED", f"unsupported GitHub remote URL: {remote}")
@@ -1258,11 +1258,11 @@ def build_top_level_epilog() -> str:
           events={EVENTS_PATH}
 
         Примеры:
-          gatesctl plan-scope --repo-root /git/punctb --issue 1224 --files .agents/scripts/issue_commit.sh
-          gatesctl verify --repo-root /git/punctb --issue 1224 --stage commit --files web/src/app/router/AppRouter.tsx
+          gatesctl plan-scope --repo-root /int/punctb --issue 1224 --files .agents/scripts/issue_commit.sh
+          gatesctl verify --repo-root /int/punctb --issue 1224 --stage commit --files web/src/app/router/AppRouter.tsx
           gatesctl trailers --receipt-id gr_v1_deadbeefdeadbeef
-          gatesctl bind-commit --repo-root /git/punctb --commit-sha HEAD
-          gatesctl audit-range --repo-root /git/punctb --target-branch dev --range '@{{upstream}}..HEAD'
+          gatesctl bind-commit --repo-root /int/punctb --commit-sha HEAD
+          gatesctl audit-range --repo-root /int/punctb --target-branch dev --range '@{{upstream}}..HEAD'
 
         Коды выхода:
           {EXIT_OK}  успех

@@ -1,0 +1,21 @@
+# Override properties for Kill Bill (copy to killbill.properties and adjust).
+#
+# Reference: https://docs.killbill.io/
+
+org.killbill.server.db.provider=postgresql
+org.killbill.server.jdbc.url=jdbc:postgresql://killbill-db:5432/${ID_KILLBILL_DB_NAME}
+org.killbill.server.jdbc.user=${ID_KILLBILL_DB_USER}
+org.killbill.server.jdbc.password=${ID_KILLBILL_DB_PASSWORD}
+
+# Default tenant & API credentials
+org.killbill.billing.util.security.shiroSecurityManager.adminUsername=${ID_KILLBILL_ADMIN_USER}
+org.killbill.billing.util.security.shiroSecurityManager.adminPassword=${ID_KILLBILL_ADMIN_PASSWORD}
+org.killbill.billing.util.security.shiroSecurityManager.apiKey=${ID_KILLBILL_DEFAULT_API_KEY}
+org.killbill.billing.util.security.shiroSecurityManager.apiSecret=${ID_KILLBILL_DEFAULT_API_SECRET}
+
+# Eventing
+org.killbill.notificationq.inMemory=true
+
+# Email disabled by default
+org.killbill.mail.disabled=true
+

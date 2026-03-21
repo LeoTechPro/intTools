@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
 ROOT_DIR="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
 CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-CODEX_RUNTIME_ROOT="${CODEX_RUNTIME_ROOT:-/git/.runtime}"
+CODEX_RUNTIME_ROOT="${CODEX_RUNTIME_ROOT:-/int/.runtime}"
 CODEX_SECRETS_ROOT="${CODEX_SECRETS_ROOT:-$CODEX_RUNTIME_ROOT/codex-secrets}"
 TEMPLATE_PATH="${TEMPLATE_PATH:-$ROOT_DIR/templates/config.toml.tmpl}"
 
@@ -59,7 +59,7 @@ if (( verify_only == 0 )); then
   fi
 
   if (( skip_openclaw == 0 )); then
-    /git/tools/openclaw/ops/install.sh
+    /int/tools/openclaw/ops/install.sh
   fi
 
   if (( skip_cloud == 0 )); then

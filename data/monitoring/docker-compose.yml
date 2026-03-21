@@ -1,0 +1,183 @@
+services:
+  # db:
+  #   image: postgres:15
+  #   environment:
+  #     - POSTGRES_DB=postgres
+  #     - POSTGRES_PASSWORD=odoo
+  #     - POSTGRES_USER=odoo
+  #   # Disabled: host PostgreSQL replaces containerised db.
+
+  # postgres-server: # The Postgres Database Service
+  #   container_name: postgres-server
+  #   hostname: postgres-server
+  #   image: postgres:16
+  #   restart: unless-stopped
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "pg_isready -U zabbix -d zabbix"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #   environment: # Username, password and database name variables
+  #     POSTGRES_USER: zabbix
+  #     POSTGRES_PASSWORD: zabbix
+  #     POSTGRES_DB: zabbix
+  #     PGDATA: /var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data # Data storage
+  #     - pgconf:/usr/share/postgresql # Конфигурация PostgreSQL
+  #   networks:
+  #     - default
+  #   # Disabled: host PostgreSQL replaces containerised postgres-server.
+  
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    restart: always
+    networks:
+      - graylog_network
+    volumes:
+      - mongo_data:/data/db
+
+  opensearch:
+    image: opensearchproject/opensearch:2.12.0
+    container_name: opensearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - DISABLE_SECURITY_PLUGIN=true
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m
+    networks:
+      - graylog_network
+    volumes:
+      - es_data:/usr/share/opensearch/data
+
+  graylog:
+    image: graylog/graylog:6.0
+    container_name: graylog
+    restart: always
+    environment:
+      - GRAYLOG_PASSWORD_SECRET=63568a58012c82e2a7dcf40b41fd2c6e234850728607d2f93d6444c17a7390cf
+      - GRAYLOG_ROOT_USERNAME=leotechru
+      - GRAYLOG_ROOT_EMAIL=leotechru@ya.ru
+      - GRAYLOG_ROOT_PASSWORD_SHA2=63568a58012c82e2a7dcf40b41fd2c6e234850728607d2f93d6444c17a7390cf
+      - GRAYLOG_HTTP_EXTERNAL_URI=https://graylog.intdata.pro/
+      - GRAYLOG_MONGODB_URI=mongodb://mongodb/graylog
+      - GRAYLOG_ELASTICSEARCH_HOSTS=http://opensearch:9200
+    networks:
+      - graylog_network
+    ports:
+      - "9000:9000"
+    depends_on:
+      - mongodb
+      - opensearch
+
+  zabbix-server:
+    container_name: zabbix-server
+    hostname: zabbix-server
+    image: zabbix/zabbix-server-pgsql:latest
+    restart: unless-stopped
+    environment:
+      DB_SERVER_HOST: postgres-server
+      DB_SERVER_PORT: 5432
+      DB_SERVER_DBNAME: zabbix
+      DB_SERVER_SCHEMA: public
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: 63568a58012c82e2a7dcf40b41fd2c6e234850728607d2f93d6444c17a7390cf
+      POSTGRES_DB: zabbix
+      ZBX_HISTORYSTORAGETYPES: log,text
+      ZBX_DEBUGLEVEL: 4
+      ZBX_HOUSEKEEPINGFREQUENCY: 1
+      ZBX_MAXHOUSEKEEPERDELETE: 5000
+      ZBX_ALLOWUNSUPPORTEDDBVERSIONS: "1"
+    ports:
+      - "10051:10051"
+    extra_hosts:
+      - "postgres-server:host-gateway"
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - zabbix-alertscripts:/usr/lib/zabbix/alertscripts
+      - zabbix-externalscripts:/usr/lib/zabbix/externalscripts
+      - zabbix-modules:/var/lib/zabbix/modules
+      - zabbix-enc:/var/lib/zabbix/enc
+      - zabbix-ssh_keys:/var/lib/zabbix/ssh_keys
+      - zabbix-ssl_certs:/var/lib/zabbix/ssl/certs
+      - zabbix-ssl_keys:/var/lib/zabbix/ssl/keys
+      - zabbix-ssl_ca:/var/lib/zabbix/ssl/ssl_ca
+      - zabbix-snmptraps:/var/lib/zabbix/snmptraps
+      - zabbix-mibs:/var/lib/zabbix/mibs
+      - zabbix-export:/var/lib/zabbix/export
+
+  zabbix-web:
+    container_name: zabbix-web
+    hostname: zabbix-web
+    image: zabbix/zabbix-web-apache-pgsql:latest
+    restart: unless-stopped
+    environment:
+      DB_SERVER_HOST: postgres-server
+      DB_SERVER_PORT: 5432
+      DB_SERVER_DBNAME: zabbix
+      DB_SERVER_SCHEMA: public
+      POSTGRES_USER: zabbix
+      POSTGRES_PASSWORD: 63568a58012c82e2a7dcf40b41fd2c6e234850728607d2f93d6444c17a7390cf
+      POSTGRES_DB: zabbix
+      ZBX_SERVER_HOST: zabbix-server
+      ZBX_POSTMAXSIZE: 64M
+      PHP_TZ: "Europe/Moscow"
+      ZBX_SERVER_NAME: Zabbix Docker
+      ZBX_MAXEXECUTIONTIME: 500
+    ports:
+      - "8082:8080"
+      - "9444:8443"
+    depends_on:
+      - zabbix-server
+    extra_hosts:
+      - "postgres-server:host-gateway"
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - zabbix-web-ssl:/etc/ssl/apache2
+      - zabbix-web-saml-certs:/etc/zabbix/web/certs
+
+  zabbix-agent:
+    container_name: zabbix-agent
+    hostname: zabbix-agent
+    image: zabbix/zabbix-agent:latest
+    restart: unless-stopped
+    environment:
+      ZBX_SERVER_HOST: zabbix-server
+    depends_on:
+      - zabbix-server
+
+  grafana-xxl:
+    container_name: grafana-xxl
+    hostname: grafana-xxl
+    image: monitoringartist/grafana-xxl:latest
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - grafana-logs:/var/log/grafana
+
+networks:
+  graylog_network:
+
+volumes:
+  mongo_data:
+  es_data:
+  zabbix-alertscripts:
+  zabbix-externalscripts:
+  zabbix-modules:
+  zabbix-enc:
+  zabbix-ssh_keys:
+  zabbix-ssl_certs:
+  zabbix-ssl_keys:
+  zabbix-ssl_ca:
+  zabbix-snmptraps:
+  zabbix-mibs:
+  zabbix-export:
+  zabbix-web-ssl:
+  zabbix-web-saml-certs:
+  grafana-data:
+  grafana-logs:

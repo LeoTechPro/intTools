@@ -1,0 +1,13 @@
+[Unit]
+Description=Intelligent Data Pro Web Service (FastAPI)
+After=network.target
+
+[Service]
+WorkingDirectory=/intdata
+Environment="PATH=/intdata/venv/bin:/usr/local/bin:/usr/bin:/bin"
+EnvironmentFile=-/intdata/.env
+ExecStart=/intdata/venv/bin/python -m uvicorn web:app --host 0.0.0.0 --port 5800
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

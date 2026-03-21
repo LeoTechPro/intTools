@@ -210,8 +210,8 @@ async def maybe_handle_requests(text: str, target_proc) -> bool:
 ON_TOPIC_KEYS = (
     "intdata",
     "intbridge",
-    "/git/intdata",
-    "/git/intbridge",
+    "/int/data",
+    "/int/intbridge",
     "docker",
     "postgres",
     "openapi",
@@ -253,7 +253,7 @@ def off_topic(text: str) -> bool:
 
 def force_back_to_topic(tag_from: str) -> str:
     return (
-        f"{tag_from}: Стоп. Ты ушёл от темы. Немедленно вернись к анализу /git/intdata и /git/intbridge. "
+        f"{tag_from}: Стоп. Ты ушёл от темы. Немедленно вернись к анализу /int/data и /int/intbridge. "
         "Дай минимум 3 проблемы с привязкой к конкретным файлам/путям и решения. "
         "Если не хватает данных — пришли точные REQUEST_FILE/REQUEST_DIR сейчас."
     )
@@ -351,7 +351,7 @@ async def main():
 
     # усилим регламент и запрет инструментов
     RULES = (
-        "Требования: 1) анализ ТОЛЬКО /git/intdata и /git/intbridge; 2) без 'планирую/готовлюсь'; "
+        "Требования: 1) анализ ТОЛЬКО /int/data и /int/intbridge; 2) без 'планирую/готовлюсь'; "
         "3) каждая реплика ≤1200 символов, строго: «Проблема ⇒ Причина (путь/файл) ⇒ Решение ⇒ Риск/Трудозатраты»; "
         "4) если НЕ хватает данных — немедленно шли 'REQUEST_FILE <path>' или 'REQUEST_DIR <path> DEPTH=3'; "
         "5) русский язык; 6) никаких инструментов/команд исполнения; 7) в конце — СОВМЕСТНАЯ таблица и согласованный порядок."
@@ -366,15 +366,15 @@ async def main():
     await send_json(B, op_user_turn())
     await send_json(B, op_user_input(f"{role_b}\nТема: {topic}\n{RULES}"))
 
-    roots = ["/git/intdata", "/git/intbridge"]
+    roots = ["/int/data", "/int/intbridge"]
     await seed_brief(A, B, topic, roots)
 
     prime_paths = [
-        "/git/intdata/README.md",
-        "/git/intdata/api/openapi.json",
-        "/git/intdata/docker-compose.yml",
-        "/git/intbridge/README.md",
-        "/git/intbridge/docker-compose.yml",
+        "/int/data/README.md",
+        "/int/data/api/openapi.json",
+        "/int/data/docker-compose.yml",
+        "/int/intbridge/README.md",
+        "/int/intbridge/docker-compose.yml",
     ]
     for p in prime_paths:
         print(f"[bridge] priming {p}", flush=True)

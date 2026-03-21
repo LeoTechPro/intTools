@@ -9,7 +9,7 @@
 - config: `~/.openclaw/openclaw.json`
 - workspace: `~/.openclaw/workspace`
 - mutable state: `~/.openclaw/*`
-- versioned overlay: `/git/tools/openclaw`
+- versioned overlay: `/int/tools/openclaw`
 
 ## Что бэкапить перед reinstall
 
@@ -29,7 +29,7 @@
 
 ```bash
 npm install -g openclaw@latest
-bash /git/tools/openclaw/ops/install.sh
+bash /int/tools/openclaw/ops/install.sh
 ```
 
 ## Restore
@@ -39,12 +39,12 @@ bash /git/tools/openclaw/ops/install.sh
 3. Убедиться, что пути в `~/.openclaw/openclaw.json` смотрят на:
    - `~/.openclaw/workspace`
    - `~/.openclaw/secrets/...`
-   - `/git/tools/openclaw/bin/...` для helper wrapper'ов
+   - `/int/tools/openclaw/bin/...` для helper wrapper'ов
 4. Запустить сервис:
    - `systemctl --user daemon-reload`
    - `systemctl --user restart openclaw-gateway.service`
 5. Проверить:
-   - `bash /git/tools/openclaw/ops/verify.sh`
+   - `bash /int/tools/openclaw/ops/verify.sh`
    - `openclaw gateway status`
 
 ## Критерий восстановления

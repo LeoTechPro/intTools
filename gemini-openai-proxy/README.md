@@ -1,8 +1,8 @@
 # Gemini ↔ OpenAI Proxy
 
-Этот каталог теперь живёт внутри `/git/tools` как internal-vendor copy, а не как
+Этот каталог теперь живёт внутри `/int/tools` как internal-vendor copy, а не как
 самостоятельный git-репозиторий. Источник происхождения:
-`https://github.com/Brioch/gemini-openai-proxy` (MIT License, см. `LICENSE`).
+`https://inthub.com/Brioch/gemini-openai-proxy` (MIT License, см. `LICENSE`).
 
 Что это означает на практике:
 

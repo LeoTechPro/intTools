@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Obsidian (Memory Vault)
 Comment=Open /2brain in Obsidian
-Exec=/git/tools/codex/tools/obsidian-desktop/launcher.sh
+Exec=/int/tools/codex/tools/obsidian-desktop/launcher.sh
 Icon=obsidian
 Terminal=false
 Type=Application

@@ -1,6 +1,6 @@
 # openclaw tools overlay
 
-`/git/tools/openclaw` — versioned overlay для локального OpenClaw.
+`/int/tools/openclaw` — versioned overlay для локального OpenClaw.
 
 Legacy in-tree runtime root decommissioned и больше не является runtime-источником; исторические артефакты сохранены в отчётах decommission.
 
@@ -28,12 +28,12 @@ Legacy in-tree runtime root decommissioned и больше не является
 Быстрые команды:
 
 ```bash
-bash /git/tools/openclaw/ops/install.sh
-bash /git/tools/openclaw/ops/verify.sh
+bash /int/tools/openclaw/ops/install.sh
+bash /int/tools/openclaw/ops/verify.sh
 ```
 
 Основной runbook:
 
-- [reinstall-and-restore.md](/git/tools/openclaw/docs/reinstall-and-restore.md)
-- [openclaw-concurrency-audit-2026-03-09.md](/git/tools/openclaw/docs/openclaw-concurrency-audit-2026-03-09.md)
-- [decommission-openclaw-2026-03-15.md](/git/tools/openclaw/reports/decommission-openclaw-2026-03-15.md)
+- [reinstall-and-restore.md](/int/tools/openclaw/docs/reinstall-and-restore.md)
+- [openclaw-concurrency-audit-2026-03-09.md](/int/tools/openclaw/docs/openclaw-concurrency-audit-2026-03-09.md)
+- [decommission-openclaw-2026-03-15.md](/int/tools/openclaw/reports/decommission-openclaw-2026-03-15.md)

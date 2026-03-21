@@ -28,7 +28,7 @@ description: "Развёртывание frontend PunctB в Timeweb App Platform
 - `web/` разворачивается напрямую как Frontend App через режим `Other JS framework` на `Node.js 24`.
 - Продовый frontend нельзя оставлять без явных `VITE_SUPABASE_URL` и `VITE_SUPABASE_ANON_KEY`: код имеет dev-fallback и при ошибке конфигурации может уехать в `api-dev.punctb.pro`.
 - Актуальный prod backend `api.punctb.pro` больше не разворачивается в Timeweb App Platform: он живёт на отдельном VDS `5.42.105.191`.
-- Корневой [`docker-compose.yml`](/git/punctb/docker-compose.yml) теперь трактуется как production backend artifact для VDS runtime, а не для Timeweb App Platform.
+- Корневой [`docker-compose.yml`](/int/punctb/docker-compose.yml) теперь трактуется как production backend artifact для VDS runtime, а не для Timeweb App Platform.
 - Канонический production checkout backend на VDS: `/punctb`, отдельный clone `git@github.com:LeoTechPro/PunctB.git`, только ветка `main`.
 - Для будущего вывода старого backend с Timeweb на тот же VDS разрешён отдельный clone `/punkt-b/backend` из `git@github.com:punktbDev/punktb.git`, только ветка `master`; до owner-approved cutover любые действия в живом Timeweb backend запрещены.
 - Root `deploy/timeweb` в репозитории больше не является допустимым местом для deploy-артефактов: frontend Timeweb runbook хранится только в `references/*` этого skill.

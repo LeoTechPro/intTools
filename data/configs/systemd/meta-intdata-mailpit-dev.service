@@ -1,0 +1,21 @@
+[Unit]
+Description=Mailpit SMTP Gateway (dev)
+After=network-online.target docker.service
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=deploy
+Group=devs
+WorkingDirectory=/int/tools/data
+EnvironmentFile=/int/data/.env
+ExecStart=/int/tools/data/devops/run-mailpit.sh
+ExecReload=/int/tools/data/devops/run-mailpit.sh
+ExecStop=/usr/bin/docker compose -f /int/id/docker-compose.yaml --profile mailpit down
+RemainAfterExit=yes
+StandardOutput=journal
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target

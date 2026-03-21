@@ -1,10 +1,10 @@
 # intTools
 
-`intTools` — репозиторий `LeoTechPro/intTools` (канонический путь `/git/tools`) с вспомогательными утилитами, скриптами и подсистемами для `intData.pro`, не являющимися частью product-core репозиториев. Каждый каталог содержит автономный набор tooling-артефактов и инструкций. Основной принцип — конфигурация исключительно через переменные окружения и шаблоны `.env.example`, чтобы не хранить реальные значения в репозитории.
+`intTools` — репозиторий `LeoTechPro/intTools` (канонический путь `/int/tools`) с вспомогательными утилитами, скриптами и подсистемами для `intData.pro`, не являющимися частью product-core репозиториев. Каждый каталог содержит автономный набор tooling-артефактов и инструкций. Основной принцип — конфигурация исключительно через переменные окружения и шаблоны `.env.example`, чтобы не хранить реальные значения в репозитории.
 
 ## Target Role
 
-`/git/tools` — `ops-tooling`: внешний machine-wide contour для process tooling, hooks, ops scripts, Codex/OpenClaw assets и host helpers.
+`/int/tools` — `ops-tooling`: внешний machine-wide contour для process tooling, hooks, ops scripts, Codex/OpenClaw assets и host helpers.
 
 ## Canonical Ownership
 
@@ -26,22 +26,23 @@
 
 ## Relations to `intdata core`
 
-`/git/tools` обслуживает `intdata core` и соседние репозитории внешним tooling-контуром, но сам не является частью canonical backend-core.
+`/int/tools` обслуживает `intdata core` и соседние репозитории внешним tooling-контуром, но сам не является частью canonical backend-core.
 
-Канонический путь этого репозитория — `/git/tools`; старое имя допустимо только в historical references и не должно использоваться в живых runtime-контрактах.
+Канонический путь этого репозитория — `/int/tools`; старые path-варианты допустимы только в historical references и не должны использоваться в живых runtime-контрактах.
 
 ## Структура
 
-- `codex/` — versioned host-tooling для Codex/OpenClaw. Managed assets, bootstrap и policy лежат в репозитории; живой секретный слой вынесен в `/git/.runtime/codex-secrets`, а Codex-generated runtime/state остаётся в `~/.codex`.
+- `codex/` — versioned host-tooling для Codex/OpenClaw. Managed assets, bootstrap и policy лежат в репозитории; живой секретный слой вынесен в `/int/.runtime/codex-secrets`, а Codex-generated runtime/state остаётся в `~/.codex`.
 - `gemini-openai-proxy/` — internal-vendor модуль OpenAI-compatible proxy для Gemini, перенесённый в tooling-контур из отдельного checkout. В каталоге храним versioned исходники, `LICENSE` upstream и локальный `README.md` с ссылкой на исходный внешний репозиторий.
+- `data/` — внешний ops/tooling-контур strict backend-core repo `/int/data`: host configs, devops/docops/dev helpers и cross-repo scripts, которые больше не живут в product repo.
 - `probe/` — maintenance/audit утилиты для `Probe Monitor`, которые не нужны для boot prod-сервиса.
-- `punctb/` — внешний ops/tooling-контур проекта «Пункт Б»: `sync_punctb.py`, process-scripts, hooks, internal runbooks и skills, которые не должны жить в product repo `/git/punctb`.
+- `punctb/` — внешний ops/tooling-контур проекта «Пункт Б»: `sync_punctb.py`, process-scripts, hooks, internal runbooks и skills, которые не должны жить в product repo `/int/punctb`.
 
 `openclaw/` — это legacy-слой, который оставлен как исторический архивный контур для decommission-перехода; живой runtime для него находится в `~/.openclaw` и не публикуется через этот репозиторий.
 
 Общее правило для этого репозитория: versioned исходники и инструкции храним здесь, а runtime outputs, логи, временные файлы и mutable state уезжают во внешние host-path.
 
-Исключение по явному решению владельца: cloud-access контур для `rclone` держит mountpoints и runtime config в `/git/.runtime/cloud-access` и `/git/cloud/*`, а secret runtime Codex/MCP держится в `/git/.runtime/codex-secrets`, чтобы восстановление рабочей машины шло из `/git` без раскладывания кастомных env по `~/.codex`.
+Исключение по явному решению владельца: cloud-access контур для `rclone` держит mountpoints и runtime config в `/int/.runtime/cloud-access` и `/int/cloud/*`, а secret runtime Codex/MCP держится в `/int/.runtime/codex-secrets`, чтобы восстановление рабочей машины шло из `/git` без раскладывания кастомных env по `~/.codex`.
 
 ## Требования
 
@@ -63,7 +64,7 @@ pip install --upgrade pip
 
 ## PunctB Ops Tooling
 
-`/git/tools/punctb` теперь также хранит versioned process/ops/tooling для PunctB:
+`/int/tools/punctb` теперь также хранит versioned process/ops/tooling для PunctB:
 - `bin/punctb-ops` — единый launcher для `issue:*`, `release:*`, `teamlead:*` и других process-команд;
 - `ops/**` — process-scripts и gate wrappers, которые продукт вызывает через внешний ops-контур;
 - `docs/**` и `templates/**` — versioned internal docs, policy и шаблоны для ops/process use-cases;
@@ -71,10 +72,10 @@ pip install --upgrade pip
 - `backend-ops/**` — ручные backend utility scripts, не входящие в product-core репозиторий.
 
 Инварианты:
-- product repo `/git/punctb` не хранит versioned ops/tooling вроде `deploy`, `backend/scripts`, `.mcp.json`, `codex.skill` и старых внутренних repo-local process paths;
+- product repo `/int/punctb` не хранит versioned ops/tooling вроде `deploy`, `backend/scripts`, `.mcp.json`, `codex.skill` и старых внутренних repo-local process paths;
 - runtime scratch/log/tmp для PunctB ops и Codex живут вне git, по умолчанию в `~/.codex/tmp/punctb` и соседних host-path;
-- команды из product repo вызывают внешний контур через `PUNCTB_OPS_HOME=${PUNCTB_OPS_HOME:-/git/tools/punctb}`.
-- для самого репозитория `/git/tools` используем single-branch flow в `main`; dev/main promotion-контракт относится к продуктовым checkout, а не к этому репозиторию.
+- команды из product repo вызывают внешний контур через `PUNCTB_OPS_HOME=${PUNCTB_OPS_HOME:-/int/tools/punctb}`.
+- для самого репозитория `/int/tools` используем single-branch flow в `main`; dev/main promotion-контракт относится к продуктовым checkout, а не к этому репозиторию.
 
 ### Возможности
 

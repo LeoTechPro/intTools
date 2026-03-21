@@ -9,25 +9,25 @@
   - `.config.cli.path == /home/leon/.openclaw/openclaw.json`
   - `.config.daemon.path == /home/leon/.openclaw/openclaw.json`
   - `service.runtime.status == running`.
-- `bash /git/tools/openclaw/ops/verify.sh`:
+- `bash /int/tools/openclaw/ops/verify.sh`:
   - завершилось успешно (`openclaw verify: ok`).
 
-## Аудит ссылок на legacy in-tree runtime в `/git`
+## Аудит ссылок на legacy in-tree runtime в `/int`
 
 Команда:
 
 ```bash
-rg -n "legacy in-tree runtime|in-tree OpenClaw runtime" /git/README.md /git/tools \
+rg -n "legacy in-tree runtime|in-tree OpenClaw runtime" /int/README.md /int/tools \
   --glob '!**/node_modules/**' --glob '!**/.git/**' \
   --glob '!**/state/logs/**' --glob '!**/state/cron/**' --glob '!**/*.jsonl'
 ```
 
 Результат: упоминания есть только в:
 
-- `/git/README.md` — описания legacy/runtime-слоя и инвентаризации.
+- `/int/README.md` — описания legacy/runtime-слоя и инвентаризации.
 - `openclaw-concurrency-audit-2026-03-09.md` — исторический снапшот.
-- `/git/tools/openclaw/docs/*` — документация decommission/restore.
-- `/git/tools/openclaw/ops/verify.sh` — guard-проверки на отсутствие in-tree runtime path в service/status.
+- `/int/tools/openclaw/docs/*` — документация decommission/restore.
+- `/int/tools/openclaw/ops/verify.sh` — guard-проверки на отсутствие in-tree runtime path в service/status.
 
 ## Оценка
 
@@ -37,14 +37,14 @@ rg -n "legacy in-tree runtime|in-tree OpenClaw runtime" /git/README.md /git/tool
 ## Результат post-delete проверки
 
 - Legacy in-tree runtime root уже отсутствует физически.
-- `/git/.archive/openclaw-decommission-2026-03-15.tar.gz` создан.
+- `/int/.archive/openclaw-decommission-2026-03-15.tar.gz` создан.
 - Архивы/исторические артефакты также сохранены в:
-  - `/git/.archive/openclaw-systemd-legacy`
-  - `/git/.archive/openclaw-workspace-git-20260315T091047Z`
+  - `/int/.archive/openclaw-systemd-legacy`
+  - `/int/.archive/openclaw-workspace-git-20260315T091047Z`
 - Ключевые active контуры не содержат runtime references на legacy in-tree runtime.
 - Дополнительный smoke-этап:
-  - `bash /git/tools/openclaw/ops/verify.sh` — проходит.
-  - `bash /git/tools/codex/bin/codex-host-bootstrap --verify-only` — блокируется внешней инфраструктурной ошибкой mount `/git/cloud/yadisk`, не относящейся к decommission.
+  - `bash /int/tools/openclaw/ops/verify.sh` — проходит.
+  - `bash /int/tools/codex/bin/codex-host-bootstrap --verify-only` — блокируется внешней инфраструктурной ошибкой mount `/int/cloud/yadisk`, не относящейся к decommission.
 
 ## Следующий шаг
 

@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
 ROOT_DIR="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
-CODEX_RUNTIME_ROOT="${CODEX_RUNTIME_ROOT:-/git/.runtime}"
+CODEX_RUNTIME_ROOT="${CODEX_RUNTIME_ROOT:-/int/.runtime}"
 CODEX_SECRETS_ROOT="${CODEX_SECRETS_ROOT:-$CODEX_RUNTIME_ROOT/codex-secrets}"
 CLOUD_ACCESS_ROOT="${CLOUD_ACCESS_ROOT:-$CODEX_RUNTIME_ROOT/cloud-access}"
 OPENCLAW_SECRETS_ROOT="${OPENCLAW_SECRETS_ROOT:-$HOME/.openclaw/secrets}"
@@ -40,11 +40,11 @@ case "$cmd" in
   export)
     tmp_dir="$(mktemp -d)"
     trap 'rm -rf "$tmp_dir"' EXIT
-    mkdir -p "$tmp_dir/git/.runtime" "$tmp_dir/home/.openclaw"
-    rsync -a "$CODEX_SECRETS_ROOT/" "$tmp_dir/git/.runtime/codex-secrets/"
+    mkdir -p "$tmp_dir/int/.runtime" "$tmp_dir/home/.openclaw"
+    rsync -a "$CODEX_SECRETS_ROOT/" "$tmp_dir/int/.runtime/codex-secrets/"
     if [[ -f "$CLOUD_ACCESS_ROOT/rclone.conf" ]]; then
-      mkdir -p "$tmp_dir/git/.runtime/cloud-access"
-      rsync -a "$CLOUD_ACCESS_ROOT/rclone.conf" "$tmp_dir/git/.runtime/cloud-access/"
+      mkdir -p "$tmp_dir/int/.runtime/cloud-access"
+      rsync -a "$CLOUD_ACCESS_ROOT/rclone.conf" "$tmp_dir/int/.runtime/cloud-access/"
     fi
     rsync -a "$OPENCLAW_SECRETS_ROOT/" "$tmp_dir/home/.openclaw/secrets/"
     python3 - <<'PY' "$tmp_dir/manifest.json"
@@ -57,8 +57,8 @@ manifest_path = Path(sys.argv[1])
 payload = {
     "created_at_utc": datetime.now(timezone.utc).isoformat(),
     "paths": [
-        "/git/.runtime/codex-secrets/",
-        "/git/.runtime/cloud-access/rclone.conf",
+        "/int/.runtime/codex-secrets/",
+        "/int/.runtime/cloud-access/rclone.conf",
         "~/.openclaw/secrets/",
     ],
 }
@@ -74,12 +74,12 @@ PY
     openssl enc -d -aes-256-cbc -pbkdf2 -pass "env:${PASS_ENV_VAR}" -in "$bundle_path" \
       | tar -C "$tmp_dir" -xzf -
     mkdir -p "$CODEX_SECRETS_ROOT" "$OPENCLAW_SECRETS_ROOT"
-    if [[ -d "$tmp_dir/git/.runtime/codex-secrets" ]]; then
-      rsync -a "$tmp_dir/git/.runtime/codex-secrets/" "$CODEX_SECRETS_ROOT/"
+    if [[ -d "$tmp_dir/int/.runtime/codex-secrets" ]]; then
+      rsync -a "$tmp_dir/int/.runtime/codex-secrets/" "$CODEX_SECRETS_ROOT/"
     fi
-    if [[ -f "$tmp_dir/git/.runtime/cloud-access/rclone.conf" ]]; then
+    if [[ -f "$tmp_dir/int/.runtime/cloud-access/rclone.conf" ]]; then
       mkdir -p "$CLOUD_ACCESS_ROOT"
-      rsync -a "$tmp_dir/git/.runtime/cloud-access/rclone.conf" "$CLOUD_ACCESS_ROOT/"
+      rsync -a "$tmp_dir/int/.runtime/cloud-access/rclone.conf" "$CLOUD_ACCESS_ROOT/"
     fi
     if [[ -d "$tmp_dir/home/.openclaw/secrets" ]]; then
       rsync -a "$tmp_dir/home/.openclaw/secrets/" "$OPENCLAW_SECRETS_ROOT/"

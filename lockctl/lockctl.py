@@ -577,7 +577,7 @@ def build_top_level_epilog() -> str:
           - не редактируйте SQLite и events.jsonl напрямую
 
         Ключевые аргументы:
-          --repo-root  абсолютный корень репозитория, например /git/punctb
+          --repo-root  абсолютный корень репозитория, например /int/punctb
           --path       путь к файлу относительно --repo-root
           --owner      стабильный id агента/сессии, например codex:session-1
           --issue      числовой id GitHub issue, если проект требует issue-bound локи
@@ -589,10 +589,10 @@ def build_top_level_epilog() -> str:
           events={EVENTS_PATH}
 
         Примеры:
-          lockctl acquire --repo-root /git/punctb --path AGENTS.md --owner codex:session-1 --issue 1217 --lease-sec 60
-          lockctl status --repo-root /git/punctb --issue 1217 --format json
-          lockctl release-path --repo-root /git/punctb --path AGENTS.md --owner codex:session-1
-          lockctl release-issue --repo-root /git/punctb --issue 1217
+          lockctl acquire --repo-root /int/punctb --path AGENTS.md --owner codex:session-1 --issue 1217 --lease-sec 60
+          lockctl status --repo-root /int/punctb --issue 1217 --format json
+          lockctl release-path --repo-root /int/punctb --path AGENTS.md --owner codex:session-1
+          lockctl release-issue --repo-root /int/punctb --issue 1217
 
         Коды выхода:
           {EXIT_OK}  успех
@@ -627,7 +627,7 @@ def build_parser() -> tuple[argparse.ArgumentParser, dict[str, argparse.Argument
             Взять lease-лок записи для одного файла относительно репозитория.
 
             Пример:
-              lockctl acquire --repo-root /git/punctb --path README.md --owner codex:session-1 --issue 1217 --lease-sec {DEFAULT_LEASE_SEC}
+              lockctl acquire --repo-root /int/punctb --path README.md --owner codex:session-1 --issue 1217 --lease-sec {DEFAULT_LEASE_SEC}
             """
         ).strip(),
     )
@@ -663,7 +663,7 @@ def build_parser() -> tuple[argparse.ArgumentParser, dict[str, argparse.Argument
             Освободить активный лок по repo/path для того же владельца, который его взял.
 
             Пример:
-              lockctl release-path --repo-root /git/punctb --path README.md --owner codex:session-1
+              lockctl release-path --repo-root /int/punctb --path README.md --owner codex:session-1
             """
         ).strip(),
     )
@@ -680,7 +680,7 @@ def build_parser() -> tuple[argparse.ArgumentParser, dict[str, argparse.Argument
             Освободить все активные локи в одном корне репозитория для указанного issue id.
 
             Пример:
-              lockctl release-issue --repo-root /git/punctb --issue 1217
+              lockctl release-issue --repo-root /int/punctb --issue 1217
             """
         ).strip(),
     )
@@ -696,9 +696,9 @@ def build_parser() -> tuple[argparse.ArgumentParser, dict[str, argparse.Argument
             Показать активные и истёкшие lease-записи для одного репозитория.
 
             Примеры:
-              lockctl status --repo-root /git/punctb
-              lockctl status --repo-root /git/punctb --path README.md --format json
-              lockctl status --repo-root /git/punctb --issue 1217 --format json
+              lockctl status --repo-root /int/punctb
+              lockctl status --repo-root /int/punctb --path README.md --format json
+              lockctl status --repo-root /int/punctb --issue 1217 --format json
             """
         ).strip(),
     )

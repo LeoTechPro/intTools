@@ -28,12 +28,12 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 1
 fi
 
-systemctl --user cat openclaw-gateway.service | rg -n 'OPENCLAW_GATEWAY_TOKEN=|/git/[^[:space:]]*openclaw|WorkingDirectory=/git/' -S && {
+systemctl --user cat openclaw-gateway.service | rg -n 'OPENCLAW_GATEWAY_TOKEN=|/int/[^[:space:]]*openclaw|WorkingDirectory=/int/' -S && {
   echo "openclaw verify: service still references in-tree runtime paths or embedded token" >&2
   exit 1
 } || true
 
-rg -n '"/git/[^"]*openclaw|"/git/[^"]*workspace' "$TMP_STATUS" -S && {
+rg -n '"/int/[^"]*openclaw|"/int/[^"]*workspace' "$TMP_STATUS" -S && {
   echo "openclaw verify: gateway status still reports in-tree runtime paths" >&2
   exit 1
 } || true

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CANONICAL_CMD="*/5 * * * * /git/tools/codex/cleanup_agent_orphans.sh >/dev/null 2>&1 # probe-agent-orphan-cleaner"
+CANONICAL_CMD="*/5 * * * * /int/tools/codex/cleanup_agent_orphans.sh >/dev/null 2>&1 # probe-agent-orphan-cleaner"
 TMP_FILE="$(mktemp)"
 trap 'rm -f "$TMP_FILE"' EXIT
 
