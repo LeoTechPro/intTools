@@ -42,7 +42,7 @@
 
 Общее правило для этого репозитория: versioned исходники и инструкции храним здесь, а runtime outputs, логи, временные файлы и mutable state уезжают во внешние host-path.
 
-Исключение по явному решению владельца: cloud-access контур для `rclone` держит mountpoints и runtime config в `/int/.runtime/cloud-access` и `/int/cloud/*`, а secret runtime Codex/MCP держится в `/int/.runtime/codex-secrets`, чтобы восстановление рабочей машины шло из `/git` без раскладывания кастомных env по `~/.codex`.
+Исключение по явному решению владельца: cloud-access контур для `rclone` держит mountpoints и runtime config в `/int/.runtime/cloud-access` и `/int/cloud/*`, а secret runtime Codex/MCP держится в `/int/.runtime/codex-secrets`, чтобы восстановление рабочей машины шло из `/int` без раскладывания кастомных env по `~/.codex`.
 
 ## Требования
 
