@@ -1,6 +1,6 @@
 # OpenClaw concurrency audit
 
-Historical snapshot imported from the legacy `/git/openclaw` tree during decommission prep.
+Historical snapshot imported from the legacy in-tree OpenClaw runtime during decommission prep.
 
 Date: 2026-03-09
 Scope: local runtime audit for OpenClaw on this machine

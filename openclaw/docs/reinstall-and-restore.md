@@ -1,6 +1,6 @@
 # OpenClaw reinstall and restore
 
-Цель: восстановить локальный OpenClaw без зависимости от `/git/openclaw`.
+Цель: восстановить локальный OpenClaw без зависимости от legacy in-tree runtime root.
 
 ## Канонический контракт
 
@@ -49,4 +49,4 @@ bash /git/tools/openclaw/ops/install.sh
 
 ## Критерий восстановления
 
-После restore сервис должен запускаться и работать, даже если `/git/openclaw` отсутствует полностью.
+После restore сервис должен запускаться и работать, даже если legacy in-tree runtime root отсутствует полностью.

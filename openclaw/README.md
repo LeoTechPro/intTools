@@ -2,7 +2,7 @@
 
 `/git/tools/openclaw` — versioned overlay для локального OpenClaw.
 
-`/git/openclaw` уже decommissioned и больше не является runtime-источником; исторические артефакты сохранены в `/git/.archive` и в отчётах decommission.
+Legacy in-tree runtime root decommissioned и больше не является runtime-источником; исторические артефакты сохранены в отчётах decommission.
 
 Канонический runtime теперь должен жить вне git:
 
