@@ -19,5 +19,5 @@
 ## Integration expectations
 
 - `/int/data` остаётся strict backend-core repo
-- `/int/chat`, `/int/bot`, `/int/itsm`, `/int/erp` владеют своими runtime-code/config/docs
+- `/int/chat`, `/int/bridge`, `/int/itsm`, `/int/erp` владеют своими runtime-code/config/docs
 - tooling для этих repos может жить здесь только если это внешний helper layer, а не product-core

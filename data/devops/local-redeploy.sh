@@ -14,7 +14,7 @@ mkdir -p "$REPORT_ROOT"
 LOG_SCAN="$ROOT/scripts/devops/log-scan.py"
 PATTERN_LABELS='ERROR|FATAL|CRITICAL|Traceback|Unhandled|panic|OOM|bind: address already in use|Migrations failed|connection refused'
 
-CANDIDATE_SYSTEMD_UNITS=("intdata-web" "intdata-web-dev" "nexus-intdata-web" "nexus-intdata-web-dev" "bot-intdata" "bot-intdata-dev" "intdata-worker" "nexus-intdata-worker")
+CANDIDATE_SYSTEMD_UNITS=("intdata-web" "intdata-web-dev" "nexus-intdata-web" "nexus-intdata-web-dev" "intdata-worker" "nexus-intdata-worker")
 if [[ -n "${INTDATA_SYSTEMD_UNITS:-}" ]]; then
   # shellcheck disable=SC2206
   CANDIDATE_SYSTEMD_UNITS=(${INTDATA_SYSTEMD_UNITS})

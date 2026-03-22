@@ -49,14 +49,13 @@ python3 -m venv "$PROJECT_VENV" >/dev/null 2>&1 || true
 "$PROJECT_VENV/bin/pip" install -r requirements.txt
 
 # 3) Установка unit-файлов (только если изменились)
-#install -m 0644 -D "$PROJECT_ROOT/configs/systemd/bot-intdata.service" /etc/systemd/system/bot-intdata.service
 #install -m 0644 -D "$PROJECT_ROOT/configs/systemd/intdata-web.service" /etc/systemd/system/intdata-web.service
 
 # 4) Проверка синтаксиса и перезагрузка конфигурации systemd
-systemd-analyze verify /etc/systemd/system/intdata-*.service /etc/systemd/system/nexus-intdata-*.service /etc/systemd/system/bot-intdata*.service
+systemd-analyze verify /etc/systemd/system/intdata-*.service /etc/systemd/system/nexus-intdata-*.service
 systemctl daemon-reload
 
 # 5) Включаем, но НЕ рестартим здесь (перезапуск сделает GitHub job один раз)
-systemctl enable bot-intdata.service intdata-web.service
+systemctl enable intdata-web.service
 
 echo "install_services: ok"

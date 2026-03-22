@@ -91,7 +91,7 @@ if [[ -n "${DEVOPS_COMPOSE_FILES:-}" ]]; then
   fi
 fi
 
-units=(intdata-web-dev nexus-intdata-web-dev bot-intdata-dev intdata-worker-dev)
+units=(intdata-web-dev nexus-intdata-web-dev intdata-worker-dev)
 available=()
 for unit in "${units[@]}"; do
   if systemctl list-unit-files "$unit" >/dev/null 2>&1 || systemctl status "$unit" >/dev/null 2>&1; then
