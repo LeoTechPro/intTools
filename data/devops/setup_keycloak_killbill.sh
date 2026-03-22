@@ -397,7 +397,6 @@ entries = []
 nexus_domain = default_domain(['PUBLIC_URL'], 'https://dev.intdata.pro')
 crm_domain = default_domain(['CRM_PUBLIC_URL'], 'https://crm.dev.intdata.pro')
 bridge_domain = default_domain(['BRIDGE_PUBLIC_URL'], 'https://bridge.dev.intdata.pro')
-chat_domain = default_domain(['CHAT_PUBLIC_URL'], 'https://chat.intdata.pro')
 suite_domain = default_domain(['SUITE_PUBLIC_URL'], 'https://suite.dev.intdata.pro')
 id_admin_domain = default_domain(['ID_ADMIN_PUBLIC_URL'], 'https://id.dev.intdata.pro/admin')
 bot_domain = default_domain(['BOT_PUBLIC_URL'], 'https://bot.dev.intdata.pro')
@@ -440,18 +439,6 @@ entries.append(build_confidential(['BRIDGE_API_SSO'], default_id='bridge-api',
                                    default_origins=['+'],
                                    service_account=True, code_flow=False,
                                    name='Bridge API'))
-
-entries.append(build_spa(['CHAT_SSO'], default_id='chat-web',
-                         domain=chat_domain, local_port='18601',
-                         name='Chat Web'))
-entries.append(build_spa(['CHAT_ADMIN_SSO'], default_id='chat-admin',
-                         domain=chat_domain, local_port='18601', redirect_path='/admin/callback',
-                         name='Chat Admin'))
-entries.append(build_confidential(['CHAT_API_SSO'], default_id='chat-api',
-                                   default_redirects=[],
-                                   default_origins=['+'],
-                                   service_account=True, code_flow=False,
-                                   name='Chat API'))
 
 entries.append(build_spa(['SUITE_SSO'], default_id='suite-web',
                          domain=suite_domain, local_port='15850',

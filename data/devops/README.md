@@ -32,7 +32,6 @@
 #      NEXUS_SSO_*/NEXUS_ADMIN_SSO_*/NEXUS_API_SSO_*
 #      CRM_SSO_*/CRM_ADMIN_SSO_*/CRM_API_SSO_*
 ##      BRIDGE_SSO_*/BRIDGE_ADMIN_SSO_*/BRIDGE_API_SSO_*
-#      CHAT_SSO_*/CHAT_ADMIN_SSO_*/CHAT_API_SSO_*
 #      SUITE_SSO_*/SUITE_ADMIN_SSO_*/SUITE_API_SSO_*
 #      ID_ADMIN_SSO_*, ID_API_SSO_*
 #      BOT_ADMIN_SSO_*, BOT_API_SSO_*
@@ -188,8 +187,6 @@ curl -Ik https://kms.intdata.pro/v1/sys/health
 - Root token (`ID_OPENBAO_TOKEN`) хранится только во внешнем секрет-хранилище. При ротации токена сначала обновите `.env`, затем повторно выполните `sync-openbao`.
 
 ## Утилиты и вспомогательные скрипты
-
-- **certbot-chat.sh** — legacy-скрипт для старого Matrix/chat-контура. После влития операторского чата в `/int/crm/chat` не считается частью active IntData surface и не должен использоваться для `chat.intdata.pro`.
 
 - **check_duplicates.py** — ищет дубликаты файлов по SHA-1. По умолчанию сканирует `/int/nexus/web/static/diagnostics`, игнорируя `.git`, `node_modules`, build-артефакты. Код возврата `0`, если дублей нет, и `1`, если найдены совпадения. Пример:\
   `python3 scripts/devops/check_duplicates.py shared/assets -e build -e cache`.
