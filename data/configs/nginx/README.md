@@ -47,7 +47,6 @@
    sudo mkdir -p /var/www/nexus.intdata.pro
    sudo mkdir -p /var/www/sso.test.intdata.pro
    sudo mkdir -p /var/www/suite.intdata.pro
-   sudo mkdir -p /var/www/chat.intdata.pro
    ```
 3. Выпустите сертификаты (пример для одного домена, перечислите нужные `-d`; переменная `CERTBOT_EMAIL` обязательна). Проще всего использовать автоматизированный скрипт:
    ```bash
@@ -62,7 +61,6 @@
    sudo certbot certonly --webroot -w /var/www/nexus.intdata.pro -d nexus.intdata.pro
    sudo certbot certonly --webroot -w /var/www/sso.test.intdata.pro -d sso.test.intdata.pro
    sudo certbot certonly --webroot -w /var/www/suite.intdata.pro -d suite.intdata.pro
-   sudo certbot certonly --webroot -w /var/www/chat.intdata.pro -d chat.intdata.pro -d www.chat.intdata.pro
    ```
 4. После успешного выпуска перезагрузите nginx:
    ```bash

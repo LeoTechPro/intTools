@@ -189,8 +189,7 @@ curl -Ik https://kms.intdata.pro/v1/sys/health
 
 ## Утилиты и вспомогательные скрипты
 
-- **certbot-chat.sh** — выпуск/обновление сертификатов Let's Encrypt для доменов чата (`chat.intdata.pro`, `admin.chat.intdata.pro`, `element.chat.intdata.pro`). Настраивает `snap`/`certbot`, выполняет `certbot --apache` для каждой зоны. Запуск под учеткой DevOps:\
-  `scripts/devops/certbot-chat.sh`.
+- **certbot-chat.sh** — legacy-скрипт для старого Matrix/chat-контура. После влития операторского чата в `/int/crm/chat` не считается частью active IntData surface и не должен использоваться для `chat.intdata.pro`.
 
 - **check_duplicates.py** — ищет дубликаты файлов по SHA-1. По умолчанию сканирует `/int/nexus/web/static/diagnostics`, игнорируя `.git`, `node_modules`, build-артефакты. Код возврата `0`, если дублей нет, и `1`, если найдены совпадения. Пример:\
   `python3 scripts/devops/check_duplicates.py shared/assets -e build -e cache`.

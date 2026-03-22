@@ -9,7 +9,7 @@ set -Eeuo pipefail
 #
 # Примеры использования:
 #   sudo ./scripts/devops/issue_intdata_certs.sh
-#   WEBROOT_BASE=/srv/www sudo ./scripts/devops/issue_intdata_certs.sh chat.intdata.pro
+#   WEBROOT_BASE=/srv/www sudo ./scripts/devops/issue_intdata_certs.sh nexus.intdata.pro
 #
 # При успешном выпуске выполняется `nginx -t` и перезагрузка nginx.
 
@@ -25,7 +25,6 @@ NEEDED_DOMAINS=(
   nexus.intdata.pro
   sso.test.intdata.pro
   suite.intdata.pro
-  chat.intdata.pro
 )
 
 usage() {
@@ -107,9 +106,6 @@ main() {
         ;;
       suite.intdata.pro)
         issue_cert "${domain}"
-        ;;
-      chat.intdata.pro)
-        issue_cert "${domain}" "www.chat.intdata.pro"
         ;;
       *)
         echo "Предупреждение: домен ${domain} не известен скрипту, пропуск." >&2
