@@ -21,3 +21,7 @@
 - `/int/data` остаётся strict backend-core repo
 - `/int/chat`, `/int/bridge`, `/int/itsm`, `/int/erp` владеют своими runtime-code/config/docs
 - tooling для этих repos может жить здесь только если это внешний helper layer, а не product-core
+
+## Git и commit hygiene
+
+- Перед каждым локальным commit обязательно добавить в индекс новые файлы текущего scope и повторно выполнить `git add` для уже staged путей после каждой дополнительной правки; commit по устаревшему состоянию индекса запрещён.
