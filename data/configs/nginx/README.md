@@ -1,6 +1,7 @@
 # Конфигурации nginx (reverse proxy перед Apache)
 
 Каталог содержит итоговые конфиги `nginx`, сформированные на основе действующих `apache2` vhost'ов.
+Исключение: [`api.intdata.pro.conf`](/int/tools/data/configs/nginx/api.intdata.pro.conf) ведётся отдельно как host-level custom vhost для Supabase API и не генерируется из Apache.
 
 ### Назначение
 
