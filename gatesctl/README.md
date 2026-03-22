@@ -29,12 +29,12 @@ Runtime files:
 
 ```bash
 gatesctl plan-scope \
-  --repo-root /int/punctb \
+  --repo-root /int/crm \
   --issue 1224 \
   --files .agents/scripts/issue_commit.sh
 
 gatesctl approve \
-  --repo-root /int/punctb \
+  --repo-root /int/crm \
   --issue 1224 \
   --gate docs-sync \
   --decision approve \
@@ -43,18 +43,18 @@ gatesctl approve \
   --files .agents/scripts/issue_commit.sh
 
 gatesctl verify \
-  --repo-root /int/punctb \
+  --repo-root /int/crm \
   --issue 1224 \
   --stage commit \
   --files .agents/scripts/issue_commit.sh \
   --sync-issue
 
 gatesctl bind-commit \
-  --repo-root /int/punctb \
+  --repo-root /int/crm \
   --commit-sha HEAD
 
 gatesctl audit-range \
-  --repo-root /int/punctb \
+  --repo-root /int/crm \
   --target-branch dev \
   --range '@{upstream}..HEAD'
 ```

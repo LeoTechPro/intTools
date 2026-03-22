@@ -1,178 +1,31 @@
 # intTools
 
-`intTools` — репозиторий `LeoTechPro/intTools` (канонический путь `/int/tools`) с вспомогательными утилитами, скриптами и подсистемами для `intData.pro`, не являющимися частью product-core репозиториев. Каждый каталог содержит автономный набор tooling-артефактов и инструкций. Основной принцип — конфигурация исключительно через переменные окружения и шаблоны `.env.example`, чтобы не хранить реальные значения в репозитории.
+`intTools` — machine-wide tooling repo `LeoTechPro/intTools` с каноническим путём `/int/tools`.
 
 ## Target Role
 
-`/int/tools` — `ops-tooling`: внешний machine-wide contour для process tooling, hooks, ops scripts, Codex/OpenClaw assets и host helpers.
+`/int/tools` — `ops-tooling`: внешний reusable contour для process tooling, hooks, host helpers, bootstrap scripts и shared runbooks.
 
 ## Canonical Ownership
 
-- owner machine-wide tooling, но не owner business product-core;
-- хранит внешние ops/process контуры проектов, включая `punctb`, `probe`, `codex`, `gemini-openai-proxy`;
-- runtime/state живут вне repo в host paths.
+- `/int/tools` владеет только machine-wide ops/process/tooling артефактами;
+- business product-core, user-facing shells и domain ownership остаются в соответствующих top-level repos;
+- runtime state и реальные секреты живут во внешних host paths, а не в repo.
 
 ## What Lives Here
 
-- hooks, scripts, process wrappers, internal runbooks, shared ops helpers;
-- versioned tooling для проектов семейства и машины;
-- maintenance tooling для host/runtime contour.
+- `lockctl`, `gatesctl`, `codex`, `probe`, `data` и другие reusable tooling modules;
+- shared hooks, bootstrap scripts и ops runbooks;
+- repo-level docs для tooling contour.
 
 ## What Must Not Live Here
 
-- canonical product-core бизнесовых репозиториев;
-- mutable runtime-state продуктов;
-- попытки хранить здесь product-owned DB schema/source-of-truth.
+- canonical product domains и user-facing product shells;
+- permanent runtime-state, caches и секреты как tracked source-of-truth;
+- дубли локальных product README/AGENTS вместо ссылок на owner repos.
 
-## Relations to `intdata core`
+## Integration Expectations
 
-`/int/tools` обслуживает `intdata core` и соседние репозитории внешним tooling-контуром, но сам не является частью canonical backend-core.
-
-Канонический путь этого репозитория — `/int/tools`; старые path-варианты допустимы только в historical references и не должны использоваться в живых runtime-контрактах.
-
-## Структура
-
-- `codex/` — versioned host-tooling для Codex/OpenClaw. Managed assets, bootstrap и policy лежат в репозитории; живой секретный слой вынесен в `/int/.runtime/codex-secrets`, а Codex-generated runtime/state остаётся в `~/.codex`.
-- `gemini-openai-proxy/` — internal-vendor модуль OpenAI-compatible proxy для Gemini, перенесённый в tooling-контур из отдельного checkout. В каталоге храним versioned исходники, `LICENSE` upstream и локальный `README.md` с ссылкой на исходный внешний репозиторий.
-- `data/` — внешний ops/tooling-контур strict backend-core repo `/int/data`: host configs, devops/docops/dev helpers и cross-repo scripts, которые больше не живут в product repo.
-- `probe/` — maintenance/audit утилиты для `Probe Monitor`, которые не нужны для boot prod-сервиса.
-- `punctb/` — внешний ops/tooling-контур проекта «Пункт Б»: `sync_punctb.py`, process-scripts, hooks, internal runbooks и skills, которые не должны жить в product repo `/int/punctb`.
-
-`openclaw/` — это legacy-слой, который оставлен как исторический архивный контур для decommission-перехода; живой runtime для него находится в `~/.openclaw` и не публикуется через этот репозиторий.
-
-Общее правило для этого репозитория: versioned исходники и инструкции храним здесь, а runtime outputs, логи, временные файлы и mutable state уезжают во внешние host-path.
-
-Исключение по явному решению владельца: cloud-access контур для `rclone` держит mountpoints и runtime config в `/int/.runtime/cloud-access` и `/int/cloud/*`, а secret runtime Codex/MCP держится в `/int/.runtime/codex-secrets`, чтобы восстановление рабочей машины шло из `/int` без раскладывания кастомных env по `~/.codex`.
-
-## Требования
-
-- Python 3.8 или новее
-- Виртуальное окружение Python (`venv`)
-- Установленные зависимости из `pip`
-
-Рекомендуется создавать отдельное виртуальное окружение для каждого каталога со скриптами:
-
-```bash
-python3 -m venv .venv
-. .venv/bin/activate
-pip install --upgrade pip
-```
-
-## PunctB Sync Script
-
-`sync_punctb.py` синхронизирует данные между исходной и целевой базами данных PostgreSQL. Скрипт поддерживает проверку расхождений, дельтовые загрузки и полный ре-импорт выбранных таблиц.
-
-## PunctB Ops Tooling
-
-`/int/tools/punctb` теперь также хранит versioned process/ops/tooling для PunctB:
-- `bin/punctb-ops` — единый launcher для `issue:*`, `release:*`, `teamlead:*` и других process-команд;
-- `ops/**` — process-scripts и gate wrappers, которые продукт вызывает через внешний ops-контур;
-- `docs/**` и `templates/**` — versioned internal docs, policy и шаблоны для ops/process use-cases;
-- `git-hooks/**` — git hooks, которые ставятся в checkout продукта внешней командой;
-- `backend-ops/**` — ручные backend utility scripts, не входящие в product-core репозиторий.
-
-Инварианты:
-- product repo `/int/punctb` не хранит versioned ops/tooling вроде `deploy`, `backend/scripts`, `.mcp.json`, `codex.skill` и старых внутренних repo-local process paths;
-- runtime scratch/log/tmp для PunctB ops и Codex живут вне git, по умолчанию в `~/.codex/tmp/punctb` и соседних host-path;
-- команды из product repo вызывают внешний контур через `PUNCTB_OPS_HOME=${PUNCTB_OPS_HOME:-/int/tools/punctb}`.
-- для самого репозитория `/int/tools` используем single-branch flow в `main`; dev/main promotion-контракт относится к продуктовым checkout, а не к этому репозиторию.
-
-### Возможности
-
-- Чтение источника только в read-only режиме
-- UPSERT по первичному ключу для таблиц с полем `updated_at`
-- Дозагрузка новых строк в append-only таблицах с PK `id`
-- Режим полного ре-импорта (`--full-refresh`) для сложных таблиц
-- Сравнение агрегатов (`count`, `max(id)`, `max(updated_at)`, контрольные суммы PK)
-
-### Настройка окружения
-
-1. Установите зависимости:
-   ```bash
-   pip install -r punctb/requirements.txt  # либо вручную: psycopg2-binary, python-dotenv, tabulate
-   ```
-   *(файл `requirements.txt` создайте при необходимости; перечислите нужные пакеты)*
-
-2. Скопируйте шаблон переменных окружения:
-   ```bash
-   cp punctb/env punctb/.env
-   ```
-
-3. Заполните `punctb/.env`. Доступны переменные:
-   - `SRC_HOST`, `SRC_PORT`, `SRC_DB`, `SRC_USER`, `SRC_PASSWORD`, `SRC_SSLMODE`
-   - `DST_HOST`, `DST_PORT`, `DST_DB`, `DST_USER`, `DST_PASSWORD`, `DST_SSLMODE`, `DST_SSLROOTCERT`
-
-   Реальные значения кладите в локальный `punctb/.env`; `.env`-файлы не попадают в репозиторий. Перед публикацией всегда проверяйте наличие только шаблонов в `.env.example` и немедленно обновляйте креды во внешней системе при утечке.
-
-### Запуск
-
-- Проверка без внесения изменений:
-  ```bash
-  python punctb/sync_punctb.py --verify-only
-  ```
-
-- Дельтовая синхронизация всех таблиц схемы `public`:
-  ```bash
-  python punctb/sync_punctb.py
-  ```
-
-- Дельта только по выбранным таблицам:
-  ```bash
-  python punctb/sync_punctb.py --tables clients,diagnostics,managers
-  ```
-
-- Указание размера батча (по умолчанию 5000):
-  ```bash
-  python punctb/sync_punctb.py --batch-size 20000
-  ```
-
-- Полный ре-импорт таблицы (удаляет данные в целевой БД перед загрузкой):
-  ```bash
-  python punctb/sync_punctb.py --full-refresh --tables diagnostics
-  ```
-
-### Отчёт о выполнении
-
-По завершении скрипт выводит таблицу с основными метриками:
-
-| table   | src_count | dst_count | src_max_id | dst_max_id | src_max_updated | dst_max_updated |
-|---------|-----------|-----------|------------|------------|-----------------|-----------------|
-| clients | 15234     | 15234     | 20001      | 20001      | 2025-09-28 09:00 | 2025-09-28 09:00 |
-
-Совпадение метрик означает успешную синхронизацию. Рассинхрон указывает на таблицы, требующие повторного запуска.
-
-### Практические рекомендации
-
-- Выполняйте `--verify-only` перед каждой синхронизацией.
-- Планируйте дельтовые загрузки в тихие часы.
-- Таблицы без явного PK или `updated_at` безопаснее перезаливать через `--full-refresh`.
-- Скрипт не изменяет источник, все операции выполняются в целевой базе.
-
-### Частые проблемы
-
-- **Несовпадающая схема** — обновите структуру целевой БД с помощью `pg_dump -s` и `psql`, указав параметры подключения из `.env`.
-- **Большие объёмы данных** — увеличьте `--batch-size` и используйте фильтрацию по таблицам.
-- **Отсутствует PK** — применяйте режим полного ре-импорта.
-
-### Откат изменений
-
-- Для пересоздания данных повторите загрузку с `--full-refresh`.
-- Для чистки конкретных таблиц используйте `TRUNCATE TABLE ... RESTART IDENTITY CASCADE;` на целевой базе (с осторожностью).
-
-### Безопасность
-
-Если конфиденциальные параметры ранее попадали в публичный репозиторий, немедленно:
-- Прокрутите новые пароли/ключи в админ-панели БД.
-- Обновите значения в `punctb/.env`.
-- Убедитесь, что секреты отсутствуют в истории коммитов перед публикацией.
-
-## Вклад
-
-Добавляйте новые каталоги с tooling-утилитами, следуя правилам:
-- Документация в общем `README.md` или в отдельном файле внутри каталога.
-- Настройки через `.env` с шаблоном `<module>/env`.
-- Никаких чувствительных данных, логов и runtime outputs в репозитории.
-
-## Лицензия
-
-Если не указано иное, скрипты распространяются внутри команды «Пункт Б» без публичной лицензии. Уточните условия перед передачей третьим лицам.
+- reusable tooling хранится здесь, а не в корне `/int` и не в product repos;
+- product repos подключают этот contour извне через scripts, hooks и documented runbooks;
+- если historical tooling-модуль временно отсутствует в дереве `/int`, его не включаем в актуальную верхнеуровневую карту до фактического возвращения checkout.

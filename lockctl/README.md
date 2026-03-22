@@ -4,7 +4,7 @@
 
 ## Shell UX
 
-Use the public shell entrypoint:
+Use the public shell entrypoint from `PATH`:
 
 ```bash
 lockctl
@@ -14,6 +14,10 @@ man lockctl
 ```
 
 Bare `lockctl` prints the top-level help and exits successfully.
+
+Implementation lives in `/int/tools/lockctl/lockctl.py`.
+For repo-local discoverability there is also a wrapper file at `/int/tools/lockctl/lockctl`.
+Do not try to execute the directory `/int/tools/lockctl` itself as a binary.
 
 ## Runtime model
 
@@ -33,22 +37,22 @@ Runtime files:
 
 ```bash
 lockctl acquire \
-  --repo-root /int/punctb \
+  --repo-root /int/crm \
   --path README.md \
   --owner codex:session-1 \
   --issue 1217 \
   --lease-sec 60 \
   --format json
 
-lockctl status --repo-root /int/punctb --issue 1217 --format json
+lockctl status --repo-root /int/crm --issue 1217 --format json
 
 lockctl release-path \
-  --repo-root /int/punctb \
+  --repo-root /int/crm \
   --path README.md \
   --owner codex:session-1 \
   --format json
 
-lockctl release-issue --repo-root /int/punctb --issue 1217 --format json
+lockctl release-issue --repo-root /int/crm --issue 1217 --format json
 
 lockctl gc --format json
 ```
@@ -56,4 +60,4 @@ lockctl gc --format json
 ## Notes
 
 - Do not edit SQLite or `events.jsonl` directly.
-- `punctb` and `intdata` now treat `lockctl` as the runtime source of truth for active file locks.
+- Active `/int/*` repos now treat `lockctl` as the runtime source of truth for active file locks.

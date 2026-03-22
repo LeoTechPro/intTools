@@ -7,7 +7,7 @@ if [[ $# -eq 0 ]]; then
 fi
 
 QUERY="$*"
-WORKDIR="${OPENCLAW_BIZON_WORKDIR:-/int/punctb}"
+WORKDIR="${OPENCLAW_BIZON_WORKDIR:-/int/crm}"
 
 PROMPT=$(cat <<EOF
 Ты выполняешь запрос к Bizon365 для OpenClaw.

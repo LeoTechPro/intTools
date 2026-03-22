@@ -43,7 +43,7 @@
 ```bash
 npm run issue:hooks:install
 ```
-3. Machine-wide source-of-truth по локам: shell-команда `lockctl` (runtime backend в `/int/tools/lockctl`).
+3. Machine-wide source-of-truth по локам: shell-команда `lockctl`; implementation-файл лежит в `/int/tools/lockctl/lockctl.py`, repo-local wrapper — `/int/tools/lockctl/lockctl`, а каталог `/int/tools/lockctl` не является исполняемым файлом.
 4. Для PunctB любой write-scope должен быть предварительно закрыт активными `lockctl` lease-locks с числовым `GitHub issue id`.
 
 ## Контракт `lockctl`

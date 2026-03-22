@@ -1258,11 +1258,11 @@ def build_top_level_epilog() -> str:
           events={EVENTS_PATH}
 
         Примеры:
-          gatesctl plan-scope --repo-root /int/punctb --issue 1224 --files .agents/scripts/issue_commit.sh
-          gatesctl verify --repo-root /int/punctb --issue 1224 --stage commit --files web/src/app/router/AppRouter.tsx
+          gatesctl plan-scope --repo-root /int/crm --issue 1224 --files .agents/scripts/issue_commit.sh
+          gatesctl verify --repo-root /int/crm --issue 1224 --stage commit --files web/src/app/router/AppRouter.tsx
           gatesctl trailers --receipt-id gr_v1_deadbeefdeadbeef
-          gatesctl bind-commit --repo-root /int/punctb --commit-sha HEAD
-          gatesctl audit-range --repo-root /int/punctb --target-branch dev --range '@{{upstream}}..HEAD'
+          gatesctl bind-commit --repo-root /int/crm --commit-sha HEAD
+          gatesctl audit-range --repo-root /int/crm --target-branch dev --range '@{{upstream}}..HEAD'
 
         Коды выхода:
           {EXIT_OK}  успех

@@ -1,40 +1,18 @@
-# Probe Monitor: must-survive assets
+# Probe tooling mirror: must-survive assets
 # canonical prod-core repo: /int/probe
 
-bridge/probe_bridge.py
-probes/machine_health_probe.py
-probes/punctb_health_probe.py
-probes/punctb_git_probe.py
-probes/lockctl_global_probe.py
-
-config/docker-compose.yml
-.env
-config/certs/fleet.crt
-config/certs/fleet.key
-config/certs/openssl.cnf
-config/probe-bridge.container.env
-config/services.json
-config/default.yml
-
-ops/bootstrap.sh
-ops/install.sh
-ops/verify.sh
-ops/cutover.sh
-
-ops/systemd/probe-bridge.service
-ops/systemd/probe-machine-health.service
-ops/systemd/probe-machine-health.timer
-ops/systemd/probe-punctb-health.service
-ops/systemd/probe-punctb-health.timer
-ops/systemd/probe-lockctl.service
-ops/systemd/probe-lockctl.timer
+# Files that реально versioned in /int/tools/probe
+/int/tools/probe/README.md
+/int/tools/probe/collect_audit.sh
+/int/tools/probe/docs/critical_assets.txt
+/int/tools/probe/docs/machine-audit-2026-03-02.md
 
 # Shared tooling outside /int/probe
-/int/tools/probe/collect_audit.sh
 /int/tools/codex/cleanup_agent_orphans.sh
 /int/tools/codex/install_orphan_cleaner_cron.sh
 
-# Host runtime/state outside git
+# Canonical prod-core and host runtime/state outside this tooling mirror
+/int/probe
 $HOME/.local/state/probe-monitor
 $HOME/.local/share/probe-monitor
 $HOME/.codex/tools/openclaw
