@@ -45,6 +45,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - reusable tooling хранится здесь, а не в корне `/int` и не в чужих product repos;
 - product repos подключают этот contour извне через scripts, hooks и documented runbooks;
 - repo остаётся machine-wide tooling layer, а не отдельным business runtime.
+- прямые кодовые импорты между `/int/tools` и другими top-level root-контурами `/int/*` запрещены; интеграция допустима только через documented scripts/hooks/CLI entrypoints, public APIs/contracts, events или иные явно согласованные boundary contracts.
 
 ## Escalation triggers
 
