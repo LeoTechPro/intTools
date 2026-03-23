@@ -52,6 +52,12 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - перенос mutable runtime-state или секретов в tracked repo;
 - дублирование локальных product-docs вместо ссылок на реальные owner repos.
 
+## Lock discipline
+
+- Любые файловые правки в `/int/tools` запрещены без предварительного `lockctl acquire` по конкретному файлу.
+- Источник истины по активным локам — только `lockctl`; project-local заметки не подменяют runtime truth.
+- После завершения правки лок обязательно снимается через `lockctl release-path` или `lockctl release-issue`.
+
 ## Git и завершение работы
 
 - Перед новой работой в этом git-репозитории агент обязан проверить чистоту дерева и upstream текущей ветки; обязательный `git pull` выполняется только при clean tree и валидном upstream.

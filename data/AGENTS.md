@@ -22,6 +22,12 @@
 - `/int/nexus`, `/int/itsm`, `/int/erp` владеют своими runtime-code/config/docs
 - tooling для этих repos может жить здесь только если это внешний helper layer, а не product-core
 
+## Lock discipline
+
+- Любые файловые правки в `/int/tools/data` запрещены без предварительного `lockctl acquire` по конкретному файлу.
+- Источник истины по активным локам — только `lockctl`; project-local заметки не подменяют runtime truth.
+- После завершения правки лок обязательно снимается через `lockctl release-path` или `lockctl release-issue`.
+
 ## Git и commit hygiene
 
 - Перед каждым локальным commit обязательно добавить в индекс новые файлы текущего scope и повторно выполнить `git add` для уже staged путей после каждой дополнительной правки; commit по устаревшему состоянию индекса запрещён.
