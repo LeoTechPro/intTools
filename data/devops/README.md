@@ -29,9 +29,9 @@
 #    ID_KEYCLOAK_REALM (опционально, по умолчанию intdata)
 #    ID_KILLBILL_TENANT_NAME (опционально, по умолчанию "IntData Dev")
 #    SSO клиенты модулей (см. id/.env.example):
-#      NEXUS_SSO_*/NEXUS_ADMIN_SSO_*/NEXUS_API_SSO_*
+#      BRAIN_SSO_*/BRAIN_ADMIN_SSO_*/BRAIN_API_SSO_*
 #      CRM_SSO_*/CRM_ADMIN_SSO_*/CRM_API_SSO_*
-##      BRIDGE_SSO_*/BRIDGE_ADMIN_SSO_*/BRIDGE_API_SSO_*
+##      NEXUS_SSO_*/NEXUS_ADMIN_SSO_*/NEXUS_API_SSO_*
 #      SUITE_SSO_*/SUITE_ADMIN_SSO_*/SUITE_API_SSO_*
 #      ID_ADMIN_SSO_*, ID_API_SSO_*
 #      BOT_ADMIN_SSO_*, BOT_API_SSO_*
@@ -188,7 +188,7 @@ curl -Ik https://kms.intdata.pro/v1/sys/health
 
 ## Утилиты и вспомогательные скрипты
 
-- **check_duplicates.py** — ищет дубликаты файлов по SHA-1. По умолчанию сканирует `/int/nexus/web/static/diagnostics`, игнорируя `.git`, `node_modules`, build-артефакты. Код возврата `0`, если дублей нет, и `1`, если найдены совпадения. Пример:\
+- **check_duplicates.py** — ищет дубликаты файлов по SHA-1. По умолчанию сканирует `/int/brain/web/static/diagnostics`, игнорируя `.git`, `node_modules`, build-артефакты. Код возврата `0`, если дублей нет, и `1`, если найдены совпадения. Пример:\
   `python3 scripts/devops/check_duplicates.py shared/assets -e build -e cache`.
 
 - **dev-redeploy.sh** — стандартный DevOps-цикл для ветки `dev`: подтягивает `.env`, запускает rebuild/restart сервисов, собирает логи в `logs/devops/<UTC>/`, прогоняет `log-scan.py`, выполняет HTTP-smoke и дополнительно запускает [`smoke.sh`](smoke.sh) (включая OpenBao). Использование:\
@@ -214,7 +214,7 @@ curl -Ik https://kms.intdata.pro/v1/sys/health
 - **rebuild_service.sh** — точечный пересбор docker-compose сервиса: вызовет `docker compose build <service>` + `up -d`. Указываем compose-name из корневого `docker-compose.yml`:\
   `scripts/devops/rebuild_service.sh nexus-web`.
 
-- **rebuild_smart_sidebar.sh** — пересборка фронтенда Nexus из canonical repo `/int/nexus/web`, затем синхронизация артефактов в target web-root. Использование:\
+- **rebuild_smart_sidebar.sh** — пересборка фронтенда Nexus из canonical repo `/int/brain/web`, затем синхронизация артефактов в target web-root. Использование:\
   `scripts/devops/rebuild_smart_sidebar.sh`.
 
 - **run_task_reminder_worker.py** — entrypoint для фонового воркера напоминаний (используется в systemd/cron). Интервал опроса берёт из `TASK_REMINDER_INTERVAL` (секунды). Запуск:\

@@ -7,9 +7,9 @@ import logging
 import os
 from signal import SIGINT, SIGTERM
 
-from nexus.api.env import env
-from nexus.api.db.init_app import init_app_once
-from nexus.api.services.task_reminder_worker import TaskReminderWorker
+from brain.api.env import env
+from brain.api.db.init_app import init_app_once
+from brain.api.services.task_reminder_worker import TaskReminderWorker
 
 logger = logging.getLogger("task_reminder_worker")
 

@@ -6,7 +6,7 @@ log() {
 }
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-NEXUS_REPO_ROOT="${NEXUS_REPO_ROOT:-/int/nexus}"
+BRAIN_REPO_ROOT="${BRAIN_REPO_ROOT:-/int/brain}"
 TIMESTAMP="$(date -u +"%Y%m%dT%H%M%SZ")"
 REPORT_ROOT="$ROOT/logs/devops/$TIMESTAMP"
 mkdir -p "$REPORT_ROOT"
@@ -91,9 +91,9 @@ elif [[ "$MODE" == "systemd" ]]; then
   elif [[ -f "$ROOT/pyproject.toml" ]]; then
     run_cmd "Обновление Python-зависимостей" python3 -m pip install "$ROOT"
   fi
-  if [[ -f "$NEXUS_REPO_ROOT/web/package.json" ]]; then
-    run_cmd "npm install (nexus web)" npm install --prefix "$NEXUS_REPO_ROOT/web"
-    run_cmd "npm build (nexus web)" npm run --prefix "$NEXUS_REPO_ROOT/web" build
+  if [[ -f "$BRAIN_REPO_ROOT/web/package.json" ]]; then
+    run_cmd "npm install (nexus web)" npm install --prefix "$BRAIN_REPO_ROOT/web"
+    run_cmd "npm build (nexus web)" npm run --prefix "$BRAIN_REPO_ROOT/web" build
   fi
   for unit in "${active_systemd_units[@]}"; do
     run_cmd "Restart systemd unit $unit" sudo -n systemctl restart "$unit"

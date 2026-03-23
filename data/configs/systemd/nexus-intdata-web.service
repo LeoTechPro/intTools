@@ -5,7 +5,7 @@ After=network.target
 [Service]
 User=deploy
 Group=devs
-Environment=PROJECT_DIR=/int/nexus
+Environment=PROJECT_DIR=/int/brain
 Environment=PROJECT_VENV=%E{PROJECT_DIR}/venv
 Environment=ENV_FILE=%E{PROJECT_DIR}/.env
 WorkingDirectory=%E{PROJECT_DIR}
@@ -14,7 +14,7 @@ Environment=PATH=%E{PROJECT_VENV}/bin
 Environment=PYTHONUNBUFFERED=1
 Environment=UVICORN_LOG_LEVEL=debug
 Environment=PYTHONASYNCIODEBUG=1
-ExecStart=%E{PROJECT_VENV}/bin/uvicorn nexus.api.main:app --host 0.0.0.0 --port 5800 --lifespan=on --log-level debug
+ExecStart=%E{PROJECT_VENV}/bin/uvicorn brain.api.main:app --host 0.0.0.0 --port 5800 --lifespan=on --log-level debug
 
 Restart=on-failure
 RestartSec=3s

@@ -12,13 +12,13 @@ fi
 
 if [[ -z "${ENV_FILE:-}" ]]; then
   ENV_FILE="${ENV_FILE:-}"
-  if [[ -z "$ENV_FILE" && -f "/int/nexus/.env" ]]; then
-    ENV_FILE="/int/nexus/.env"
+  if [[ -z "$ENV_FILE" && -f "/int/brain/.env" ]]; then
+    ENV_FILE="/int/brain/.env"
   fi
 fi
 
 if [[ -z "${ENV_FILE:-}" ]]; then
-  echo "ERROR: ENV_FILE not specified and /int/nexus/.env not found" >&2
+  echo "ERROR: ENV_FILE not specified and /int/brain/.env not found" >&2
   exit 1
 fi
 

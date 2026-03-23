@@ -394,27 +394,27 @@ auth_headers = {
 }
 
 entries = []
-nexus_domain = default_domain(['PUBLIC_URL'], 'https://dev.intdata.pro')
+brain_domain = default_domain(['PUBLIC_URL'], 'https://dev.intdata.pro')
 crm_domain = default_domain(['CRM_PUBLIC_URL'], 'https://crm.dev.intdata.pro')
-bridge_domain = default_domain(['BRIDGE_PUBLIC_URL'], 'https://bridge.dev.intdata.pro')
+nexus_domain = default_domain(['NEXUS_PUBLIC_URL'], 'https://nexus.dev.intdata.pro')
 suite_domain = default_domain(['SUITE_PUBLIC_URL'], 'https://suite.dev.intdata.pro')
 id_admin_domain = default_domain(['ID_ADMIN_PUBLIC_URL'], 'https://id.dev.intdata.pro/admin')
 bot_domain = default_domain(['BOT_PUBLIC_URL'], 'https://bot.dev.intdata.pro')
 erp_domain = default_domain(['ERP_PUBLIC_URL', 'ODOO_PUBLIC_URL'], 'https://erp.intdata.pro')
 erpnext_domain = default_domain(['ERPNEXT_PUBLIC_URL', 'ERP_DEV_PUBLIC_URL'], 'https://erp.dev.intdata.pro')
 
-entries.append(build_confidential(['NEXUS_SSO', 'KEYCLOAK'], default_id='nexus-web',
-                                   default_redirects=[f"{nexus_domain.rstrip('/')}/auth/callback"],
-                                   default_origins=[nexus_domain.rstrip('/'), 'http://localhost:5801'],
-                                   name='IntData Nexus Web'))
-entries.append(build_spa(['NEXUS_ADMIN_SSO'], default_id='nexus-admin',
-                         domain=nexus_domain, local_port='5801', redirect_path='/admin/callback',
-                         name='IntData Nexus Admin'))
-entries.append(build_confidential(['NEXUS_API_SSO'], default_id='nexus-api',
+entries.append(build_confidential(['BRAIN_SSO', 'KEYCLOAK'], default_id='brain-web',
+                                   default_redirects=[f"{brain_domain.rstrip('/')}/auth/callback"],
+                                   default_origins=[brain_domain.rstrip('/'), 'http://localhost:5801'],
+                                   name='IntData Brain Web'))
+entries.append(build_spa(['BRAIN_ADMIN_SSO'], default_id='brain-admin',
+                         domain=brain_domain, local_port='5801', redirect_path='/admin/callback',
+                         name='IntData Brain Admin'))
+entries.append(build_confidential(['BRAIN_API_SSO'], default_id='brain-api',
                                    default_redirects=[],
                                    default_origins=['+'],
                                    service_account=True, code_flow=False,
-                                   name='IntData Nexus API'))
+                                   name='IntData Brain API'))
 
 entries.append(build_spa(['CRM_SSO'], default_id='crm-frontend',
                          domain=crm_domain, local_port='3001',
@@ -428,17 +428,17 @@ entries.append(build_confidential(['CRM_API_SSO'], default_id='crm-api',
                                    service_account=True, code_flow=False,
                                    name='CRM API'))
 
-entries.append(build_spa(['BRIDGE_SSO'], default_id='bridge-web',
-                         domain=bridge_domain, local_port='8081',
-                         name='Bridge Web'))
-entries.append(build_spa(['BRIDGE_ADMIN_SSO'], default_id='bridge-admin',
-                         domain=bridge_domain, local_port='8081', redirect_path='/admin/callback',
-                         name='Bridge Admin'))
-entries.append(build_confidential(['BRIDGE_API_SSO'], default_id='bridge-api',
+entries.append(build_spa(['NEXUS_SSO'], default_id='nexus-web',
+                         domain=nexus_domain, local_port='8081',
+                         name='Nexus Web'))
+entries.append(build_spa(['NEXUS_ADMIN_SSO'], default_id='nexus-admin',
+                         domain=nexus_domain, local_port='8081', redirect_path='/admin/callback',
+                         name='Nexus Admin'))
+entries.append(build_confidential(['NEXUS_API_SSO'], default_id='nexus-api',
                                    default_redirects=[],
                                    default_origins=['+'],
                                    service_account=True, code_flow=False,
-                                   name='Bridge API'))
+                                   name='Nexus API'))
 
 entries.append(build_spa(['SUITE_SSO'], default_id='suite-web',
                          domain=suite_domain, local_port='15850',

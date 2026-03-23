@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-NEXUS_REPO_ROOT="${NEXUS_REPO_ROOT:-/int/nexus}"
+BRAIN_REPO_ROOT="${BRAIN_REPO_ROOT:-/int/brain}"
 EXPECTED_BRANCH="dev"
 PATTERN='ERROR|FATAL|CRITICAL|Traceback|Unhandled|panic|OOM|bind: address already in use|Migrations failed|connection refused'
 TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
@@ -57,8 +57,8 @@ PY
 load_env_file "$REPO_ROOT/.env"
 
 if [[ -z "${ENV_FILE:-}" ]]; then
-  if [[ -f "$NEXUS_REPO_ROOT/.env" ]]; then
-    ENV_FILE="$NEXUS_REPO_ROOT/.env"
+  if [[ -f "$BRAIN_REPO_ROOT/.env" ]]; then
+    ENV_FILE="$BRAIN_REPO_ROOT/.env"
     export ENV_FILE
   fi
 fi

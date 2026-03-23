@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Поиск дубликатов файлов по SHA-1.
 
-По умолчанию сканирует `/int/nexus/web/static/diagnostics`, исключая .git, venv, node_modules и build-артефакты.
+По умолчанию сканирует `/int/brain/web/static/diagnostics`, исключая .git, venv, node_modules и build-артефакты.
 Завершает работу кодом 0 при отсутствии дублей и 1, если найдены совпадения.
 """
 from __future__ import annotations
@@ -43,8 +43,8 @@ def hash_file(path: Path) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description='Поиск дубликатов файлов по SHA-1.')
     parser.add_argument(
-        'root', nargs='?', default='/int/nexus/web/static/diagnostics',
-        help='Каталог для проверки (по умолчанию /int/nexus/web/static/diagnostics)'
+        'root', nargs='?', default='/int/brain/web/static/diagnostics',
+        help='Каталог для проверки (по умолчанию /int/brain/web/static/diagnostics)'
     )
     parser.add_argument(
         '--exclude', '-e', action='append', default=[],
