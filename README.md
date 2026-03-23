@@ -1,31 +1,43 @@
 # intTools
 
-`intTools` — machine-wide tooling repo `LeoTechPro/intTools` с каноническим путём `/int/tools`.
+`/int/tools` — machine-wide tooling repo `LeoTechPro/intTools` с каноническим путём `/int/tools`.
 
-## Target Role
+## Назначение
 
-`/int/tools` — `ops-tooling`: внешний reusable contour для process tooling, hooks, host helpers, bootstrap scripts и shared runbooks.
+- reusable ops/process/tooling для контуров в `/int/*`;
+- host helpers, bootstrap scripts, hooks и shared runbooks;
+- versioned overlays для Codex/OpenClaw и соседних ops-систем.
 
-## Canonical Ownership
+## Границы ответственности
 
-- `/int/tools` владеет только machine-wide ops/process/tooling артефактами;
-- business product-core, user-facing shells и domain ownership остаются в соответствующих top-level repos;
-- runtime state и реальные секреты живут во внешних host paths, а не в repo.
+- business product-core и user-facing shells остаются в owner-репозиториях;
+- runtime state и реальные секреты живут во внешних host paths;
+- tooling-модуль не подменяет собой локальные owner-docs продуктовых репозиториев.
 
-## What Lives Here
+## Основные модули
 
-- `lockctl`, `gatesctl`, `codex`, `probe`, `data` и другие reusable tooling modules;
-- shared hooks, bootstrap scripts и ops runbooks;
-- repo-level docs для tooling contour.
+- `lockctl/` — machine-local runtime writer-lock для Codex/OpenClaw;
+- `gatesctl/` — machine-wide runtime для gate receipts, approvals и commit binding;
+- `codex/` — versioned host-tooling, managed assets и project overlays для Codex CLI;
+- `openclaw/` — versioned overlay для локального OpenClaw runtime;
+- `data/` — внешний tooling/configs слой для backend-core `/int/data`;
+- `probe/` — maintenance и audit-утилиты для `/int/probe`;
+- `gemini-openai-proxy/` — internal-vendor copy локального OpenAI-compatible proxy для Gemini;
+- `openspec/changes/` и `openspec/specs/` — proposal/spec материалы этого repo.
 
-## What Must Not Live Here
+## Codex и OpenClaw
 
-- canonical product domains и user-facing product shells;
-- permanent runtime-state, caches и секреты как tracked source-of-truth;
-- дубли локальных product README/AGENTS вместо ссылок на owner repos.
+- runtime Codex живёт в `~/.codex`, а versioned overlay и bootstrap-утилиты — в `codex/`;
+- `codex/projects/` хранит tracked project overlays для runtime `~/.codex/projects/`;
+- `codex/tools/mcp-obsidian-memory/` содержит локальный MCP-сервер для vault `/2brain`;
+- `codex/tools/obsidian-desktop/` хранит repo-managed launcher и desktop config для Obsidian;
+- `codex/assets/codex-home/skills/javascript/` хранит repo-managed resources, scripts и templates для JavaScript skill assets;
+- runtime OpenClaw живёт в `~/.openclaw`, а versioned overlay и runbooks — в `openclaw/`.
 
-## Integration Expectations
+## Полезные команды
 
-- reusable tooling хранится здесь, а не в корне `/int` и не в product repos;
-- product repos подключают этот contour извне через scripts, hooks и documented runbooks;
-- если historical tooling-модуль временно отсутствует в дереве `/int`, его не включаем в актуальную верхнеуровневую карту до фактического возвращения checkout.
+- `lockctl --help` — справка по file lease-локам;
+- `gatesctl --help` — справка по gate receipts и commit binding;
+- `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
+- `bash /int/tools/openclaw/ops/verify.sh` — проверка overlay OpenClaw;
+- `AUTH_TYPE=oauth-personal HOST=127.0.0.1 PORT=11434 npm start` из `gemini-openai-proxy/` — локальный запуск proxy.
