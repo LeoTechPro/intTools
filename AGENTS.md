@@ -23,13 +23,14 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 ## Allowed scope
 
+- `ops-tooling` contour для machine-wide automation;
 - machine-wide ops/process/tooling, hooks, bootstrap scripts и shared runbooks;
 - внешние tooling contours для `intdata`, `crm`, `probe`, `codex` и соседних repos;
 - repo-level docs по reusable tooling и host helpers.
 
 ## Source-of-truth ownership
 
-- `/int/tools` владеет только reusable ops/process/tooling contour;
+- `/int/tools` остаётся `ops-tooling` repo и владеет только reusable ops/process/tooling contour;
 - business product-core и domain ownership остаются в соответствующих product repos;
 - runtime state и реальные секреты живут во внешних host paths, а не в repo.
 
