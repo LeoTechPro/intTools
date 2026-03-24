@@ -74,4 +74,6 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - Перед каждым локальным commit обязательно подготовить или обновить понятную запись в корневом `RELEASE.md`; запись должна описывать текущий change-scope и входить в тот же commit.
 - Корневой `RELEASE.md` является единственным repo-local source-of-truth для релизлога; исторический `docs/`-путь и другие альтернативные варианты не используем.
 - Перед локальным commit агент обязан проверить, не устарел ли корневой `README.md`; если правка меняет описанные там команды, структуру, маршруты, интеграции или инструкции, обновление `README.md` входит в тот же commit.
+- Любой push в удалённую ветку `main` допустим только при `ALLOW_MAIN_PUSH=1` и только из локальной `main`.
+- Для каждого checkout/worktree обязателен локальный bootstrap `git config core.hooksPath .githooks`; tracked `.githooks/pre-push` включает этот guardrail только после такой настройки и не ограничивает push в `dev` или другие non-main branches.
 - `git push` и прочие remote-операции остаются отдельным шагом и не выполняются автоматически без owner approval или явного требования локального процесса.

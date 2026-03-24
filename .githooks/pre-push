@@ -1,0 +1,30 @@
+#!/bin/bash
+set -euo pipefail
+
+mapfile -t push_lines
+
+for line in "${push_lines[@]}"; do
+  [[ -z "$line" ]] && continue
+  read -r local_ref local_sha remote_ref remote_sha <<<"$line"
+
+  if [[ "$remote_ref" != "refs/heads/main" ]]; then
+    continue
+  fi
+
+  if [[ "${ALLOW_MAIN_PUSH:-}" != "1" ]]; then
+    echo "Push в удалённый main требует подтверждения владельца. Запустите с ALLOW_MAIN_PUSH=1." >&2
+    exit 1
+  fi
+
+  if [[ "$local_sha" =~ ^0+$ ]]; then
+    echo "Удаление удалённой ветки main через push запрещено." >&2
+    exit 1
+  fi
+
+  if [[ "$local_ref" != "refs/heads/main" ]]; then
+    echo "Удалённая ветка main обновляется только из локальной main." >&2
+    exit 1
+  fi
+done
+
+exit 0

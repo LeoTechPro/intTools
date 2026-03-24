@@ -22,3 +22,4 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - Корневые process-правила живут в [AGENTS.md](./AGENTS.md).
 - Для proposal/spec lifecycle используй [openspec/AGENTS.md](./openspec/AGENTS.md).
 - [openspec/project.md](./openspec/project.md) открывается только когда нужен project context или lifecycle detail.
+- Для каждого checkout/worktree локально включай `git config core.hooksPath .githooks`; после этого любой push в удалённый `main` требует `ALLOW_MAIN_PUSH=1` и допускается только из локальной `main`.
