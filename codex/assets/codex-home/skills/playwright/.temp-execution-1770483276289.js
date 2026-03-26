@@ -28,7 +28,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const current = page.url();
   const fs = require('fs');
-  fs.writeFileSync('/int/punctb/AGENTS/tmp/playwright-leads-redirect.json', JSON.stringify({ url: current }, null, 2));
+  fs.writeFileSync('/int/assess/AGENTS/tmp/playwright-leads-redirect.json', JSON.stringify({ url: current }, null, 2));
   console.log(JSON.stringify({ url: current }, null, 2));
 
   await context.close();

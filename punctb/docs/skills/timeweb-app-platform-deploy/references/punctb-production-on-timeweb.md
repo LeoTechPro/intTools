@@ -33,7 +33,7 @@
   - `VITE_SUPABASE_REALTIME_ENABLED` (опционально, по умолчанию в коде включён)
 
 ### Frontend-specific risk
-- В [`web/src/shared/lib/supabaseClient.ts`](/int/punctb/web/src/shared/lib/supabaseClient.ts) есть fallback на `https://api-dev.punctb.pro` и dev anon key.
+- В [`web/src/shared/lib/supabaseClient.ts`](/int/assess/web/src/shared/lib/supabaseClient.ts) есть fallback на `https://api-dev.punctb.pro` и dev anon key.
 - Следствие: если в проде забыть `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`, frontend может начать работать против dev-контура.
 - Для production это считать hard blocker конфигурации.
 
@@ -53,7 +53,7 @@
 - Edge Functions проксируются через `/functions/v1/*`.
 
 ### Backend-specific risks
-- Root [`docker-compose.yml`](/int/punctb/docker-compose.yml) теперь один для `dev` и `prod`; различие между контурами задаётся только root `.env`.
+- Root [`docker-compose.yml`](/int/assess/docker-compose.yml) теперь один для `dev` и `prod`; различие между контурами задаётся только root `.env`.
 - Для актуального VDS backend file-backed storage допустим и уже каноничен; S3 остаётся только опциональным backend mode, а не обязательным production-требованием.
 - Несколько backend-функций используют fallback `SITE_URL=https://dev.punctb.pro`, поэтому `SITE_URL` и `SUPABASE_PUBLIC_URL` в production обязательны.
 
@@ -133,7 +133,7 @@ curl -fsS \
 
 ### Блокер 1. Почему старый App Platform path был нестабилен
 - Timeweb docs требуют `docker-compose.yml` в корне.
-- Это требование раньше использовалось для backend, но теперь [`docker-compose.yml`](/int/punctb/docker-compose.yml) считается production artifact для VDS runtime.
+- Это требование раньше использовалось для backend, но теперь [`docker-compose.yml`](/int/assess/docker-compose.yml) считается production artifact для VDS runtime.
 - Актуальный dev-контур использует тот же tracked compose, но со своим root `.env`.
 
 ### Блокер 2. `volumes` запрещены в App Platform

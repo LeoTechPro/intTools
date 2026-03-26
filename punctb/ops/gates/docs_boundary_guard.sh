@@ -97,5 +97,5 @@ if [[ ${#docs_new_violations[@]} -gt 0 ]]; then
   echo "For explicit owner exception set PUNCTB_DOCS_OWNER_APPROVED=YES and pass --allow-owner-override." >&2
 fi
 
-echo "Internal process docs live in \$PUNCTB_OPS_HOME/docs/**, not in /int/punctb/docs/**." >&2
+echo "Internal process docs live in \$PUNCTB_OPS_HOME/docs/**, not in /int/assess/docs/**." >&2
 exit 2

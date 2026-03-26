@@ -20,7 +20,7 @@
 - `docs/release.md` меняется только release issue с label `release`, а user-visible feature issue публикует текст через `label: release-note` + `## Release note`.
 
 ## Где работает
-- локальный контур разработки (`/int/punctb`);
+- локальный контур разработки (`/int/assess`);
 - рабочая ветка `dev`; `main` обновляется только owner-approved fast-forward promotion из уже существующего commit в `origin/dev`;
 - GitHub Free/private (без rulesets/branch protection enforcement);
 - versioned внутренний регламент хранится в `docs/process` и `docs/runbooks` (без публикации в `/docs/*`).

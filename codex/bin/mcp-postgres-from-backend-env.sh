@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ENV_FILE="/int/punctb/backend/.env"
+ENV_FILE="/int/assess/backend/.env"
 if [[ ! -f "$ENV_FILE" ]]; then
   echo "MCP postgres: missing $ENV_FILE" >&2
   exit 1
