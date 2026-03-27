@@ -20,3 +20,13 @@ __pycache__/
 **/.env
 **/*.log
 
+
+# ENV POLICY (strict)
+.env
+.env.*
+**/*.env
+config/runtime/*.env
+!*.env.example
+!**/*.env.example
+!*.example
+!**/*.example

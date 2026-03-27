@@ -1,6 +1,26 @@
 #!/bin/bash
 set -euo pipefail
 
+# ENV POLICY GUARD
+blocked_env_files=()
+while IFS= read -r staged_file; do
+  [[ -z "$staged_file" ]] && continue
+  case "$staged_file" in
+    *.env.example|*.local.example|*.example) continue ;;
+  esac
+  case "$staged_file" in
+    .env|*.env|*/.env|*/.env.*|config/runtime/*.env|*/config/runtime/*.env)
+      blocked_env_files+=("$staged_file")
+      ;;
+  esac
+done < <(git diff --cached --name-only --diff-filter=ACMR)
+
+if ((${#blocked_env_files[@]} > 0)); then
+  echo "🚫 В индекс добавлены запрещённые env-файлы. Разрешены только *.env.example/*.example." >&2
+  printf ' - %s\n' "${blocked_env_files[@]}" >&2
+  exit 1
+fi
+
 mapfile -t push_lines
 
 for line in "${push_lines[@]}"; do

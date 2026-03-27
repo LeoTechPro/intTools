@@ -77,3 +77,8 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - Любой push в удалённую ветку `main` допустим только при `ALLOW_MAIN_PUSH=1` и только из локальной `main`.
 - Для каждого checkout/worktree обязателен локальный bootstrap `git config core.hooksPath .githooks`; tracked `.githooks/pre-push` включает этот guardrail только после такой настройки и не ограничивает push в `dev` или другие non-main branches.
 - `git push` и прочие remote-операции остаются отдельным шагом и не выполняются автоматически без owner approval или явного требования локального процесса.
+
+## Env Policy (Strict)
+- В git допускаются только шаблоны `*.env.example` и `*.example`.
+- Любые `*.env` и `config/runtime/*.env` запрещены в индексе.
+- Runtime-секреты хранятся только вне git (локальные env/secret-store).
