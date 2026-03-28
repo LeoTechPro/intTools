@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 import json
 from pathlib import Path
 import shutil
+import sys
 
 
 UTC = timezone.utc
@@ -15,11 +16,24 @@ def now_stamp() -> str:
     return datetime.now(tz=UTC).strftime("%Y%m%d-%H%M%S")
 
 
+def canonical_runtime_root(brain_root: Path) -> Path:
+    return (brain_root.parent / ".tmp" / "brain-runtime-vault").resolve()
+
+
+def legacy_runtime_root(brain_root: Path) -> Path:
+    return (brain_root / "runtime" / "vault").resolve()
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Archive and clean intbrain runtime/vault generated artifacts."
+        description="Archive and clean vault runtime artifacts (canonical root in .tmp)."
     )
     parser.add_argument("--brain-root", default=r"D:\int\brain", help="int/brain root (or /int/brain on VDS).")
+    parser.add_argument(
+        "--runtime-root",
+        default="",
+        help="Runtime root override. Default: <brain-root parent>/.tmp/brain-runtime-vault",
+    )
     parser.add_argument(
         "--archive-root",
         default="",
@@ -41,7 +55,20 @@ def main() -> int:
     if not brain_root.exists():
         raise SystemExit(f"brain_root_not_found: {brain_root}")
 
-    runtime_root = brain_root / "runtime" / "vault"
+    canonical_root = canonical_runtime_root(brain_root)
+    legacy_root = legacy_runtime_root(brain_root)
+    runtime_root = (
+        Path(args.runtime_root).expanduser().resolve()
+        if args.runtime_root
+        else canonical_root
+    )
+    using_legacy_override = runtime_root == legacy_root
+    if using_legacy_override:
+        print(
+            "warning: --runtime-root points to legacy path; prefer canonical <brain-root parent>/.tmp/brain-runtime-vault",
+            file=sys.stderr,
+        )
+
     archive_base = (
         Path(args.archive_root).expanduser().resolve()
         if args.archive_root
@@ -49,7 +76,8 @@ def main() -> int:
     )
 
     stamp = now_stamp()
-    archive_dir = archive_base / stamp / "brain-runtime-vault"
+    archive_runtime_dir = archive_base / stamp / "brain-runtime-vault"
+    archive_legacy_dir = archive_base / stamp / "brain-runtime-vault-legacy"
     preserve_dirs = [
         runtime_root / "artifacts",
         runtime_root / "manifests",
@@ -61,35 +89,89 @@ def main() -> int:
         for item in sorted(runtime_root.rglob("*")):
             entries.append(str(item))
 
+    legacy_entries: list[str] = []
+    if legacy_root.exists() and legacy_root != runtime_root:
+        for item in sorted(legacy_root.rglob("*")):
+            legacy_entries.append(str(item))
+
+    planned_actions: list[dict[str, object]] = []
+    if runtime_root.exists():
+        planned_actions.append(
+            {
+                "action": "archive_runtime_root",
+                "source": str(runtime_root),
+                "destination": str(archive_runtime_dir),
+            }
+        )
+    if legacy_root.exists() and legacy_root != runtime_root:
+        planned_actions.append(
+            {
+                "action": "archive_legacy_root",
+                "source": str(legacy_root),
+                "destination": str(archive_legacy_dir),
+            }
+        )
+        planned_actions.append(
+            {
+                "action": "recreate_empty_legacy_root",
+                "path": str(legacy_root),
+            }
+        )
+    planned_actions.append(
+        {
+            "action": "recreate_runtime_root",
+            "path": str(runtime_root),
+            "preserve_dirs": [str(p) for p in preserve_dirs],
+        }
+    )
+
     report: dict[str, object] = {
         "mode": "apply" if args.apply else "dry-run",
         "brain_root": str(brain_root),
+        "canonical_runtime_root": str(canonical_root),
         "runtime_root": str(runtime_root),
+        "legacy_runtime_root": str(legacy_root),
+        "using_legacy_override": using_legacy_override,
         "archive_root": str(archive_base),
-        "archive_dir": str(archive_dir),
+        "archive_runtime_dir": str(archive_runtime_dir),
+        "archive_legacy_dir": str(archive_legacy_dir),
         "runtime_exists": runtime_root.exists(),
         "entries_count": len(entries),
+        "legacy_exists": legacy_root.exists(),
+        "legacy_entries_count": len(legacy_entries),
         "preserve_dirs": [str(p) for p in preserve_dirs],
+        "planned_actions": planned_actions,
     }
 
     if args.dry_run:
         print(json.dumps(report, ensure_ascii=False, indent=2))
         return 0
 
-    archived_path = ""
+    archived_runtime_path = ""
     if runtime_root.exists():
-        if archive_dir.exists():
-            raise SystemExit(f"archive_dir_already_exists: {archive_dir}")
-        archive_dir.parent.mkdir(parents=True, exist_ok=True)
-        shutil.move(str(runtime_root), str(archive_dir))
-        archived_path = str(archive_dir)
+        if archive_runtime_dir.exists():
+            raise SystemExit(f"archive_dir_already_exists: {archive_runtime_dir}")
+        archive_runtime_dir.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(runtime_root), str(archive_runtime_dir))
+        archived_runtime_path = str(archive_runtime_dir)
 
     runtime_root.mkdir(parents=True, exist_ok=True)
     for path in preserve_dirs:
         path.mkdir(parents=True, exist_ok=True)
 
-    report["archived_path"] = archived_path
+    archived_legacy_path = ""
+    if legacy_root.exists() and legacy_root != runtime_root:
+        if archive_legacy_dir.exists():
+            raise SystemExit(f"archive_dir_already_exists: {archive_legacy_dir}")
+        archive_legacy_dir.parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(str(legacy_root), str(archive_legacy_dir))
+        archived_legacy_path = str(archive_legacy_dir)
+        legacy_root.mkdir(parents=True, exist_ok=True)
+
+    report["archived_runtime_path"] = archived_runtime_path
+    report["archived_legacy_path"] = archived_legacy_path
     report["recreated"] = [str(p) for p in preserve_dirs]
+    report["legacy_root_recreated"] = str(legacy_root)
     print(json.dumps(report, ensure_ascii=False, indent=2))
     return 0
 

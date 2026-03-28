@@ -114,6 +114,14 @@ def now_stamp() -> str:
     return datetime.now(tz=UTC).strftime("%Y%m%d-%H%M%S")
 
 
+def canonical_runtime_root(brain_root: Path) -> Path:
+    return (brain_root.parent / ".tmp" / "brain-runtime-vault").resolve()
+
+
+def legacy_runtime_root(brain_root: Path) -> Path:
+    return (brain_root / "runtime" / "vault").resolve()
+
+
 def relpath(base: Path, value: Path) -> str:
     try:
         return str(value.relative_to(base)).replace("\\", "/")
@@ -201,9 +209,9 @@ def scan_non_whitelist(vault_root: Path, profile: str) -> list[str]:
     return issues
 
 
-def build_default_actions(vault_root: Path, brain_root: Path, tools_root: Path) -> list[Action]:
+def build_default_actions(vault_root: Path, runtime_root: Path, tools_root: Path) -> list[Action]:
     installers_root = tools_root / "vault" / "installers"
-    runtime_root = brain_root / "runtime" / "vault" / "artifacts"
+    runtime_artifacts_root = runtime_root / "artifacts"
     actions = [
         Action(
             kind="move",
@@ -226,39 +234,39 @@ def build_default_actions(vault_root: Path, brain_root: Path, tools_root: Path) 
         Action(
             kind="move",
             source=vault_root / ".tmp",
-            destination=runtime_root / ".tmp",
+            destination=runtime_artifacts_root / ".tmp",
             note="remove_runtime_tmp_from_vault",
         ),
         Action(
             kind="move",
             source=vault_root / "_.tmp",
-            destination=runtime_root / "_.tmp",
+            destination=runtime_artifacts_root / "_.tmp",
             note="remove_runtime_tmp_from_vault",
         ),
         Action(
             kind="move",
             source=vault_root / ".smart-env",
-            destination=runtime_root / ".smart-env",
+            destination=runtime_artifacts_root / ".smart-env",
             note="remove_runtime_index_from_vault",
         ),
         Action(
             kind="move",
             source=vault_root / ".smtcmp_json_db",
-            destination=runtime_root / ".smtcmp_json_db",
+            destination=runtime_artifacts_root / ".smtcmp_json_db",
             note="remove_runtime_index_from_vault",
         ),
         Action(
             kind="move",
             source=vault_root / ".smtcmp_vector_db.tar.gz",
-            destination=runtime_root / ".smtcmp_vector_db.tar.gz",
+            destination=runtime_artifacts_root / ".smtcmp_vector_db.tar.gz",
             note="remove_runtime_index_from_vault",
         ),
     ]
     return actions
 
 
-def build_whitelist_enforcement_actions(vault_root: Path, brain_root: Path, profile: str) -> list[Action]:
-    target_root = brain_root / "runtime" / "vault" / "non_whitelist"
+def build_whitelist_enforcement_actions(vault_root: Path, runtime_root: Path, profile: str) -> list[Action]:
+    target_root = runtime_root / "non_whitelist"
     actions: list[Action] = []
     for rel in scan_non_whitelist(vault_root, profile):
         source = vault_root / rel
@@ -284,6 +292,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--vault-root", default=r"D:\Yandex.Disk\2brain", help="Vault path (local or /2brain on VDS).")
     parser.add_argument("--brain-root", default=r"D:\int\brain", help="int/brain root path (local or /int/brain on VDS).")
     parser.add_argument("--tools-root", default=r"D:\int\tools", help="int/tools root path (local or /int/tools on VDS).")
+    parser.add_argument(
+        "--runtime-root",
+        default="",
+        help="Runtime root override. Default: <brain-root parent>/.tmp/brain-runtime-vault",
+    )
     parser.add_argument("--dry-run", action="store_true", help="Print planned actions only.")
     parser.add_argument("--apply", action="store_true", help="Execute planned actions.")
     parser.add_argument(
@@ -317,6 +330,18 @@ def main() -> int:
     if not tools_root.exists():
         raise SystemExit(f"tools_root_not_found: {tools_root}")
 
+    runtime_root = (
+        Path(args.runtime_root).expanduser().resolve()
+        if args.runtime_root
+        else canonical_runtime_root(brain_root)
+    )
+    legacy_root = legacy_runtime_root(brain_root)
+    if runtime_root == legacy_root:
+        print(
+            "warning: --runtime-root points to legacy path; prefer canonical <brain-root parent>/.tmp/brain-runtime-vault",
+            file=sys.stderr,
+        )
+
     effective_profile = args.profile
     if args.enforce_whitelist:
         if args.profile != "strict":
@@ -326,8 +351,8 @@ def main() -> int:
         effective_profile = "strict"
 
     stamp = now_stamp()
-    actions = build_default_actions(vault_root, brain_root, tools_root)
-    actions.extend(build_whitelist_enforcement_actions(vault_root, brain_root, effective_profile))
+    actions = build_default_actions(vault_root, runtime_root, tools_root)
+    actions.extend(build_whitelist_enforcement_actions(vault_root, runtime_root, effective_profile))
 
     pre_violations = scan_non_whitelist(vault_root, effective_profile)
     plan = []
@@ -342,6 +367,9 @@ def main() -> int:
             "vault_root": str(vault_root),
             "brain_root": str(brain_root),
             "tools_root": str(tools_root),
+            "canonical_runtime_root": str(canonical_runtime_root(brain_root)),
+            "runtime_root": str(runtime_root),
+            "legacy_runtime_root": str(legacy_root),
             "action_count": len(plan),
             "existing_action_count": sum(1 for item in plan if item["exists"]),
             "pre_whitelist_violations": pre_violations,
@@ -350,7 +378,6 @@ def main() -> int:
         print(json.dumps(report, ensure_ascii=False, indent=2))
         return 0
 
-    runtime_root = brain_root / "runtime" / "vault"
     manifest_root = runtime_root / "manifests"
     manifest_root.mkdir(parents=True, exist_ok=True)
     manifest_path = manifest_root / f"vault-sanitize-{stamp}.json"
@@ -373,6 +400,9 @@ def main() -> int:
         "vault_root": str(vault_root),
         "brain_root": str(brain_root),
         "tools_root": str(tools_root),
+        "canonical_runtime_root": str(canonical_runtime_root(brain_root)),
+        "runtime_root": str(runtime_root),
+        "legacy_runtime_root": str(legacy_root),
         "manifest_path": str(manifest_path),
         "applied_count": len(applied),
         "skipped_count": len(skipped),

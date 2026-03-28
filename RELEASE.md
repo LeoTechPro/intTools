@@ -3,6 +3,12 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-03-28
+### Canonical `.tmp` runtime-root для vault tooling
+- `vault_sanitize.py` и `runtime_vault_gc.py` переведены на новый default runtime-root: `D:\int\.tmp\brain-runtime-vault` (VDS: `/int/.tmp/brain-runtime-vault`).
+- В обоих скриптах добавлен единый override `--runtime-root`; при явном legacy path (`.../brain/runtime/vault`) выводится deprecation warning, но режим совместимости сохранён.
+- `runtime_vault_gc.py` расширен: в `--apply` отдельно архивирует legacy path в `.tmp/<timestamp>/brain-runtime-vault-legacy` и очищает legacy-контур без удаления родительских `runtime/` каталогов.
+- Обновлены `vault/installers/README.md` и корневой `README.md` с новым CLI-контрактом и примерами для local/VDS.
+
 ### Принят canonical vault tooling из `/int/brain`
 - Добавлен новый machine-wide модуль `vault/installers/` с переносом installer-контента из `D:\int\brain\tools\vault\installers`.
 - `vault_sanitize.py` переведён на canonical контур `/int/tools`: добавлены `--tools-root`, профили whitelist (`strict|balanced|permissive`, default `strict`) и legacy-алиас `--enforce-whitelist`.
