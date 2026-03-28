@@ -54,9 +54,17 @@
   - `intbrain_context_pack`
   - `intbrain_people_resolve`
   - `intbrain_people_get`
+  - `intbrain_people_policy_tg_get`
+  - `intbrain_group_policy_get`
+  - `intbrain_group_policy_upsert`
   - `intbrain_graph_neighbors`
   - `intbrain_context_store`
   - `intbrain_graph_link`
+  - `intbrain_jobs_list`
+  - `intbrain_jobs_get`
+  - `intbrain_job_policy_upsert`
+  - `intbrain_jobs_sync_runtime`
+  - `intbrain_policy_events_list`
 - Auth задаётся через `INTBRAIN_AGENT_ID` и `INTBRAIN_AGENT_KEY` (env/secret file), без жёсткой привязки к конкретному агенту.
 - OpenClaw и Codex используют один и тот же generic контракт; agent-specific UX остаётся только в overlay-скриптах `/int/tools/*`.
 

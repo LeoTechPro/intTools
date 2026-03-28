@@ -3,6 +3,19 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-03-28
+### intbrain-mcp: people/group/jobs policy toolset expansion
+- В [codex/bin/mcp-intbrain.py](/int/tools/codex/bin/mcp-intbrain.py) расширен универсальный MCP toolset новыми инструментами:
+  - `intbrain_people_policy_tg_get`
+  - `intbrain_group_policy_get`
+  - `intbrain_group_policy_upsert`
+  - `intbrain_jobs_list`
+  - `intbrain_jobs_get`
+  - `intbrain_job_policy_upsert`
+  - `intbrain_jobs_sync_runtime`
+  - `intbrain_policy_events_list`
+- Обновлён роутинг MCP-адаптера на новые generic endpoints `groups/*`, `jobs/*`, `policies/events` без vendor-specific ветвлений.
+- В [README.md](/int/tools/README.md) обновлён публичный список `intbrain-mcp` tools для OpenClaw/Codex и любых других agent profiles.
+
 ### Generic `intbrain-mcp` + OpenClaw thin adapter
 - Добавлен универсальный MCP-адаптер `codex/bin/mcp-intbrain.py` и launcher `codex/bin/mcp-intbrain.sh` с единым toolset для memory-core `intbrain`.
 - MCP toolset agent-agnostic: `intbrain_context_pack`, `intbrain_people_resolve`, `intbrain_people_get`, `intbrain_graph_neighbors`, `intbrain_context_store`, `intbrain_graph_link`.

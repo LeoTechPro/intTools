@@ -13,6 +13,7 @@ from typing import Any
 PROTOCOL_VERSION = "2024-11-05"
 SERVER_NAME = "intbrain-mcp"
 SERVER_VERSION = "0.1.0"
+IO_MODE = "framed"
 
 API_BASE = os.environ.get("INTBRAIN_API_BASE_URL", "https://brain.api.intdata.pro/api/core/v1").rstrip("/")
 AGENT_ID = os.environ.get("INTBRAIN_AGENT_ID", "").strip()
@@ -116,10 +117,126 @@ TOOLS: list[dict[str, Any]] = [
             "required": ["owner_id", "from_entity_id", "to_entity_id", "link_type"],
         },
     },
+    {
+        "name": "intbrain_people_policy_tg_get",
+        "description": "Get effective Telegram policy for person by tg_user_id.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "tg_user_id": {"type": "integer"},
+                "chat_id": {"type": "string"},
+            },
+            "required": ["owner_id", "tg_user_id"],
+        },
+    },
+    {
+        "name": "intbrain_group_policy_get",
+        "description": "Get group policy by chat_id.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "chat_id": {"type": "string"},
+            },
+            "required": ["owner_id", "chat_id"],
+        },
+    },
+    {
+        "name": "intbrain_group_policy_upsert",
+        "description": "Create/update group policy (write scope required).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "chat_id": {"type": "string"},
+                "name": {"type": "string"},
+                "respond_mode": {"type": "string"},
+                "access_mode": {"type": "string"},
+                "tools_policy": {"type": "string"},
+                "project_scope": {"type": "string"},
+                "notes": {"type": "string"},
+                "metadata": {"type": "object"},
+            },
+            "required": ["owner_id", "chat_id", "respond_mode", "access_mode", "tools_policy"],
+        },
+    },
+    {
+        "name": "intbrain_jobs_list",
+        "description": "List jobs with optional filters.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "enabled": {"type": "boolean"},
+                "kind": {"type": "string"},
+                "limit": {"type": "integer"},
+            },
+            "required": ["owner_id"],
+        },
+    },
+    {
+        "name": "intbrain_jobs_get",
+        "description": "Get job details by job_id.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "job_id": {"type": "string"},
+            },
+            "required": ["owner_id", "job_id"],
+        },
+    },
+    {
+        "name": "intbrain_job_policy_upsert",
+        "description": "Create/update job policy override (write scope required).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "job_id": {"type": "string"},
+                "policy_mode": {"type": "string"},
+                "notes": {"type": "string"},
+                "metadata": {"type": "object"},
+            },
+            "required": ["owner_id", "job_id", "policy_mode"],
+        },
+    },
+    {
+        "name": "intbrain_jobs_sync_runtime",
+        "description": "Sync runtime jobs into intbrain (import scope required).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "source_root": {"type": "string"},
+                "runtime_url": {"type": "string"},
+            },
+            "required": ["owner_id"],
+        },
+    },
+    {
+        "name": "intbrain_policy_events_list",
+        "description": "List append-only policy events/provenance.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "since": {"type": "string"},
+                "limit": {"type": "integer"},
+            },
+            "required": ["owner_id"],
+        },
+    },
 ]
 
 
 def _write_message(payload: dict[str, Any]) -> None:
+    if IO_MODE == "jsonl":
+        sys.stdout.write(json.dumps(payload, ensure_ascii=False))
+        sys.stdout.write("\n")
+        sys.stdout.flush()
+        return
     body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
     header = f"Content-Length: {len(body)}\r\n\r\n".encode("ascii")
     sys.stdout.buffer.write(header)
@@ -128,18 +245,26 @@ def _write_message(payload: dict[str, Any]) -> None:
 
 
 def _read_message() -> dict[str, Any] | None:
+    global IO_MODE
     headers: dict[str, str] = {}
+    first_line = sys.stdin.buffer.readline()
+    if not first_line:
+        return None
+    first_decoded = first_line.decode("utf-8", errors="ignore").strip()
+    if first_decoded.startswith("{"):
+        IO_MODE = "jsonl"
+        return json.loads(first_decoded)
+    line = first_line
     while True:
-        line = sys.stdin.buffer.readline()
-        if not line:
-            return None
         if line in (b"\r\n", b"\n"):
             break
         decoded = line.decode("utf-8", errors="ignore").strip()
-        if ":" not in decoded:
-            continue
-        key, value = decoded.split(":", 1)
-        headers[key.strip().lower()] = value.strip()
+        if ":" in decoded:
+            key, value = decoded.split(":", 1)
+            headers[key.strip().lower()] = value.strip()
+        line = sys.stdin.buffer.readline()
+        if not line:
+            return None
 
     content_length = int(headers.get("content-length", "0"))
     if content_length <= 0:
@@ -216,6 +341,40 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> tuple[bool, Any]:
         code, body = _http_json("POST", "context/store", payload=arguments)
     elif name == "intbrain_graph_link":
         code, body = _http_json("POST", "graph/link", payload=arguments)
+    elif name == "intbrain_people_policy_tg_get":
+        code, body = _http_json("GET", "people/policy/telegram", params=arguments)
+    elif name == "intbrain_group_policy_get":
+        chat_id = arguments.get("chat_id")
+        if chat_id is None:
+            return False, {"error": "chat_id_required"}
+        params = {"owner_id": arguments.get("owner_id")}
+        code, body = _http_json("GET", f"groups/{chat_id}/policy", params=params)
+    elif name == "intbrain_group_policy_upsert":
+        chat_id = arguments.get("chat_id")
+        if chat_id is None:
+            return False, {"error": "chat_id_required"}
+        payload = dict(arguments)
+        payload.pop("chat_id", None)
+        code, body = _http_json("POST", f"groups/{chat_id}/policy", payload=payload)
+    elif name == "intbrain_jobs_list":
+        code, body = _http_json("GET", "jobs", params=arguments)
+    elif name == "intbrain_jobs_get":
+        job_id = arguments.get("job_id")
+        if not job_id:
+            return False, {"error": "job_id_required"}
+        params = {"owner_id": arguments.get("owner_id")}
+        code, body = _http_json("GET", f"jobs/{job_id}", params=params)
+    elif name == "intbrain_job_policy_upsert":
+        job_id = arguments.get("job_id")
+        if not job_id:
+            return False, {"error": "job_id_required"}
+        payload = dict(arguments)
+        payload.pop("job_id", None)
+        code, body = _http_json("POST", f"jobs/{job_id}/policy", payload=payload)
+    elif name == "intbrain_jobs_sync_runtime":
+        code, body = _http_json("POST", "jobs/sync/runtime", payload=arguments)
+    elif name == "intbrain_policy_events_list":
+        code, body = _http_json("GET", "policies/events", params=arguments)
     else:
         return False, {"error": "unknown_tool", "tool": name}
 
@@ -231,16 +390,17 @@ def _handle_request(request: dict[str, Any]) -> dict[str, Any] | None:
     params = request.get("params") or {}
 
     if method == "initialize":
+        requested_protocol = str((params or {}).get("protocolVersion") or "").strip()
         return _json_result(
             req_id,
             {
-                "protocolVersion": PROTOCOL_VERSION,
+                "protocolVersion": requested_protocol or PROTOCOL_VERSION,
                 "capabilities": {"tools": {}},
                 "serverInfo": {"name": SERVER_NAME, "version": SERVER_VERSION},
             },
         )
 
-    if method == "notifications/initialized":
+    if method.startswith("notifications/"):
         return None
 
     if method == "ping":
@@ -275,4 +435,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
