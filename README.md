@@ -42,9 +42,23 @@
 - `python /int/tools/vault/installers/vault_sanitize.py --dry-run --profile strict` — dry-run санитарной миграции vault;
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --brain-root /int/brain` — dry-run архивации и очистки canonical runtime-root (`/int/.tmp/brain-runtime-vault`);
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --runtime-root /int/brain/runtime/vault` — compatibility-режим для legacy runtime-path (с deprecation warning);
+- `/int/tools/codex/bin/mcp-intbrain.sh` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
+- `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
 - `bash /int/tools/openclaw/ops/verify.sh` — проверка overlay OpenClaw;
 - `AUTH_TYPE=oauth-personal HOST=127.0.0.1 PORT=11434 npm start` из `gemini-openai-proxy/` — локальный запуск proxy.
+
+## IntBrain Agent-Memory Integration
+
+- `codex/bin/mcp-intbrain.py` и `codex/bin/mcp-intbrain.sh` публикуют универсальный MCP toolset:
+  - `intbrain_context_pack`
+  - `intbrain_people_resolve`
+  - `intbrain_people_get`
+  - `intbrain_graph_neighbors`
+  - `intbrain_context_store`
+  - `intbrain_graph_link`
+- Auth задаётся через `INTBRAIN_AGENT_ID` и `INTBRAIN_AGENT_KEY` (env/secret file), без жёсткой привязки к конкретному агенту.
+- OpenClaw и Codex используют один и тот же generic контракт; agent-specific UX остаётся только в overlay-скриптах `/int/tools/*`.
 
 ## Git Branch Policy
 

@@ -3,6 +3,12 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-03-28
+### Generic `intbrain-mcp` + OpenClaw thin adapter
+- Добавлен универсальный MCP-адаптер `codex/bin/mcp-intbrain.py` и launcher `codex/bin/mcp-intbrain.sh` с единым toolset для memory-core `intbrain`.
+- MCP toolset agent-agnostic: `intbrain_context_pack`, `intbrain_people_resolve`, `intbrain_people_get`, `intbrain_graph_neighbors`, `intbrain_context_store`, `intbrain_graph_link`.
+- Добавлен `openclaw/bin/openclaw-intbrain-query.sh` как thin consumer-overlay: только трансляция в generic `/api/core/v1/context/pack` без OpenClaw-ветвлений в `intbrain`.
+- Добавлен общий skill `codex/assets/codex-home/skills/intbrain-memory/SKILL.md` для DB-first retrieval/write-back по универсальному контракту.
+
 ### Canonical `.tmp` runtime-root для vault tooling
 - `vault_sanitize.py` и `runtime_vault_gc.py` переведены на новый default runtime-root: `D:\int\.tmp\brain-runtime-vault` (VDS: `/int/.tmp/brain-runtime-vault`).
 - В обоих скриптах добавлен единый override `--runtime-root`; при явном legacy path (`.../brain/runtime/vault`) выводится deprecation warning, но режим совместимости сохранён.
