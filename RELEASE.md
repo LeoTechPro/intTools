@@ -2,6 +2,14 @@
 
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
+## 2026-03-28
+### Принят canonical vault tooling из `/int/brain`
+- Добавлен новый machine-wide модуль `vault/installers/` с переносом installer-контента из `D:\int\brain\tools\vault\installers`.
+- `vault_sanitize.py` переведён на canonical контур `/int/tools`: добавлены `--tools-root`, профили whitelist (`strict|balanced|permissive`, default `strict`) и legacy-алиас `--enforce-whitelist`.
+- Добавлен `runtime_vault_gc.py` для архивирования и очистки `runtime/vault` с поддержкой `--dry-run`/`--apply`.
+- Обновлён `vault/installers/README.md` под новый путь запуска и профильную политику.
+- Корневой `README.md` обновлён: `vault/installers/` зафиксирован как canonical machine-wide tooling для vault cleanup.
+
 ## 2026-03-27
 ### Введена строгая env-политика и repo-guard
 - В `.gitignore` добавлен единый блок `ENV POLICY (strict)`: в git разрешены только `*.env.example`/`*.example`, любые `*.env` и `config/runtime/*.env` игнорируются.

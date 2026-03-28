@@ -18,6 +18,7 @@
 
 - `lockctl/` — machine-local runtime writer-lock для Codex/OpenClaw;
 - `gatesctl/` — machine-wide runtime для gate receipts, approvals и commit binding;
+- `vault/installers/` — канонический machine-wide vault tooling (`vault_sanitize.py`, `runtime_vault_gc.py`) для контуров `/2brain` + `/int/brain`;
 - `codex/` — versioned host-tooling, managed assets и project overlays для Codex CLI;
 - `openclaw/` — versioned overlay для локального OpenClaw runtime;
 - `data/` — внешний tooling/configs слой для backend-core `/int/data`;
@@ -38,6 +39,8 @@
 
 - `lockctl --help` — справка по file lease-локам;
 - `gatesctl --help` — справка по gate receipts и commit binding;
+- `python /int/tools/vault/installers/vault_sanitize.py --dry-run --profile strict` — dry-run санитарной миграции vault;
+- `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --brain-root /int/brain` — dry-run архивации и очистки runtime/vault;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
 - `bash /int/tools/openclaw/ops/verify.sh` — проверка overlay OpenClaw;
 - `AUTH_TYPE=oauth-personal HOST=127.0.0.1 PORT=11434 npm start` из `gemini-openai-proxy/` — локальный запуск proxy.
