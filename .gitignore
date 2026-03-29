@@ -30,3 +30,6 @@ config/runtime/*.env
 !**/*.env.example
 !*.example
 !**/*.example
+
+# external local reference clone (not tracked in intTools)
+ngt-memory/

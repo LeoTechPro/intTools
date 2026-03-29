@@ -26,6 +26,11 @@
 - `gemini-openai-proxy/` — internal-vendor copy локального OpenAI-compatible proxy для Gemini;
 - `openspec/changes/` и `openspec/specs/` — proposal/spec материалы этого repo.
 
+## Внешние референсы
+
+- `ngt-memory` больше не ведётся как gitlink внутри `/int/tools`.
+- Для изучения подходов agent-memory используем upstream-репозиторий `https://github.com/ngt-memory/ngt-memory` как внешний reference.
+
 ## Codex и OpenClaw
 
 - runtime Codex живёт в `~/.codex`, а versioned overlay и bootstrap-утилиты — в `codex/`;
