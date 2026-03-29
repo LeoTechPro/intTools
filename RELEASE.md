@@ -2,6 +2,23 @@
 
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
+## 2026-03-29
+### intbrain-mcp: canonical PM tools surfaced in MCP wrapper
+- В [codex/bin/mcp-intbrain.py](/int/tools/codex/bin/mcp-intbrain.py) добавлен полный canonical PM набор в `TOOLS`:
+  - `intbrain_pm_dashboard`
+  - `intbrain_pm_tasks`
+  - `intbrain_pm_task_create`
+  - `intbrain_pm_task_patch`
+  - `intbrain_pm_para`
+  - `intbrain_pm_health`
+  - `intbrain_pm_constraints_validate`
+  - `intbrain_import_vault_pm`
+- В `_call_tool` добавлена маршрутизация на `pm/*` и `import/vault/pm` без изменения существующих tool names/контрактов.
+- Для `intbrain_import_vault_pm` введён отдельный env-контур `INTBRAIN_CORE_ADMIN_TOKEN`:
+  - при наличии токена отправляется `X-Core-Admin-Token`;
+  - при отсутствии MCP возвращает локальную ошибку `config_error` без лишнего HTTP roundtrip.
+- В [README.md](/int/tools/README.md) обновлён публичный список `intbrain-mcp` tools, добавлены требования по `INTBRAIN_CORE_ADMIN_TOKEN` и напоминание о перезапуске MCP runtime для refresh `tools/list`.
+
 ## 2026-03-28
 ### intbrain-mcp: people/group/jobs policy toolset expansion
 - В [codex/bin/mcp-intbrain.py](/int/tools/codex/bin/mcp-intbrain.py) расширен универсальный MCP toolset новыми инструментами:

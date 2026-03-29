@@ -65,7 +65,17 @@
   - `intbrain_job_policy_upsert`
   - `intbrain_jobs_sync_runtime`
   - `intbrain_policy_events_list`
+  - `intbrain_pm_dashboard`
+  - `intbrain_pm_tasks`
+  - `intbrain_pm_task_create`
+  - `intbrain_pm_task_patch`
+  - `intbrain_pm_para`
+  - `intbrain_pm_health`
+  - `intbrain_pm_constraints_validate`
+  - `intbrain_import_vault_pm`
 - Auth задаётся через `INTBRAIN_AGENT_ID` и `INTBRAIN_AGENT_KEY` (env/secret file), без жёсткой привязки к конкретному агенту.
+- Для `intbrain_import_vault_pm` дополнительно нужен `INTBRAIN_CORE_ADMIN_TOKEN`; без него MCP возвращает `config_error` до HTTP-вызова.
+- После обновления `mcp-intbrain.py` требуется перезапуск Codex/OpenClaw (или MCP runtime), чтобы refresh `tools/list` подтянул новый PM toolset.
 - OpenClaw и Codex используют один и тот же generic контракт; agent-specific UX остаётся только в overlay-скриптах `/int/tools/*`.
 
 ## Git Branch Policy

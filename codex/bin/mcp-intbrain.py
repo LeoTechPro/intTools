@@ -18,6 +18,7 @@ IO_MODE = "framed"
 API_BASE = os.environ.get("INTBRAIN_API_BASE_URL", "https://brain.api.intdata.pro/api/core/v1").rstrip("/")
 AGENT_ID = os.environ.get("INTBRAIN_AGENT_ID", "").strip()
 AGENT_KEY = os.environ.get("INTBRAIN_AGENT_KEY", "").strip()
+CORE_ADMIN_TOKEN = os.environ.get("INTBRAIN_CORE_ADMIN_TOKEN", "").strip()
 TIMEOUT = float(os.environ.get("INTBRAIN_API_TIMEOUT_SEC", "15"))
 
 
@@ -228,6 +229,133 @@ TOOLS: list[dict[str, Any]] = [
             "required": ["owner_id"],
         },
     },
+    {
+        "name": "intbrain_pm_dashboard",
+        "description": "Get PM dashboard with 5-9 constraint evaluation.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "date": {"type": "string"},
+                "timezone": {"type": "string"},
+            },
+            "required": ["owner_id"],
+        },
+    },
+    {
+        "name": "intbrain_pm_tasks",
+        "description": "List PM tasks by view (today, week, backlog).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "view": {"type": "string", "enum": ["today", "week", "backlog"]},
+                "date": {"type": "string"},
+                "timezone": {"type": "string"},
+                "limit": {"type": "integer"},
+            },
+            "required": ["owner_id"],
+        },
+    },
+    {
+        "name": "intbrain_pm_task_create",
+        "description": "Create PM task with PARA/OKR links and constraints.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "title": {"type": "string"},
+                "due_at": {"type": "string"},
+                "priority": {"type": "integer"},
+                "energy_cost": {"type": "integer"},
+                "project_entity_id": {"type": "integer"},
+                "area_entity_id": {"type": "integer"},
+                "goal_entity_id": {"type": "integer"},
+                "okr_entity_id": {"type": "integer"},
+                "key_result_entity_id": {"type": "integer"},
+                "source_path": {"type": "string"},
+                "source_hash": {"type": "string"},
+                "active_pin": {"type": "boolean"},
+                "timezone": {"type": "string"},
+            },
+            "required": ["owner_id", "title"],
+        },
+    },
+    {
+        "name": "intbrain_pm_task_patch",
+        "description": "Patch PM task fields and status.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "task_id": {"type": "integer"},
+                "owner_id": {"type": "integer"},
+                "title": {"type": "string"},
+                "status": {"type": "string", "enum": ["open", "done", "archived"]},
+                "due_at": {"type": "string"},
+                "priority": {"type": "integer"},
+                "energy_cost": {"type": "integer"},
+                "project_entity_id": {"type": "integer"},
+                "area_entity_id": {"type": "integer"},
+                "goal_entity_id": {"type": "integer"},
+                "okr_entity_id": {"type": "integer"},
+                "key_result_entity_id": {"type": "integer"},
+                "active_pin": {"type": "boolean"},
+                "archive": {"type": "boolean"},
+                "timezone": {"type": "string"},
+            },
+            "required": ["task_id", "owner_id"],
+        },
+    },
+    {
+        "name": "intbrain_pm_para",
+        "description": "Get PARA map (projects/areas/resources/archive) for owner.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+            },
+            "required": ["owner_id"],
+        },
+    },
+    {
+        "name": "intbrain_pm_health",
+        "description": "Get PM health metrics and constraint summary.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "date": {"type": "string"},
+                "timezone": {"type": "string"},
+            },
+            "required": ["owner_id"],
+        },
+    },
+    {
+        "name": "intbrain_pm_constraints_validate",
+        "description": "Validate PM 5-9 constraints for owner/date/timezone.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "date": {"type": "string"},
+                "timezone": {"type": "string"},
+            },
+            "required": ["owner_id"],
+        },
+    },
+    {
+        "name": "intbrain_import_vault_pm",
+        "description": "Import PM/PARA data from 2brain vault (admin token required).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "owner_id": {"type": "integer"},
+                "source_root": {"type": "string"},
+                "timezone": {"type": "string"},
+            },
+            "required": ["owner_id", "source_root"],
+        },
+    },
 ]
 
 
@@ -290,8 +418,16 @@ def _text_content(value: Any) -> dict[str, Any]:
     return {"type": "text", "text": json.dumps(value, ensure_ascii=False)}
 
 
-def _http_json(method: str, path: str, *, params: dict[str, Any] | None = None, payload: dict[str, Any] | None = None) -> tuple[int, Any]:
-    if not AGENT_ID or not AGENT_KEY:
+def _http_json(
+    method: str,
+    path: str,
+    *,
+    params: dict[str, Any] | None = None,
+    payload: dict[str, Any] | None = None,
+    use_agent_auth: bool = True,
+    extra_headers: dict[str, str] | None = None,
+) -> tuple[int, Any]:
+    if use_agent_auth and (not AGENT_ID or not AGENT_KEY):
         raise RuntimeError("INTBRAIN_AGENT_ID and INTBRAIN_AGENT_KEY must be set")
 
     url = f"{API_BASE}/{path.lstrip('/')}"
@@ -307,8 +443,11 @@ def _http_json(method: str, path: str, *, params: dict[str, Any] | None = None, 
     req = urllib.request.Request(url=url, method=method.upper(), data=data)
     req.add_header("Accept", "application/json")
     req.add_header("Content-Type", "application/json")
-    req.add_header("X-Agent-Id", AGENT_ID)
-    req.add_header("X-Agent-Key", AGENT_KEY)
+    if use_agent_auth:
+        req.add_header("X-Agent-Id", AGENT_ID)
+        req.add_header("X-Agent-Key", AGENT_KEY)
+    for header_name, header_value in (extra_headers or {}).items():
+        req.add_header(header_name, header_value)
     try:
         with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
             raw = resp.read().decode("utf-8", errors="ignore")
@@ -375,6 +514,41 @@ def _call_tool(name: str, arguments: dict[str, Any]) -> tuple[bool, Any]:
         code, body = _http_json("POST", "jobs/sync/runtime", payload=arguments)
     elif name == "intbrain_policy_events_list":
         code, body = _http_json("GET", "policies/events", params=arguments)
+    elif name == "intbrain_pm_dashboard":
+        code, body = _http_json("GET", "pm/dashboard", params=arguments)
+    elif name == "intbrain_pm_tasks":
+        code, body = _http_json("GET", "pm/tasks", params=arguments)
+    elif name == "intbrain_pm_task_create":
+        code, body = _http_json("POST", "pm/task", payload=arguments)
+    elif name == "intbrain_pm_task_patch":
+        task_id = arguments.get("task_id")
+        if task_id is None:
+            return False, {"error": "task_id_required"}
+        payload = dict(arguments)
+        payload.pop("task_id", None)
+        code, body = _http_json("PATCH", f"pm/task/{task_id}", payload=payload)
+    elif name == "intbrain_pm_para":
+        owner_id = arguments.get("owner_id")
+        if owner_id is None:
+            return False, {"error": "owner_id_required"}
+        code, body = _http_json("GET", f"pm/para/{owner_id}")
+    elif name == "intbrain_pm_health":
+        code, body = _http_json("GET", "pm/health", params=arguments)
+    elif name == "intbrain_pm_constraints_validate":
+        code, body = _http_json("POST", "pm/constraints/validate", payload=arguments)
+    elif name == "intbrain_import_vault_pm":
+        if not CORE_ADMIN_TOKEN:
+            return False, {
+                "error": "config_error",
+                "message": "INTBRAIN_CORE_ADMIN_TOKEN is required for intbrain_import_vault_pm",
+            }
+        code, body = _http_json(
+            "POST",
+            "import/vault/pm",
+            payload=arguments,
+            use_agent_auth=False,
+            extra_headers={"X-Core-Admin-Token": CORE_ADMIN_TOKEN},
+        )
     else:
         return False, {"error": "unknown_tool", "tool": name}
 
