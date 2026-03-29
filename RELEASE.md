@@ -3,6 +3,10 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-03-29
+### ngt-memory gitlink updated in intTools
+- В `ngt-memory` зафиксирован новый gitlink commit `34aa4e2cb6c8b57441549dd2c32748f0de4260ad` в составе дерева `/int/tools`.
+- Обновление включает прокидку `OPENAI_BASE_URL` в API/session flow и поддержку `base_url` в `NGTMemoryLLMWrapper` для OpenAI-compatible провайдеров.
+
 ### intbrain-mcp: canonical PM tools surfaced in MCP wrapper
 - В [codex/bin/mcp-intbrain.py](/int/tools/codex/bin/mcp-intbrain.py) добавлен полный canonical PM набор в `TOOLS`:
   - `intbrain_pm_dashboard`
