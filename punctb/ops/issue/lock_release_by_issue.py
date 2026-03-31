@@ -71,6 +71,13 @@ def _resolve_lockctl_bin() -> str:
     raise RuntimeError(f"missing lockctl in PATH: {candidate}")
 
 
+def _lockctl_cmd(*args: str) -> list[str]:
+    lockctl = _resolve_lockctl_bin()
+    if lockctl.lower().endswith(".py"):
+        return [sys.executable, lockctl, *args]
+    return [lockctl, *args]
+
+
 def _resolve_repo_root() -> Path:
     env_root = os.environ.get("PUNCTB_REPO_ROOT", "").strip()
     if env_root:
@@ -143,19 +150,9 @@ def _json_out(payload: dict[str, object]) -> None:
 
 def _lockctl_status(repo_root: Path, issue_id: str) -> dict[str, object]:
     try:
-        lockctl_bin = _resolve_lockctl_bin()
+        cmd = _lockctl_cmd("status", "--repo-root", str(repo_root), "--issue", issue_id, "--format", "json")
     except RuntimeError as exc:
         return {"ok": False, "error": "LOCKCTL_MISSING", "message": str(exc)}
-    cmd = [
-        lockctl_bin,
-        "status",
-        "--repo-root",
-        str(repo_root),
-        "--issue",
-        issue_id,
-        "--format",
-        "json",
-    ]
     cp = _run(cmd, cwd=repo_root)
     try:
         payload = json.loads(cp.stdout) if cp.stdout.strip() else {}
@@ -176,19 +173,9 @@ def _lockctl_status(repo_root: Path, issue_id: str) -> dict[str, object]:
 
 def _lockctl_release_issue(repo_root: Path, issue_id: str) -> dict[str, object]:
     try:
-        lockctl_bin = _resolve_lockctl_bin()
+        cmd = _lockctl_cmd("release-issue", "--repo-root", str(repo_root), "--issue", issue_id, "--format", "json")
     except RuntimeError as exc:
         return {"ok": False, "error": "LOCKCTL_MISSING", "message": str(exc)}
-    cmd = [
-        lockctl_bin,
-        "release-issue",
-        "--repo-root",
-        str(repo_root),
-        "--issue",
-        issue_id,
-        "--format",
-        "json",
-    ]
     cp = _run(cmd, cwd=repo_root)
     try:
         payload = json.loads(cp.stdout) if cp.stdout.strip() else {}
@@ -209,21 +196,19 @@ def _lockctl_release_issue(repo_root: Path, issue_id: str) -> dict[str, object]:
 
 def _lockctl_release_path(repo_root: Path, path_rel: str, owner_id: str) -> dict[str, object]:
     try:
-        lockctl_bin = _resolve_lockctl_bin()
+        cmd = _lockctl_cmd(
+            "release-path",
+            "--repo-root",
+            str(repo_root),
+            "--path",
+            path_rel,
+            "--owner",
+            owner_id,
+            "--format",
+            "json",
+        )
     except RuntimeError as exc:
         return {"ok": False, "error": "LOCKCTL_MISSING", "message": str(exc)}
-    cmd = [
-        lockctl_bin,
-        "release-path",
-        "--repo-root",
-        str(repo_root),
-        "--path",
-        path_rel,
-        "--owner",
-        owner_id,
-        "--format",
-        "json",
-    ]
     cp = _run(cmd, cwd=repo_root)
     try:
         payload = json.loads(cp.stdout) if cp.stdout.strip() else {}

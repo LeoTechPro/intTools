@@ -687,11 +687,17 @@ def resolve_lockctl_bin() -> str:
     raise GatesCtlError("LOCK_CONFLICT", f"missing lockctl in PATH: {candidate}")
 
 
-def verify_lock_scope(repo_root: Path, issue_id: str, files: list[str]) -> dict[str, Any]:
+def lockctl_cmd(*args: str) -> list[str]:
     lockctl = resolve_lockctl_bin()
+    if lockctl.lower().endswith(".py"):
+        return [sys.executable, lockctl, *args]
+    return [lockctl, *args]
+
+
+def verify_lock_scope(repo_root: Path, issue_id: str, files: list[str]) -> dict[str, Any]:
     problems: list[str] = []
     for path_rel in files:
-        cp = _run([lockctl, "status", "--repo-root", str(repo_root), "--path", path_rel, "--format", "json"], cwd=repo_root)
+        cp = _run(lockctl_cmd("status", "--repo-root", str(repo_root), "--path", path_rel, "--format", "json"), cwd=repo_root)
         if cp.returncode != 0:
             problems.append(f"{path_rel}: lockctl status failed")
             continue

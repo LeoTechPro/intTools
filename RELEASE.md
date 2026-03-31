@@ -3,6 +3,10 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-03-31
+### review-fix: устранены cross-drive сбои `/int/...` на Windows для lockctl и интеграций
+- В `gatesctl/gatesctl.py` и `punctb`-утилитах (`lock_issue_resolver.py`, `lock_release_by_issue.py`, `agent_lock_cleanup.py`) обновлён `LOCKCTL_BIN` resolver: `/int/...` корректно резолвится на фактический диск Windows.
+- В `gatesctl/gatesctl.py` и `punctb`-утилитах добавлен py-launch fallback: если `LOCKCTL_BIN` указывает на `lockctl.py`, команда запускается через `sys.executable`, чтобы на Windows не возникал `WinError 193`.
+
 ### review-fix: точечные правки bootstrap/preflight по подтверждённым findings
 - В `scripts/codex/codex_preflight.ps1` удалена принудительная перезапись process `PATH` (`User + Machine`): preflight больше не искажает фактический runtime-резолв бинарей в текущей сессии.
 - В `scripts/codex/bootstrap_windows_toolchain.ps1` убран user-specific hardcode (`C:\\Users\\intData\\...`) и введены вычисления путей через `$env:LOCALAPPDATA`/`$PSScriptRoot`, чтобы скрипт был переносимым между профилями.

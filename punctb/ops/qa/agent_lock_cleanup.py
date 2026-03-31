@@ -56,6 +56,13 @@ def resolve_lockctl_bin() -> str:
     raise RuntimeError(f"missing lockctl in PATH: {candidate}")
 
 
+def lockctl_cmd(*args: str) -> list[str]:
+    lockctl = resolve_lockctl_bin()
+    if lockctl.lower().endswith(".py"):
+        return [sys.executable, lockctl, *args]
+    return [lockctl, *args]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Delete expired machine-wide locks via lockctl gc.")
     parser.add_argument("--file", default=None, help="Deprecated compatibility flag; ignored")
@@ -67,13 +74,13 @@ def main() -> int:
         return 0
 
     try:
-        lockctl_bin = resolve_lockctl_bin()
+        cmd = lockctl_cmd("gc", "--format", "json")
     except RuntimeError as exc:
         print(f"[LOCKCTL_MISSING] {exc}", file=sys.stderr)
         return 2
 
     cp = subprocess.run(
-        [lockctl_bin, "gc", "--format", "json"],
+        cmd,
         text=True,
         capture_output=True,
         check=False,

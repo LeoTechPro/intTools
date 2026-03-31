@@ -86,6 +86,13 @@ def _resolve_lockctl_bin() -> str:
     raise ResolverError([ResolverFailure("LOCKCTL_MISSING", f"missing lockctl in PATH: {candidate}")])
 
 
+def _lockctl_cmd(*args: str) -> list[str]:
+    lockctl = _resolve_lockctl_bin()
+    if lockctl.lower().endswith(".py"):
+        return [sys.executable, lockctl, *args]
+    return [lockctl, *args]
+
+
 def _resolve_repo_root() -> Path:
     env_root = os.environ.get("PUNCTB_REPO_ROOT", "").strip()
     if env_root:
@@ -162,7 +169,7 @@ def _collect_files_from_args(repo_root: Path, files: list[str], files_csv: str |
 
 
 def _lockctl_status(repo_root: Path, path: str | None = None, issue_id: str | None = None) -> dict[str, object]:
-    cmd = [_resolve_lockctl_bin(), "status", "--repo-root", str(repo_root), "--format", "json"]
+    cmd = _lockctl_cmd("status", "--repo-root", str(repo_root), "--format", "json")
     if path is not None:
         cmd.extend(["--path", path])
     if issue_id is not None:
