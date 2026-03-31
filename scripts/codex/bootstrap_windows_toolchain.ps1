@@ -86,18 +86,52 @@ function Normalize-UserPath {
     if ($userRaw) { $all += ($userRaw -split ";") }
 
     $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-    $drop = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $dropRaw = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $dropExpanded = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     foreach ($entry in @($DropEntries)) {
         if ([string]::IsNullOrWhiteSpace($entry)) { continue }
-        [void]$drop.Add($entry.Trim())
+        $trimmed = $entry.Trim()
+        [void]$dropRaw.Add($trimmed)
+        $expanded = [Environment]::ExpandEnvironmentVariables($trimmed)
+        if (-not [string]::IsNullOrWhiteSpace($expanded)) {
+            [void]$dropExpanded.Add($expanded)
+        }
     }
     $final = [System.Collections.Generic.List[string]]::new()
     foreach ($entry in $all) {
         if ([string]::IsNullOrWhiteSpace($entry)) { continue }
         $candidate = $entry.Trim()
-        if (-not (Test-Path $candidate)) { continue }
-        if ($drop.Contains($candidate)) { continue }
-        if ($seen.Add($candidate)) {
+        $expandedCandidate = [Environment]::ExpandEnvironmentVariables($candidate)
+        $hasEnvToken = $candidate -match "%[^%]+%"
+        $compareKey = $candidate
+
+        if ($hasEnvToken) {
+            if ($expandedCandidate -eq $candidate) {
+                # Keep unresolved %VAR% tokens to avoid dropping valid entries for future sessions.
+                $compareKey = $candidate
+            }
+            elseif (Test-Path $expandedCandidate) {
+                $compareKey = $expandedCandidate
+            }
+            else {
+                continue
+            }
+        }
+        else {
+            if (-not (Test-Path $candidate)) { continue }
+            $compareKey = $candidate
+        }
+
+        if (
+            $dropRaw.Contains($candidate) -or
+            $dropExpanded.Contains($candidate) -or
+            $dropRaw.Contains($compareKey) -or
+            $dropExpanded.Contains($compareKey)
+        ) {
+            continue
+        }
+
+        if ($seen.Add($compareKey)) {
             [void]$final.Add($candidate)
         }
     }

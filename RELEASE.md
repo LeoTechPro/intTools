@@ -3,6 +3,12 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-03-31
+### review-fix: PATH normalizer сохраняет env-токены и не теряет валидные записи
+- В `scripts/codex/bootstrap_windows_toolchain.ps1` обновлён `Normalize-UserPath`: для `%ENV%`-путей проверка существования идёт через `ExpandEnvironmentVariables()`, но в итоговый PATH сохраняется исходный raw-токен.
+- Если `%VAR%` не раскрывается (например, `%UNKNOWN_VAR%`), запись больше не удаляется автоматически при нормализации.
+- Drop-сравнение сделано безопасным для raw/expanded вариантов, чтобы исключить ложное удаление валидных PATH-элементов.
+- Контракт bootstrap (`code=0/10/20`) не менялся; при stale process PATH всё ещё нужен перезапуск терминала/Codex-сессии.
+
 ### review-fix: унифицирован launcher `lockctl-mcp.cmd` и исправлен Linux exec-bit
 - В `lockctl/install_lockctl.sh` добавлены alias-линки `lockctl.cmd` и `lockctl-mcp.cmd` для Linux, чтобы Windows-style launcher имя было доступно кроссплатформенно.
 - MCP-конфиги переведены на явный `lockctl-mcp.cmd`: `codex/templates/config.toml.tmpl`, `codex/plugins/lockctl/.mcp.json`, `codex/projects/punctb/.mcp.json`, `openclaw/.mcp.json`.
