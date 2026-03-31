@@ -3,6 +3,10 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-03-31
+### lockctl installer: Windows PATH launcher delegation
+- В `lockctl/install_lockctl.ps1` исправлен Windows installer: вместо копирования `.cmd` без соседних `.py` теперь генерируются delegating-launchers с абсолютным путём к исходным wrapper'ам в `/int/tools`.
+- Installer выбирает install-dir с приоритетом PATH-aware (`%APPDATA%\npm`/`%USERPROFILE%\bin`) и при необходимости дописывает выбранный путь в user PATH.
+
 ### lockctl: кроссплатформенное ядро + MCP + adapters для Codex/OpenClaw
 - `lockctl` переработан в модульное ядро `lockctl/lockctl_core.py` с сохранением CLI-контракта (`acquire|renew|release-path|release-issue|status|gc`) через совместимый entrypoint `lockctl/lockctl.py`.
 - Добавлены Windows launcher'ы `lockctl/lockctl.ps1` и `lockctl/lockctl.cmd`, поддержан `python -m lockctl` через `lockctl/__main__.py`, обновлён POSIX wrapper `lockctl/lockctl`.
