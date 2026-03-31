@@ -644,12 +644,40 @@ def _is_explicit_path(candidate: str) -> bool:
     return bool(re.match(r"^[A-Za-z]:", candidate))
 
 
+def _resolve_explicit_path(candidate: str) -> Path:
+    path = Path(candidate).expanduser()
+    if os.name == "nt" and not path.is_absolute() and candidate.startswith("/") and not candidate.startswith("//"):
+        drives = [Path(__file__).resolve().drive, Path.cwd().drive, os.environ.get("SystemDrive", "")]
+        seen: set[str] = set()
+        for drive in drives:
+            value = str(drive or "").strip()
+            if not value:
+                continue
+            if not value.endswith(":"):
+                value = f"{value}:"
+            key = value.upper()
+            if key in seen:
+                continue
+            seen.add(key)
+            candidate_path = Path(f"{value}{candidate}").expanduser()
+            if candidate_path.exists():
+                return candidate_path
+        for drive in drives:
+            value = str(drive or "").strip()
+            if not value:
+                continue
+            if not value.endswith(":"):
+                value = f"{value}:"
+            return Path(f"{value}{candidate}").expanduser()
+    return path
+
+
 def resolve_lockctl_bin() -> str:
     candidate = LOCKCTL_BIN.strip()
     if not candidate:
         raise GatesCtlError("LOCK_CONFLICT", "lockctl command is empty")
     if _is_explicit_path(candidate):
-        path = Path(candidate).expanduser()
+        path = _resolve_explicit_path(candidate)
         if path.exists():
             return str(path)
         raise GatesCtlError("LOCK_CONFLICT", f"missing lockctl: {path}")

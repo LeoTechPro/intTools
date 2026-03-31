@@ -42,6 +42,15 @@ class LockCtlCoreTest(unittest.TestCase):
         normalized = lockctl_core.normalize_repo_root("/int/tools")
         self.assertEqual(normalized, str(Path(r"D:\int\tools").resolve()))
 
+    def test_normalize_repo_root_posix_windows_not_bound_to_cwd_drive(self):
+        if os.name != "nt":
+            self.skipTest("Windows-only compatibility behavior")
+        module_drive = Path(lockctl_core.__file__).resolve().drive
+        with mock.patch.object(lockctl_core.Path, "cwd", return_value=Path(r"C:\temp")):
+            normalized = lockctl_core.normalize_repo_root("/int/tools")
+        self.assertTrue(normalized.lower().endswith(r"\int\tools"))
+        self.assertTrue(normalized.upper().startswith(module_drive.upper()))
+
     def test_windows_legacy_state_migration_moves_with_backup_and_marker(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)

@@ -76,6 +76,38 @@ def _resolve_home_dir() -> Path:
     return Path.home()
 
 
+def _windows_drive_candidates() -> list[str]:
+    raw_candidates = [
+        Path(__file__).resolve().drive,
+        Path.cwd().drive,
+        os.environ.get("SystemDrive", ""),
+    ]
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for candidate in raw_candidates:
+        value = str(candidate or "").strip()
+        if not value:
+            continue
+        if not value.endswith(":"):
+            value = f"{value}:"
+        key = value.upper()
+        if key in seen:
+            continue
+        seen.add(key)
+        normalized.append(value)
+    return normalized
+
+
+def _resolve_windows_posix_absolute(cleaned: str) -> Path:
+    for drive in _windows_drive_candidates():
+        candidate = Path(f"{drive}{cleaned}").expanduser()
+        if candidate.exists():
+            return candidate
+    for drive in _windows_drive_candidates():
+        return Path(f"{drive}{cleaned}").expanduser()
+    return Path(cleaned).expanduser()
+
+
 def resolve_state_dir() -> Path:
     explicit_state = os.environ.get("LOCKCTL_STATE_DIR", "").strip()
     if explicit_state:
@@ -225,8 +257,7 @@ def normalize_repo_root(raw: str) -> str:
     cleaned = raw.strip()
     path = Path(cleaned).expanduser()
     if os.name == "nt" and not path.is_absolute() and cleaned.startswith("/") and not cleaned.startswith("//"):
-        drive = Path.cwd().drive or os.environ.get("SystemDrive", "C:")
-        path = Path(f"{drive}{cleaned}").expanduser()
+        path = _resolve_windows_posix_absolute(cleaned)
     if not path.is_absolute():
         raise LockCtlError("INVALID_REPO_ROOT", f"repo root must be absolute: {raw}")
     return str(path.resolve())
@@ -247,7 +278,10 @@ def normalize_path(repo_root: str, raw: str) -> str:
         raise LockCtlError("INVALID_PATH", "path must not be empty")
     repo_root_path = Path(repo_root).resolve()
     if _is_absolute_input_path(cleaned):
-        abs_target = Path(cleaned).expanduser().resolve()
+        abs_candidate = Path(cleaned).expanduser()
+        if os.name == "nt" and not abs_candidate.is_absolute() and cleaned.startswith("/") and not cleaned.startswith("//"):
+            abs_candidate = _resolve_windows_posix_absolute(cleaned)
+        abs_target = abs_candidate.resolve()
         try:
             return abs_target.relative_to(repo_root_path).as_posix()
         except ValueError as exc:

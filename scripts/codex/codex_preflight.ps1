@@ -4,7 +4,6 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Continue"
-$env:Path = [Environment]::GetEnvironmentVariable("Path", "User") + ";" + [Environment]::GetEnvironmentVariable("Path", "Machine")
 
 function Invoke-ToolCheck {
     param(

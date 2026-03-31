@@ -1,11 +1,15 @@
 param(
     [switch]$AllowUserFallback,
     [switch]$Json,
-    [string]$IntRoot = "D:\int"
+    [string]$IntRoot
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+if ([string]::IsNullOrWhiteSpace($IntRoot)) {
+    $IntRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+}
 
 function Test-IsAdmin {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -48,8 +52,32 @@ function Install-PortableCMake {
     return (Join-Path $root.FullName "bin")
 }
 
+function Resolve-PortableCMakeBin {
+    param([string]$Version = "4.3.1")
+    $base = Join-Path $env:LOCALAPPDATA "Programs\PortableTools\cmake"
+    if (-not (Test-Path $base)) {
+        return $null
+    }
+    $preferredExe = Join-Path $base "cmake-$Version-windows-x86_64\bin\cmake.exe"
+    if (Test-Path $preferredExe) {
+        return (Split-Path -Parent $preferredExe)
+    }
+    $existing = Get-ChildItem $base -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -like "cmake-$Version*" } | Sort-Object Name -Descending | Select-Object -First 1
+    if (-not $existing) {
+        return $null
+    }
+    $candidateExe = Join-Path $existing.FullName "bin\cmake.exe"
+    if (Test-Path $candidateExe) {
+        return (Split-Path -Parent $candidateExe)
+    }
+    return $null
+}
+
 function Normalize-UserPath {
-    param([string[]]$HeadEntries)
+    param(
+        [string[]]$HeadEntries,
+        [string[]]$DropEntries
+    )
 
     $userRaw = [Environment]::GetEnvironmentVariable("Path", "User")
     $machineRaw = [Environment]::GetEnvironmentVariable("Path", "Machine")
@@ -58,12 +86,17 @@ function Normalize-UserPath {
     if ($userRaw) { $all += ($userRaw -split ";") }
 
     $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    $drop = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+    foreach ($entry in @($DropEntries)) {
+        if ([string]::IsNullOrWhiteSpace($entry)) { continue }
+        [void]$drop.Add($entry.Trim())
+    }
     $final = [System.Collections.Generic.List[string]]::new()
     foreach ($entry in $all) {
         if ([string]::IsNullOrWhiteSpace($entry)) { continue }
         $candidate = $entry.Trim()
         if (-not (Test-Path $candidate)) { continue }
-        if ($candidate -ieq "C:\Users\intData\AppData\Local\OpenAI\Codex\bin") { continue }
+        if ($drop.Contains($candidate)) { continue }
         if ($seen.Add($candidate)) {
             [void]$final.Add($candidate)
         }
@@ -105,6 +138,11 @@ $pathSnapshot = [pscustomobject]@{
     process_path = $env:Path
 }
 $pathSnapshot | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $backupDir "path-backup.json") -Encoding UTF8
+$effectivePathParts = @(
+    [Environment]::GetEnvironmentVariable("Path", "User"),
+    [Environment]::GetEnvironmentVariable("Path", "Machine")
+) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+$env:Path = ($effectivePathParts -join ";")
 
 $wingetPackages = @(
     "BurntSushi.ripgrep.MSVC",
@@ -156,8 +194,12 @@ $results.Add([pscustomobject]@{
         note = ""
     })
 
-$cmakeBinHint = $null
+$cmakeBinHint = Resolve-PortableCMakeBin
 $cmakeCmd = Get-Command cmake -ErrorAction SilentlyContinue
+if (-not $cmakeCmd -and $cmakeBinHint) {
+    $env:Path = "$cmakeBinHint;$env:Path"
+    $cmakeCmd = Get-Command cmake -ErrorAction SilentlyContinue
+}
 if (-not $cmakeCmd -and $scope -eq "user") {
     try {
         $cmakeBinHint = Install-PortableCMake
@@ -181,6 +223,16 @@ if (-not $cmakeCmd -and $scope -eq "user") {
             })
     }
 }
+elseif ($cmakeBinHint) {
+    $results.Add([pscustomobject]@{
+            tool = "portable-cmake"
+            manager = "manual"
+            scope = "user"
+            code = 0
+            status = "ok"
+            note = "Reused existing portable CMake."
+        })
+}
 
 $sevenCmd = Get-Command 7z -ErrorAction SilentlyContinue
 if (-not $sevenCmd -and $scope -eq "user") {
@@ -196,13 +248,16 @@ if (-not $sevenCmd -and $scope -eq "user") {
 }
 
 $headEntries = @(
-    "C:\Users\intData\AppData\Local\Microsoft\WinGet\Links",
-    "C:\Users\intData\AppData\Local\Microsoft\WindowsApps"
+    (Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Links"),
+    (Join-Path $env:LOCALAPPDATA "Microsoft\WindowsApps")
 )
 if ($cmakeBinHint -and (Test-Path $cmakeBinHint)) {
     $headEntries = @($cmakeBinHint) + $headEntries
 }
-$newUserPath = Normalize-UserPath -HeadEntries $headEntries
+$dropEntries = @(
+    (Join-Path $env:LOCALAPPDATA "OpenAI\Codex\bin")
+)
+$newUserPath = Normalize-UserPath -HeadEntries $headEntries -DropEntries $dropEntries
 
 $resultsPath = Join-Path $backupDir "install-results.json"
 $results | ConvertTo-Json -Depth 5 | Set-Content -Path $resultsPath -Encoding UTF8

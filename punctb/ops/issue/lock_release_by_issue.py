@@ -36,6 +36,32 @@ def _resolve_lockctl_bin() -> str:
         raise RuntimeError("lockctl command is empty")
     if "/" in candidate or "\\" in candidate or re.match(r"^[A-Za-z]:", candidate):
         path = Path(candidate).expanduser()
+        if os.name == "nt" and not path.is_absolute() and candidate.startswith("/") and not candidate.startswith("//"):
+            drives = [Path(__file__).resolve().drive, Path.cwd().drive, os.environ.get("SystemDrive", "")]
+            seen: set[str] = set()
+            for drive in drives:
+                value = str(drive or "").strip()
+                if not value:
+                    continue
+                if not value.endswith(":"):
+                    value = f"{value}:"
+                key = value.upper()
+                if key in seen:
+                    continue
+                seen.add(key)
+                candidate_path = Path(f"{value}{candidate}").expanduser()
+                if candidate_path.exists():
+                    path = candidate_path
+                    break
+            else:
+                for drive in drives:
+                    value = str(drive or "").strip()
+                    if not value:
+                        continue
+                    if not value.endswith(":"):
+                        value = f"{value}:"
+                    path = Path(f"{value}{candidate}").expanduser()
+                    break
         if path.exists():
             return str(path)
         raise RuntimeError(f"missing lockctl: {path}")

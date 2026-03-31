@@ -3,6 +3,11 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-03-31
+### review-fix: точечные правки bootstrap/preflight по подтверждённым findings
+- В `scripts/codex/codex_preflight.ps1` удалена принудительная перезапись process `PATH` (`User + Machine`): preflight больше не искажает фактический runtime-резолв бинарей в текущей сессии.
+- В `scripts/codex/bootstrap_windows_toolchain.ps1` убран user-specific hardcode (`C:\\Users\\intData\\...`) и введены вычисления путей через `$env:LOCALAPPDATA`/`$PSScriptRoot`, чтобы скрипт был переносимым между профилями.
+- В `bootstrap_windows_toolchain.ps1` добавлен reuse существующего portable CMake (`Resolve-PortableCMakeBin`) до сетевой установки, что устраняет повторную переустановку при повторном запуске.
+
 ### Windows Codex toolchain bootstrap + preflight
 - Добавлены скрипты `scripts/codex/bootstrap_windows_toolchain.ps1` и `scripts/codex/codex_preflight.ps1` для воспроизводимой настройки Windows CLI-инструментов и быстрой диагностики статуса (`ok|missing|blocked|fix_suggested`, таблица/JSON).
 - `bootstrap_windows_toolchain.ps1` фиксирует контракт exit-codes: `0` (готово), `10` (нужен elevated shell), `20` (частичные ошибки), пишет PATH snapshot/results в `/int/.tmp/toolchain-bootstrap/<UTC>/`.
