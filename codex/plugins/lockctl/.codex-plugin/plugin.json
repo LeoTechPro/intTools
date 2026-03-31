@@ -1,0 +1,20 @@
+{
+  "name": "lockctl",
+  "version": "1.0.0",
+  "description": "Cross-platform lockctl MCP + skill bundle for Codex/OpenClaw",
+  "author": {
+    "name": "IntData",
+    "email": "owner@intdata.pro"
+  },
+  "license": "Proprietary",
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "lockctl",
+    "shortDescription": "Machine-wide file lease locks",
+    "longDescription": "Unified lockctl tooling for Codex/OpenClaw via MCP with CLI fallback.",
+    "developerName": "IntData",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"]
+  }
+}

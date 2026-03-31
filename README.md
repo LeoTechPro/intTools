@@ -893,8 +893,21 @@ man lockctl
 
 Bare `lockctl` prints the top-level help and exits successfully.
 
-Implementation lives in `/int/tools/lockctl/lockctl.py`.
-For repo-local discoverability there is also a wrapper file at `/int/tools/lockctl/lockctl`.
+Install launchers into user bin:
+
+```bash
+bash /int/tools/lockctl/install_lockctl.sh
+pwsh -File D:\int\tools\lockctl\install_lockctl.ps1
+```
+
+Implementation/core lives in `/int/tools/lockctl/lockctl_core.py`.
+CLI entrypoints:
+
+- Linux/macOS wrapper: `/int/tools/lockctl/lockctl`
+- Python CLI: `/int/tools/lockctl/lockctl.py`
+- Windows wrappers: `/int/tools/lockctl/lockctl.ps1`, `/int/tools/lockctl/lockctl.cmd`
+- MCP entrypoint: `/int/tools/codex/bin/mcp-lockctl.py`
+
 Do not try to execute the directory `/int/tools/lockctl` itself as a binary.
 
 ##### Runtime model
@@ -907,9 +920,17 @@ Do not try to execute the directory `/int/tools/lockctl` itself as a binary.
 
 Runtime files:
 
-- `LOCKCTL_STATE_DIR=/home/leon/.codex/memories/lockctl`
-- SQLite: `/home/leon/.codex/memories/lockctl/locks.sqlite`
-- Event log: `/home/leon/.codex/memories/lockctl/events.jsonl`
+- `LOCKCTL_STATE_DIR` (если явно задан)
+- иначе `$CODEX_HOME/memories/lockctl`
+- иначе platform default:
+  - Linux: `~/.codex/memories/lockctl`
+  - Windows: `%USERPROFILE%\.codex\memories\lockctl`
+- SQLite: `<state_dir>/locks.sqlite`
+- Event log: `<state_dir>/events.jsonl`
+
+Windows migration note:
+
+- При обнаружении legacy state `D:\home\leon\.codex\memories\lockctl` выполняется one-time migration в canonical `%USERPROFILE%\.codex\memories\lockctl` с backup и marker-файлом `.legacy-migration-v1.done`.
 
 ##### Common examples
 

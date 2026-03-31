@@ -19,6 +19,9 @@
         "playwright",
         "run-test-mcp-server"
       ]
+    },
+    "lockctl": {
+      "command": "lockctl-mcp"
     }
   }
 }

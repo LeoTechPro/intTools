@@ -56,7 +56,7 @@ Ambiguity считается значимой только при неяснос
 
 ## Machine-wide lock policy
 - Для любых файловых мутаций через Codex/OpenClaw на этой машине обязателен предварительный `lockctl acquire` по конкретному файлу до начала правки.
-- Источник истины по активным локам: shell-команда `lockctl`; implementation-файл лежит в `/int/tools/lockctl/lockctl.py`, repo-local wrapper — `/int/tools/lockctl/lockctl`, а каталог `/int/tools/lockctl` не является исполняемым файлом. Lease-state хранится в локальной SQLite; проектные YAML-ledger не являются runtime truth.
+- Источник истины по активным локам: `lockctl` (CLI/MCP). Каноническое ядро лежит в `/int/tools/lockctl/lockctl_core.py`; CLI entrypoints: `/int/tools/lockctl/lockctl.py`, `/int/tools/lockctl/lockctl`, `/int/tools/lockctl/lockctl.ps1`, `/int/tools/lockctl/lockctl.cmd`; MCP entrypoint: `/int/tools/codex/bin/mcp-lockctl.py`. Lease-state хранится в локальной SQLite; проектные YAML-ledger не являются runtime truth.
 - Лок должен жить только на окно реальной мутации и продлеваться heartbeat'ом, если правка длится дольше одного lease.
 - После завершения правки лок должен сниматься через `lockctl release-path` или `lockctl release-issue` без ожидания окончания всей сессии.
 - Для проектов с issue-discipline owner/agent обязан указывать issue id при `lockctl acquire`.

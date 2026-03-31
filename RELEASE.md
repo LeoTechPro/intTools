@@ -2,6 +2,19 @@
 
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
+## 2026-03-31
+### lockctl: кроссплатформенное ядро + MCP + adapters для Codex/OpenClaw
+- `lockctl` переработан в модульное ядро `lockctl/lockctl_core.py` с сохранением CLI-контракта (`acquire|renew|release-path|release-issue|status|gc`) через совместимый entrypoint `lockctl/lockctl.py`.
+- Добавлены Windows launcher'ы `lockctl/lockctl.ps1` и `lockctl/lockctl.cmd`, поддержан `python -m lockctl` через `lockctl/__main__.py`, обновлён POSIX wrapper `lockctl/lockctl`.
+- Добавлен state resolver: `LOCKCTL_STATE_DIR` -> `$CODEX_HOME/memories/lockctl` -> platform default (`~/.codex/...`/`%USERPROFILE%\.codex\...`) и one-time Windows migration legacy state `D:\home\leon\.codex\memories\lockctl` с backup marker.
+- Исправлена нормализация путей: корректная обработка Windows absolute-path в `--path` и хранение `path_rel` строго относительно `repo_root`.
+- Добавлен MCP server `codex/bin/mcp-lockctl.py` + launcher'ы (`.sh`/`.cmd`) и OpenClaw adapters (`openclaw/bin/mcp-lockctl.sh`, `openclaw/bin/mcp-lockctl.cmd`, `openclaw/.mcp.json`).
+- Обновлены интеграции `gatesctl` и `punctb` (`lock_issue_resolver.py`, `lock_release_by_issue.py`, `agent_lock_cleanup.py`) для Windows-style `LOCKCTL_BIN` path resolution.
+- Обновлены runtime/config контракты: `codex/templates/config.toml.tmpl`, `codex/layout-policy.json`, `codex/bin/codex-host-verify`, `codex/projects/punctb/.mcp.json`, `codex/tools/install_tools.sh`.
+- Добавлен skill `codex/assets/codex-home/skills/lockctl/SKILL.md`, plugin scaffold `codex/plugins/lockctl/.codex-plugin/plugin.json` и marketplace entry `.agents/plugins/marketplace.json`.
+- Обновлена документация lockctl/openclaw/process: `README.md`, `codex/assets/codex-home/AGENTS.md`, `punctb/docs/process/issue-commit-flow.md`, `openclaw/docs/reinstall-and-restore.md`, `openclaw/docs/lockctl-mcp.md`.
+- Добавлен unit test `lockctl/tests/test_lockctl_core.py` для path/state behavior.
+
 ## 2026-03-29
 ### ngt-memory moved to external reference mode
 - `ngt-memory` удалён из индекса `/int/tools` как gitlink и больше не участвует в репозиторных change-цепочках этого контура.

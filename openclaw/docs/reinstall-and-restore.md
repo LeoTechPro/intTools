@@ -10,6 +10,7 @@
 - workspace: `~/.openclaw/workspace`
 - mutable state: `~/.openclaw/*`
 - versioned overlay: `/int/tools/openclaw`
+- lockctl MCP adapter: `/int/tools/openclaw/bin/mcp-lockctl.sh` (Linux) или `D:\int\tools\openclaw\bin\mcp-lockctl.cmd` (Windows), manifest: `/int/tools/openclaw/.mcp.json`
 
 ## Что бэкапить перед reinstall
 

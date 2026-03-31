@@ -64,6 +64,7 @@ def verify_config(issues: list[str]) -> None:
         "/int/tools/codex/bin/mcp-timeweb.sh",
         "/int/tools/codex/bin/mcp-timeweb-readonly.sh",
         "/int/tools/codex/bin/mcp-bitrix24.sh",
+        "lockctl-mcp",
         "/int/cloud/gdrive",
         "/int/cloud/yadisk",
         str(CODEX_HOME),

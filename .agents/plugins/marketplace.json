@@ -1,0 +1,21 @@
+{
+  "name": "int-tools",
+  "interface": {
+    "displayName": "IntData Tools"
+  },
+  "plugins": [
+    {
+      "name": "lockctl",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/lockctl"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}
+

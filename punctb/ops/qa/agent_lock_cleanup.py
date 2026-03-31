@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -18,7 +19,7 @@ def resolve_lockctl_bin() -> str:
     candidate = LOCKCTL_BIN.strip()
     if not candidate:
         raise RuntimeError("lockctl command is empty")
-    if "/" in candidate:
+    if "/" in candidate or "\\" in candidate or re.match(r"^[A-Za-z]:", candidate):
         path = Path(candidate).expanduser()
         if path.exists():
             return str(path)

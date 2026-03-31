@@ -2,4 +2,12 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec python3 "$script_dir/lockctl.py" "$@"
+python_bin="${PYTHON:-}"
+if [[ -z "$python_bin" ]]; then
+  if command -v python3 >/dev/null 2>&1; then
+    python_bin="python3"
+  else
+    python_bin="python"
+  fi
+fi
+exec "$python_bin" "$script_dir/lockctl.py" "$@"

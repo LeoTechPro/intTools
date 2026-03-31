@@ -638,11 +638,17 @@ def latest_approval_event(
     return row
 
 
+def _is_explicit_path(candidate: str) -> bool:
+    if "/" in candidate or "\\" in candidate:
+        return True
+    return bool(re.match(r"^[A-Za-z]:", candidate))
+
+
 def resolve_lockctl_bin() -> str:
     candidate = LOCKCTL_BIN.strip()
     if not candidate:
         raise GatesCtlError("LOCK_CONFLICT", "lockctl command is empty")
-    if "/" in candidate:
+    if _is_explicit_path(candidate):
         path = Path(candidate).expanduser()
         if path.exists():
             return str(path)

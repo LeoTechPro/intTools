@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "lockctl": {
+      "command": "lockctl-mcp"
+    }
+  }
+}
