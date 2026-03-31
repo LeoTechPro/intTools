@@ -3,6 +3,11 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-03-31
+### review-fix: drop-сопоставление PATH канонизирует разделители
+- В `scripts/codex/bootstrap_windows_toolchain.ps1` добавлена канонизация ключей сравнения в `Normalize-UserPath` (`/` -> `\`, схлопывание повторных `\`) для `candidate`, `compareKey` и `DropEntries`.
+- Исправлен подтверждённый кейс, когда `%LOCALAPPDATA%/OpenAI/Codex/bin` не отбрасывался при `DropEntries` с backslash-форматом.
+- Scope изменения ограничен только remediation по подтверждённому `review-find` пункту.
+
 ### finalize: закрыт pending server-state по `mcp-intbrain` и `mcp-memory-bank`
 - В `codex/bin/mcp-intbrain.py` добавлена нормализация PM date-алиасов (`today|tomorrow|yesterday`) с учётом timezone для `pm/*` инструментов (`dashboard/tasks/health/constraints/task_create/task_patch`).
 - Для `pm_task_create/pm_task_patch` добавлен `due_at=\"today\"` alias (текущий timestamp в указанной timezone).

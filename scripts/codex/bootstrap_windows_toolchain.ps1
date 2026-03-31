@@ -79,6 +79,22 @@ function Normalize-UserPath {
         [string[]]$DropEntries
     )
 
+    function ConvertTo-PathCompareKey {
+        param([string]$Value)
+        if ([string]::IsNullOrWhiteSpace($Value)) {
+            return ""
+        }
+
+        $normalized = $Value.Trim() -replace "/", "\"
+        if ($normalized.StartsWith("\\")) {
+            $normalized = "\\" + (($normalized.Substring(2)) -replace "\\{2,}", "\")
+        }
+        else {
+            $normalized = $normalized -replace "\\{2,}", "\"
+        }
+        return $normalized
+    }
+
     $userRaw = [Environment]::GetEnvironmentVariable("Path", "User")
     $machineRaw = [Environment]::GetEnvironmentVariable("Path", "Machine")
     $all = @()
@@ -91,16 +107,17 @@ function Normalize-UserPath {
     foreach ($entry in @($DropEntries)) {
         if ([string]::IsNullOrWhiteSpace($entry)) { continue }
         $trimmed = $entry.Trim()
-        [void]$dropRaw.Add($trimmed)
+        [void]$dropRaw.Add((ConvertTo-PathCompareKey -Value $trimmed))
         $expanded = [Environment]::ExpandEnvironmentVariables($trimmed)
         if (-not [string]::IsNullOrWhiteSpace($expanded)) {
-            [void]$dropExpanded.Add($expanded)
+            [void]$dropExpanded.Add((ConvertTo-PathCompareKey -Value $expanded))
         }
     }
     $final = [System.Collections.Generic.List[string]]::new()
     foreach ($entry in $all) {
         if ([string]::IsNullOrWhiteSpace($entry)) { continue }
         $candidate = $entry.Trim()
+        $candidateKey = ConvertTo-PathCompareKey -Value $candidate
         $expandedCandidate = [Environment]::ExpandEnvironmentVariables($candidate)
         $hasEnvToken = $candidate -match "%[^%]+%"
         $compareKey = $candidate
@@ -122,9 +139,11 @@ function Normalize-UserPath {
             $compareKey = $candidate
         }
 
+        $compareKey = ConvertTo-PathCompareKey -Value $compareKey
+
         if (
-            $dropRaw.Contains($candidate) -or
-            $dropExpanded.Contains($candidate) -or
+            $dropRaw.Contains($candidateKey) -or
+            $dropExpanded.Contains($candidateKey) -or
             $dropRaw.Contains($compareKey) -or
             $dropExpanded.Contains($compareKey)
         ) {
