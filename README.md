@@ -50,6 +50,8 @@
 - `/int/tools/codex/bin/mcp-intbrain.sh` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
 - `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
+- `pwsh -File /int/tools/scripts/codex/bootstrap_windows_toolchain.ps1 -AllowUserFallback` — idempotent bootstrap Windows CLI-toolchain (`rg`, `fd`, `yq`, `uv`, `pnpm`, `terraform`, `make`, PATH-normalization, fallback для `cmake/7z`);
+- `pwsh -File /int/tools/scripts/codex/codex_preflight.ps1` — preflight-проверка ключевых CLI с machine-readable режимом `-Json`;
 - `bash /int/tools/openclaw/ops/verify.sh` — проверка overlay OpenClaw;
 - `AUTH_TYPE=oauth-personal HOST=127.0.0.1 PORT=11434 npm start` из `gemini-openai-proxy/` — локальный запуск proxy.
 

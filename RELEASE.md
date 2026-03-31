@@ -3,6 +3,13 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-03-31
+### Windows Codex toolchain bootstrap + preflight
+- Добавлены скрипты `scripts/codex/bootstrap_windows_toolchain.ps1` и `scripts/codex/codex_preflight.ps1` для воспроизводимой настройки Windows CLI-инструментов и быстрой диагностики статуса (`ok|missing|blocked|fix_suggested`, таблица/JSON).
+- `bootstrap_windows_toolchain.ps1` фиксирует контракт exit-codes: `0` (готово), `10` (нужен elevated shell), `20` (частичные ошибки), пишет PATH snapshot/results в `/int/.tmp/toolchain-bootstrap/<UTC>/`.
+- Реализована mixed-логика установки: `winget` для основного стека, `choco -> winget` fallback для `make`, portable fallback для `cmake`, alias fallback для `7z` через `M2Team.NanaZip` в user-scope.
+- Реализована PATH-normalization: приоритет `WinGet\Links`/`WindowsApps`, очистка несуществующих user PATH entries, удаление stale `OpenAI\\Codex\\bin`.
+- Обновлён `README.md` разделом полезных команд для bootstrap/preflight.
+
 ### lockctl installer: Windows PATH launcher delegation
 - В `lockctl/install_lockctl.ps1` исправлен Windows installer: вместо копирования `.cmd` без соседних `.py` теперь генерируются delegating-launchers с абсолютным путём к исходным wrapper'ам в `/int/tools`.
 - Installer выбирает install-dir с приоритетом PATH-aware (`%APPDATA%\npm`/`%USERPROFILE%\bin`) и при необходимости дописывает выбранный путь в user PATH.
