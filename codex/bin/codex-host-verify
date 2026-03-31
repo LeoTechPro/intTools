@@ -64,7 +64,6 @@ def verify_config(issues: list[str]) -> None:
         "/int/tools/codex/bin/mcp-timeweb.sh",
         "/int/tools/codex/bin/mcp-timeweb-readonly.sh",
         "/int/tools/codex/bin/mcp-bitrix24.sh",
-        "lockctl-mcp",
         "/int/cloud/gdrive",
         "/int/cloud/yadisk",
         str(CODEX_HOME),
@@ -72,6 +71,8 @@ def verify_config(issues: list[str]) -> None:
     for fragment in required_fragments:
         if fragment not in config_text:
             issues.append(f"config.toml missing fragment: {fragment}")
+    if ("lockctl-mcp" not in config_text) and ("lockctl-mcp.cmd" not in config_text):
+        issues.append("config.toml missing lockctl MCP command fragment: lockctl-mcp or lockctl-mcp.cmd")
 
 
 def main() -> int:

@@ -3,6 +3,12 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-03-31
+### review-fix: унифицирован launcher `lockctl-mcp.cmd` и исправлен Linux exec-bit
+- В `lockctl/install_lockctl.sh` добавлены alias-линки `lockctl.cmd` и `lockctl-mcp.cmd` для Linux, чтобы Windows-style launcher имя было доступно кроссплатформенно.
+- MCP-конфиги переведены на явный `lockctl-mcp.cmd`: `codex/templates/config.toml.tmpl`, `codex/plugins/lockctl/.mcp.json`, `codex/projects/punctb/.mcp.json`, `openclaw/.mcp.json`.
+- В `codex/bin/codex-host-verify` добавлена совместимая проверка двух вариантов launcher (`lockctl-mcp` и `lockctl-mcp.cmd`), чтобы не ломать существующие runtime-конфиги.
+- Для `codex/bin/mcp-lockctl.sh` и `openclaw/bin/mcp-lockctl.sh` выставлен executable mode (`100755`), чтобы Linux launcher можно было исполнять напрямую.
+
 ### review-fix: устранены cross-drive сбои `/int/...` на Windows для lockctl и интеграций
 - В `gatesctl/gatesctl.py` и `punctb`-утилитах (`lock_issue_resolver.py`, `lock_release_by_issue.py`, `agent_lock_cleanup.py`) обновлён `LOCKCTL_BIN` resolver: `/int/...` корректно резолвится на фактический диск Windows.
 - В `gatesctl/gatesctl.py` и `punctb`-утилитах добавлен py-launch fallback: если `LOCKCTL_BIN` указывает на `lockctl.py`, команда запускается через `sys.executable`, чтобы на Windows не возникал `WinError 193`.

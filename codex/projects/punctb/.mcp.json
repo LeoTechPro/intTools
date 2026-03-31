@@ -21,7 +21,7 @@
       ]
     },
     "lockctl": {
-      "command": "lockctl-mcp"
+      "command": "lockctl-mcp.cmd"
     }
   }
 }
