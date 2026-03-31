@@ -5,6 +5,8 @@ import json
 import os
 import sys
 import urllib.error
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import urllib.parse
 import urllib.request
 from typing import Any
@@ -414,6 +416,52 @@ def _json_error(req_id: Any, code: int, message: str, data: Any = None) -> dict[
     return {"jsonrpc": "2.0", "id": req_id, "error": err}
 
 
+def _coerce_pm_date_alias(value: Any, timezone: str | None) -> Any:
+    if not isinstance(value, str):
+        return value
+    token = value.strip().lower()
+    if token not in {"today", "tomorrow", "yesterday"}:
+        return value
+
+    tz_name = timezone or "Europe/Moscow"
+    try:
+        tz = ZoneInfo(tz_name)
+    except Exception:
+        tz = ZoneInfo("UTC")
+
+    base = datetime.now(tz=tz).date()
+    if token == "tomorrow":
+        base = base + timedelta(days=1)
+    elif token == "yesterday":
+        base = base - timedelta(days=1)
+    return base.isoformat()
+
+
+def _coerce_pm_date_args(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    if name not in {
+        "intbrain_pm_dashboard",
+        "intbrain_pm_tasks",
+        "intbrain_pm_health",
+        "intbrain_pm_constraints_validate",
+        "intbrain_pm_task_create",
+        "intbrain_pm_task_patch",
+    }:
+        return arguments
+
+    args = dict(arguments)
+    if "date" in args and isinstance(args["date"], str):
+        args["date"] = _coerce_pm_date_alias(args["date"], args.get("timezone"))
+    if name in {"intbrain_pm_task_create", "intbrain_pm_task_patch"} and "due_at" in args and isinstance(args["due_at"], str):
+        if args["due_at"].strip().lower() == "today":
+            tz_name = args.get("timezone") or "Europe/Moscow"
+            try:
+                tz = ZoneInfo(tz_name)
+            except Exception:
+                tz = ZoneInfo("UTC")
+            args["due_at"] = datetime.now(tz=tz).isoformat(timespec="seconds")
+    return args
+
+
 def _text_content(value: Any) -> dict[str, Any]:
     return {"type": "text", "text": json.dumps(value, ensure_ascii=False)}
 
@@ -589,7 +637,8 @@ def _handle_request(request: dict[str, Any]) -> dict[str, Any] | None:
         if not name:
             return _json_error(req_id, -32602, "tools/call requires name")
         try:
-            ok, data = _call_tool(str(name), arguments)
+            normalized = _coerce_pm_date_args(str(name), dict(arguments))
+            ok, data = _call_tool(str(name), normalized)
         except Exception as exc:  # noqa: BLE001
             return _json_result(req_id, {"content": [_text_content({"error": str(exc)})], "isError": True})
         return _json_result(req_id, {"content": [_text_content(data)], "isError": not ok})

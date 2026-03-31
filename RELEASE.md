@@ -3,6 +3,11 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-03-31
+### finalize: закрыт pending server-state по `mcp-intbrain` и `mcp-memory-bank`
+- В `codex/bin/mcp-intbrain.py` добавлена нормализация PM date-алиасов (`today|tomorrow|yesterday`) с учётом timezone для `pm/*` инструментов (`dashboard/tasks/health/constraints/task_create/task_patch`).
+- Для `pm_task_create/pm_task_patch` добавлен `due_at=\"today\"` alias (текущий timestamp в указанной timezone).
+- В `.gitignore` добавлен `mcp-memory-bank/`, чтобы локальные unpacked/wheel артефакты не попадали в git-индекс и не держали рабочее дерево грязным на хостах.
+
 ### review-fix: PATH normalizer сохраняет env-токены и не теряет валидные записи
 - В `scripts/codex/bootstrap_windows_toolchain.ps1` обновлён `Normalize-UserPath`: для `%ENV%`-путей проверка существования идёт через `ExpandEnvironmentVariables()`, но в итоговый PATH сохраняется исходный raw-токен.
 - Если `%VAR%` не раскрывается (например, `%UNKNOWN_VAR%`), запись больше не удаляется автоматически при нормализации.

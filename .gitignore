@@ -33,3 +33,6 @@ config/runtime/*.env
 
 # external local reference clone (not tracked in intTools)
 ngt-memory/
+
+# local unpacked memory-bank artifacts (not tracked in intTools)
+mcp-memory-bank/
