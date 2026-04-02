@@ -40,6 +40,12 @@
 - `codex/assets/codex-home/skills/javascript/` хранит repo-managed resources, scripts и templates для JavaScript skill assets;
 - runtime OpenClaw живёт в `~/.openclaw`, а versioned overlay и runbooks — в `openclaw/`.
 
+## Markdown context policy
+
+- Каноническая политика сжатия markdown-контекста хранится в `data/markdown-context-policy.json`.
+- Для `.md` индексаторов и RAG-проходов используем единый denylist-контур: `max_bytes`, `exclude_exact_paths`, `exclude_globs`.
+- Политика по формулировкам `missing/not found/отсутствует`: оставляем только behavior-critical контекст (контракты API, коды ошибок, диагностические инциденты).
+
 ## Полезные команды
 
 - `lockctl --help` — справка по file lease-локам;

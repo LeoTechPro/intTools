@@ -2,6 +2,12 @@
 
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
+## 2026-04-02
+### Docs+Policy: markdown-context compression wave A-C
+- Добавлен канонический policy-файл [data/markdown-context-policy.json](/int/tools/data/markdown-context-policy.json) с общими правилами контекст-фильтрации (`max_bytes`, `exclude_exact_paths`, `exclude_globs`) для `/int`.
+- В [README.md](/int/tools/README.md) добавлен отдельный раздел `Markdown context policy` с единым контуром denylist и правилом лексической чистки по `missing/not found/отсутствует`.
+- В [AGENTS.md](/int/tools/AGENTS.md) git-gate переписан в компактную позитивную формулировку без шумовой риторики про отсутствие upstream.
+
 ## 2026-03-31
 ### review-fix: drop-сопоставление PATH канонизирует разделители
 - В `scripts/codex/bootstrap_windows_toolchain.ps1` добавлена канонизация ключей сравнения в `Normalize-UserPath` (`/` -> `\`, схлопывание повторных `\`) для `candidate`, `compareKey` и `DropEntries`.
@@ -147,7 +153,7 @@
 
 ### Pre-work sync стал auto-fast-forward шагом
 - `AGENTS.md` теперь разрешает выполнять `git pull --ff-only` автоматически на чистой ветке с валидным upstream, без отдельного вопроса владельцу.
-- Если дерево грязное, upstream отсутствует или `git pull --ff-only` не проходит, агент обязан остановиться и запросить дальнейшие действия с краткими вариантами решения.
+- Автосинхронизация `git pull --ff-only` выполняется только на чистом дереве с корректным upstream; при блокере агент обязан остановиться и запросить дальнейшие действия с краткими вариантами решения.
 
 ### Инициализирован корневой релизлог
 - В корне репозитория создан `RELEASE.md` как единый repo-local журнал изменений по локальным commit.

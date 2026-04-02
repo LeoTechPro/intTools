@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "scope_root": "/int",
+  "description": "Глобальная политика сжатия markdown-контекста для индексаторов и RAG-проходов.",
+  "max_bytes": 102400,
+  "exclude_exact_paths": [
+    "leonid/docs/devops-interview/interview.md",
+    "assess/old/RELEASE.md",
+    "tools/README.md",
+    "assess/old/README.md",
+    "brain/RELEASE.md"
+  ],
+  "exclude_globs": [
+    ".tmp/**",
+    "**/node_modules/**",
+    "tools/codex/assets/codex-home/**",
+    "tools/codex/tools/openspec/node_modules/**"
+  ]
+}
