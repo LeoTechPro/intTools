@@ -3,6 +3,10 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-04-03
+### Publish tooling: ssh deploy helper no longer collides with PowerShell `$Host`
+- В `codex/bin/publish_repo.ps1` параметр helper-функции `Invoke-SshChecked` переименован с `$Host` на `$SshHost`, чтобы strict-mode publish wrappers не падали на read-only built-in переменной PowerShell при deploy-шаге.
+- `publish_data.ps1` и остальные repo-specific wrappers снова могут доходить до `ssh-fast-forward` deploy без ложного падения после успешного `git push`.
+
 ### Codex layout: publish tooling moved from loose repo root into `codex/bin`
 - Publish wrappers перенесены из вне-контурного `publish/` в versioned Codex contour `codex/bin/`, чтобы Codex-facing tooling жил там же, где остальные managed wrapper'ы и bootstrap entrypoints.
 - `README.md` и `AGENTS.md` закрепляют новое глобальное правило: самописный Codex tooling хранится только в `/int/tools/codex/**`, а `~/.codex` используется только для native/runtime state и обязательных home-level инструкций.

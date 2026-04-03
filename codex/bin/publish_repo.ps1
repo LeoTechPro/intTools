@@ -75,15 +75,15 @@ function Get-GitDirPath {
 function Invoke-SshChecked {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$Host,
+        [string]$SshHost,
 
         [Parameter(Mandatory = $true)]
         [string]$Command
     )
 
-    & ssh $Host $Command
+    & ssh $SshHost $Command
     if ($LASTEXITCODE -ne 0) {
-        throw "ssh $Host failed"
+        throw "ssh $SshHost failed"
     }
 }
 
@@ -175,7 +175,7 @@ try {
             }
 
             $sshCommand = "cd $DeployRepoPath && git fetch --prune origin $DeployFetchRef && git pull --ff-only origin $DeployPullRef"
-            Invoke-SshChecked -Host $DeployHost -Command $sshCommand
+            Invoke-SshChecked -SshHost $DeployHost -Command $sshCommand
             $actions.Add("${resolvedRepoName}: deployed via ssh-fast-forward to ${DeployHost}:${DeployRepoPath}")
         }
     }
