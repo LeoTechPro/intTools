@@ -2,6 +2,12 @@
 
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
+## 2026-04-03
+### Publish tooling: repo-local wrappers вместо общего bundle-gate
+- Добавлен versioned publish contour `publish/` с общим engine `publish_repo.ps1` и repo-specific wrappers `publish_data.ps1`, `publish_assess.ps1`, `publish_crm.ps1`, `publish_id.ps1`, `publish_nexus.ps1`.
+- Для `/int/data` wrapper закреплён под `main` + deploy на `vds.intdata.pro:/int/data`, для `/int/assess` wrapper поддерживает `dev` + fast-forward deploy на `vds.intdata.pro:/int/assess`, а остальные repos больше не проверяются пакетом по умолчанию.
+- Добавлен manual bulk utility `publish/publish_bundle_dint.ps1`; старый user-home entrypoint `C:\Users\intData\.codex\scripts\publish_dev_dint.ps1` переведён в deprecation-shim и больше не является canonical multi-repo gate.
+
 ## 2026-04-02
 ### Docs+Policy: markdown-context compression wave A-C
 - Добавлен канонический policy-файл [data/markdown-context-policy.json](/int/tools/data/markdown-context-policy.json) с общими правилами контекст-фильтрации (`max_bytes`, `exclude_exact_paths`, `exclude_globs`) для `/int`.
