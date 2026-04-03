@@ -34,6 +34,7 @@
 ## Codex и OpenClaw
 
 - runtime Codex живёт в `~/.codex`, а versioned overlay и bootstrap-утилиты — в `codex/`;
+- self-authored/versioned Codex wrappers и publish/tooling живут только в `codex/`, в первую очередь в `codex/bin/`; `~/.codex` не используем как source-of-truth для таких скриптов;
 - `codex/projects/` хранит tracked project overlays для runtime `~/.codex/projects/`;
 - `codex/tools/mcp-obsidian-memory/` содержит локальный MCP-сервер для vault `/2brain`;
 - `codex/tools/obsidian-desktop/` хранит repo-managed launcher и desktop config для Obsidian;
@@ -140,6 +141,7 @@
 - `cloud_access.sh` — ленивый доступ к `gdrive`/`yadisk` через `rclone mount` и единый runtime `RCLONE_CONFIG=/int/.runtime/cloud-access/rclone.conf`
 - `install_cloud_access.sh` — развёртывание runtime-каталогов `/int/.runtime/cloud-access`, mountpoints `/int/cloud/*` и user-level symlink units
 - `bin/` — MCP entrypoints и прочие Codex-facing launcher'ы
+- `bin/publish_*.ps1` — versioned repo-specific publish wrappers для контуров `/int/*`; machine-local `~/.codex/scripts` не является source-of-truth для них
 - `tools/` — repo-managed helper trees (`mcp-obsidian-memory`, `obsidian-desktop`, `openspec`)
 - `assets/codex-home/` — versioned `AGENTS.md`, `rules/`, `prompts/`, `skills/`, `version.json` для синхронизации в `~/.codex`
 - `projects/` — tracked project-specific overlay-файлы для `~/.codex/projects/`
@@ -153,6 +155,7 @@
 
 - `~/.codex` должен содержать только Codex-generated runtime/state и синхронизируемые managed-assets.
 - Наши wrapper'ы, templates и policy остаются в `/int/tools/codex`.
+- Самописные publish/helper scripts для Codex не храним в `~/.codex/scripts`; home-контур допускается только для native tools и обязательных runtime instructions/compat wrappers, если их нельзя вынести из home-layout.
 - Живые секреты для MCP храним в `/int/.runtime/codex-secrets/`.
 - `OpenClaw` runtime живёт в `~/.openclaw`, а versioned overlay остаётся в `/int/tools/openclaw`.
 - Секретный слой OpenClaw для recovery bundle берётся из `~/.openclaw/secrets/`.

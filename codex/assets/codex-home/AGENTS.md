@@ -54,6 +54,11 @@ Ambiguity считается значимой только при неяснос
 ## Local Project Priority
 Если локальный `AGENTS.md` проекта задаёт path/process-specific правила, они имеют приоритет над глобальными правилами этого файла в рамках данного проекта.
 
+## Codex Runtime Layout
+- Самописный versioned tooling для Codex CLI хранится только в `/int/tools/codex/**`.
+- `~/.codex` / `C:\Users\intData\.codex` используются только для native runtime-state, обязательных runtime instructions и тех home-level файлов, которые сам Codex требует именно там.
+- Не использовать `~/.codex/scripts` как source-of-truth для самописных publish/helper scripts, если эти файлы можно держать в versioned `/int/tools/codex`.
+
 ## Machine-wide lock policy
 - Для любых файловых мутаций через Codex/OpenClaw на этой машине обязателен предварительный `lockctl acquire` по конкретному файлу до начала правки.
 - Источник истины по активным локам: `lockctl` (CLI/MCP). Каноническое ядро лежит в `/int/tools/lockctl/lockctl_core.py`; CLI entrypoints: `/int/tools/lockctl/lockctl.py`, `/int/tools/lockctl/lockctl`, `/int/tools/lockctl/lockctl.ps1`, `/int/tools/lockctl/lockctl.cmd`; MCP entrypoint: `/int/tools/codex/bin/mcp-lockctl.py`. Lease-state хранится в локальной SQLite; проектные YAML-ledger не являются runtime truth.

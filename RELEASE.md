@@ -3,10 +3,14 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-04-03
+### Codex layout: publish tooling moved from loose repo root into `codex/bin`
+- Publish wrappers перенесены из вне-контурного `publish/` в versioned Codex contour `codex/bin/`, чтобы Codex-facing tooling жил там же, где остальные managed wrapper'ы и bootstrap entrypoints.
+- `README.md` и `AGENTS.md` закрепляют новое глобальное правило: самописный Codex tooling хранится только в `/int/tools/codex/**`, а `~/.codex` используется только для native/runtime state и обязательных home-level инструкций.
+
 ### Publish tooling: repo-local wrappers вместо общего bundle-gate
-- Добавлен versioned publish contour `publish/` с общим engine `publish_repo.ps1` и repo-specific wrappers `publish_data.ps1`, `publish_assess.ps1`, `publish_crm.ps1`, `publish_id.ps1`, `publish_nexus.ps1`.
+- Добавлен versioned publish contour в `codex/bin/` с общим engine `publish_repo.ps1` и repo-specific wrappers `publish_data.ps1`, `publish_assess.ps1`, `publish_crm.ps1`, `publish_id.ps1`, `publish_nexus.ps1`.
 - Для `/int/data` wrapper закреплён под `main` + deploy на `vds.intdata.pro:/int/data`, для `/int/assess` wrapper поддерживает `dev` + fast-forward deploy на `vds.intdata.pro:/int/assess`, а остальные repos больше не проверяются пакетом по умолчанию.
-- Добавлен manual bulk utility `publish/publish_bundle_dint.ps1`; старый user-home entrypoint `C:\Users\intData\.codex\scripts\publish_dev_dint.ps1` переведён в deprecation-shim и больше не является canonical multi-repo gate.
+- Добавлен manual bulk utility `codex/bin/publish_bundle_dint.ps1`; user-home entrypoint `C:\Users\intData\.codex\scripts\publish_dev_dint.ps1` позже удалён из runtime и не является canonical multi-repo gate.
 
 ## 2026-04-02
 ### Docs+Policy: markdown-context compression wave A-C
