@@ -58,11 +58,17 @@ Allow only with explicit `allow_dangerous=true` in input.
 - Acquire lock with `lockctl` before each file write.
 - Release lock after write (or on failure in finally block).
 - No unrelated refactors.
+- When SQL is auto-derived from section recommendations, section with multiple findings must use explicit `runtime_actions` mapping (`finding_id` per action).
 
 ## Runtime Lane Policy
 
 - If `runtime_executor` is configured (`type=psql`), execute SQL statements live with `ON_ERROR_STOP=1`.
 - If executor is not configured, mark runtime actions as `applied_simulated` and include reason/evidence.
+
+## Postcheck Command Policy
+
+- In `prod` and in any `plan_only` run, shell commands from `postcheck_commands` are not executed.
+- Such commands are reported as `skipped_by_policy` in `postcheck-report.md`.
 
 ## Handoff from review-sql-find
 

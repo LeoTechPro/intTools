@@ -3,6 +3,13 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-04-04
+### review-fix: tighten `review-sql-fix` safety and deterministic mapping
+- В `review-sql-fix/scripts/fix_pipeline.py` запрещено выполнение shell-команд из `postcheck_commands` в `prod` и в любом `plan_only` запуске; в отчёте такие команды фиксируются как `skipped_by_policy`.
+- В `fix_pipeline.py` убрана неоднозначная автопривязка SQL-рекомендаций к `section:1`: для секций с несколькими findings теперь требуется явный `runtime_actions` с `finding_id`, иначе apply прерывается с явной ошибкой.
+- В `review-sql-fix/scripts/backup_snapshot.py` исправлен default backup root на Windows: теперь используется явный `D:/int/.tmp` (fallback `C:/int/.tmp`), и `backup_base` дополнительно валидируется по allowed roots.
+- `review-sql-fix/SKILL.md` переведён в ASCII-only формат, чтобы `quick_validate.py` проходил в стандартной Windows-локали без `PYTHONUTF8=1`.
+- Обновлён `review-sql-fix/references/fix-playbook.md` под новые правила postcheck и explicit mapping для multi-finding секций.
+
 ### Skills: `review-sql-find` + `review-sql-fix` для read-only аудита и controlled remediation
 - Добавлен новый skill `codex/assets/codex-home/skills/review-sql-find` с контрактом аудита PostgreSQL и детерминированным компилятором отчётов `scripts/compile_report.py`.
 - Добавлен новый skill `codex/assets/codex-home/skills/review-sql-fix` с pipeline `scripts/fix_pipeline.py`, guard'ами `scripts/safety_guard.py`, backup-модулем `scripts/backup_snapshot.py` и playbook `references/fix-playbook.md`.

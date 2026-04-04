@@ -358,6 +358,14 @@ def build_runtime_actions(payload: dict[str, Any], sections: list[dict[str, Any]
     generated: list[dict[str, Any]] = []
     for section in sections:
         section_id = section["id"]
+        findings = section.get("findings") or []
+        if len(findings) > 1:
+            raise PipelineError(
+                "cannot auto-map SQL recommendations for section "
+                f"{section_id} with multiple findings; provide runtime_actions with explicit finding_id"
+            )
+        if not findings:
+            continue
         for idx, recommendation in enumerate(section.get("recommendations") or [], start=1):
             for sql_block in extract_sql_blocks(recommendation):
                 generated.append(
@@ -653,10 +661,25 @@ def apply_repo_lane(
 def run_postchecks(payload: dict[str, Any], repo_results: list[dict[str, Any]]) -> list[dict[str, Any]]:
     checks: list[dict[str, Any]] = []
     commands = payload.get("postcheck_commands") or []
+    environment = str(payload.get("environment", "")).strip().lower()
+    effective_mode = str(payload.get("_effective_mode", "")).strip().lower()
+
+    shell_commands_allowed = environment != "prod" and effective_mode != "plan_only"
 
     for command in commands:
         if not isinstance(command, str) or not command.strip():
             continue
+        if not shell_commands_allowed:
+            checks.append(
+                {
+                    "type": "command",
+                    "command": command,
+                    "status": "skipped_by_policy",
+                    "reason": "postcheck shell commands are disabled in prod/plan_only mode",
+                }
+            )
+            continue
+
         proc = subprocess.run(command, shell=True, capture_output=True, text=True)
         checks.append(
             {
@@ -881,6 +904,7 @@ def main() -> int:
         steps.append("apply:completed")
 
         steps.append("postcheck:started")
+        payload["_effective_mode"] = policy.effective_mode
         checks = run_postchecks(payload, repo_results)
         steps.append("postcheck:completed")
 

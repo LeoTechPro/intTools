@@ -1,39 +1,38 @@
 ---
 name: review-sql-fix
-description: 'Детерминированный pipeline исправления SQL-замечаний после review-sql-find. Используйте, когда нужно принять findings/sections, переподтвердить тезисы по текущему состоянию, безопасно применить runtime и repo SQL-исправления (только для dev/stage), собрать доказательства и выпустить артефакты remediation: verdict, applied runtime SQL, applied repo changes, postcheck report и rollback guide.'
+description: 'Deterministic SQL remediation pipeline after review-sql-find. Use this skill to ingest findings/sections, re-validate each claim against current state, apply safe runtime and repo SQL fixes in dev/stage only, and produce remediation evidence artifacts: verdict, applied runtime SQL, applied repo changes, postcheck report, and rollback guide.'
 ---
 
 # Review SQL Fix
 
-Пишите все ответы на русском языке.
-
 ## Goal
 
-Исправлять SQL-замечания из `review-sql-find` по доказательной схеме `backup -> precheck -> apply -> postcheck -> artifacts`.
+Remediate SQL findings from `review-sql-find` with the enforced sequence:
+`backup -> precheck -> apply -> postcheck -> artifacts`.
 
 ## Input Contract
 
-Передавайте JSON с обязательными полями:
+Provide JSON with required fields:
 
 - `environment`: `dev | stage | prod`
 - `scope`: `int/data | int/assess | custom`
 - `fix_mode`: `apply | plan_only` (default `apply`)
 - `source`: `live_sql | section_summaries`
-- `findings_bundle`: секции или пути к отчётам из `review-sql-find`
+- `findings_bundle`: normalized sections or report paths from `review-sql-find`
 
-Опционально:
+Optional fields:
 
-- `repo_targets`: список корней для file-level remediation
-- `runtime_actions`: явный список SQL-действий
-- `repo_fixes`: явный список file-fix действий
-- `allow_dangerous`: `false` по умолчанию, включает override для опасных SQL
-- `runtime_executor`: настройки выполнения live SQL (поддерживается `type=psql`)
-- `role_snapshot` / `settings_snapshot` / `ddl_snapshot`: данные для runtime backup metadata
-- `pg_dump_path`: путь к pg_dump/DDL архиву для копирования в snapshot (если файл существует)
+- `repo_targets`: list of repo roots for file-level remediation
+- `runtime_actions`: explicit runtime SQL actions
+- `repo_fixes`: explicit file-level fix actions
+- `allow_dangerous`: `false` by default; allows dangerous SQL override
+- `runtime_executor`: live SQL executor settings (`type=psql`)
+- `role_snapshot` / `settings_snapshot` / `ddl_snapshot`: runtime backup metadata inputs
+- `pg_dump_path`: path to a pg_dump/DDL archive copied into snapshot if present
 
 ## Output Contract
 
-Всегда генерируйте 5 артефактов в `output_dir`:
+Always generate 5 artifacts in `output_dir`:
 
 1. `fix-verdict.md`
 2. `applied-runtime-sql.md`
@@ -43,39 +42,37 @@ description: 'Детерминированный pipeline исправления
 
 ## Workflow
 
-1. Примените policy guard.
-- `environment=prod` + `fix_mode=apply` => принудительно `effective_mode=plan_only`.
-- Любые SQL-модификации в `prod` запрещены.
+1. Apply policy guard.
+- `environment=prod` + `fix_mode=apply` => force `effective_mode=plan_only`.
+- SQL mutations are forbidden in `prod`.
 
-2. Выполните backup phase.
-- Создайте снапшот в `/int/.tmp/<UTC>/review-sql-fix/`.
-- Сохраните runtime metadata и копии целевых repo-файлов перед изменениями.
+2. Run backup phase.
+- Create snapshot in `/int/.tmp/<UTC>/review-sql-fix/`.
+- Save runtime metadata and copies of target repo paths before edits.
 
-3. Выполните precheck.
-- Нормализуйте findings из `findings_bundle`.
-- Подтвердите каждый тезис и присвойте один из статусов:
+3. Run precheck.
+- Normalize findings from `findings_bundle`.
+- Classify each claim with one status:
   - `confirmed`
   - `partially confirmed`
   - `not confirmed`
   - `outdated`
   - `architecture opinion`
 
-4. Выполните apply (если разрешено policy).
-- Runtime DB lane: только `confirmed`/`partially confirmed`, малыми группами.
-- При наличии `runtime_executor` выполняйте SQL live; иначе фиксируйте `applied_simulated` с причиной.
-- Repo SQL lane: только `repo_targets`, обязательный `lockctl`, никаких несвязанных правок.
-- Запрещайте опасные SQL без явного `allow_dangerous=true`.
+4. Run apply (if policy allows).
+- Runtime DB lane: only `confirmed` / `partially confirmed`, in small groups.
+- If `runtime_executor` is configured, execute live SQL; otherwise record `applied_simulated`.
+- Repo SQL lane: mutate only inside `repo_targets`, lock each file with `lockctl`, no unrelated refactors.
+- Reject dangerous SQL unless `allow_dangerous=true`.
 
-5. Выполните postcheck.
-- Зафиксируйте результаты проверок по runtime/repo lane.
-- При ошибке остановите pipeline и сформируйте partial artifacts + rollback guide.
+5. Run postcheck.
+- Record runtime/repo check results.
+- On failure, stop pipeline and produce partial artifacts + rollback guide.
 
-6. Сформируйте артефакты.
-- Запишите все 5 markdown-отчётов, даже при частичном провале (с явным статусом).
+6. Build artifacts.
+- Always write all 5 markdown outputs, including partial/failure state.
 
 ## Script Usage
-
-Запуск pipeline:
 
 ```bash
 python scripts/fix_pipeline.py --input /path/to/fix-input.json --output-dir /path/to/out
@@ -83,4 +80,4 @@ python scripts/fix_pipeline.py --input /path/to/fix-input.json --output-dir /pat
 
 ## References
 
-- `references/fix-playbook.md` — safety rules, SQL-risk policy, статусы и критерии подтверждения.
+- `references/fix-playbook.md` for safety rules, SQL risk policy, and confirmation criteria.

@@ -44,6 +44,16 @@ def _allowed_roots() -> list[Path]:
     return roots
 
 
+def _default_backup_base() -> Path:
+    # Use explicit drive-qualified roots first on Windows to avoid resolving "/int"
+    # against an unintended current drive.
+    candidates = [Path("D:/int/.tmp"), Path("C:/int/.tmp"), Path("/int/.tmp")]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate.resolve()
+    return candidates[0]
+
+
 def _ensure_allowed_target(path: Path) -> None:
     resolved = path.resolve()
     for root in _allowed_roots():
@@ -71,7 +81,13 @@ def _resolve_optional(path_value: Any) -> Path | None:
 
 
 def create_snapshot(payload: dict[str, Any]) -> BackupResult:
-    backup_base = Path(str(payload.get("backup_base", "/int/.tmp")))
+    backup_base_raw = payload.get("backup_base")
+    backup_base = (
+        Path(str(backup_base_raw)).resolve()
+        if backup_base_raw not in (None, "")
+        else _default_backup_base()
+    )
+    _ensure_allowed_target(backup_base)
     timestamp = _now_utc_stamp()
     backup_root = backup_base / timestamp / "review-sql-fix"
     runtime_dir = backup_root / "runtime"
