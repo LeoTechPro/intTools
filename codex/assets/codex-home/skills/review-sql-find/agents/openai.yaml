@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review SQL Find"
+  short_description: "Read-only PostgreSQL audit synthesis"
+  default_prompt: "Run a read-only PostgreSQL security and performance audit and produce the three standard reports."

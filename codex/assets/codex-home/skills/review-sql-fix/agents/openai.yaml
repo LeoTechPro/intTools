@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review SQL Fix"
+  short_description: "Apply or plan PostgreSQL remediation safely"
+  default_prompt: "Process findings from review-sql-find, confirm each issue, and apply SQL fixes only in dev/stage with backup, precheck, postcheck, and rollback artifacts."

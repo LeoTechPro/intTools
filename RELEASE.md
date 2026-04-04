@@ -2,6 +2,14 @@
 
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
+## 2026-04-04
+### Skills: `review-sql-find` + `review-sql-fix` для read-only аудита и controlled remediation
+- Добавлен новый skill `codex/assets/codex-home/skills/review-sql-find` с контрактом аудита PostgreSQL и детерминированным компилятором отчётов `scripts/compile_report.py`.
+- Добавлен новый skill `codex/assets/codex-home/skills/review-sql-fix` с pipeline `scripts/fix_pipeline.py`, guard'ами `scripts/safety_guard.py`, backup-модулем `scripts/backup_snapshot.py` и playbook `references/fix-playbook.md`.
+- Зафиксирована policy-логика: `fix_mode=apply` по умолчанию, но для `environment=prod` apply принудительно блокируется (`effective_mode=plan_only`).
+- В remediation-пайплайне закреплены обязательные стадии `backup -> precheck -> apply -> postcheck -> artifacts`, INCOMPLETE/truncation-блокировка precheck и выпуск 5 артефактов (`fix-verdict`, runtime/repo apply, postcheck, rollback).
+- Для repo lane добавлен file-level lockctl workflow и ограничение правок только путями внутри `repo_targets`; runtime lane поддерживает `runtime_executor(type=psql)` и fallback `applied_simulated`, если live executor не передан.
+
 ## 2026-04-03
 ### Publish tooling: ssh deploy helper no longer collides with PowerShell `$Host`
 - В `codex/bin/publish_repo.ps1` параметр helper-функции `Invoke-SshChecked` переименован с `$Host` на `$SshHost`, чтобы strict-mode publish wrappers не падали на read-only built-in переменной PowerShell при deploy-шаге.
