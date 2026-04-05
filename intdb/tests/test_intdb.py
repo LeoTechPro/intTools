@@ -242,6 +242,101 @@ class IntDbTests(unittest.TestCase):
                     with mock.patch.object(intdb.shutil, "which", return_value=r"C:\Windows\System32\bash.exe"):
                         self.assertEqual(intdb._require_bash(), str(git_bash))
 
+    def test_prepend_path_entry_moves_pg_bin_to_front(self) -> None:
+        result = intdb._prepend_path_entry(
+            r"C:\Windows\System32;C:\Program Files\PostgreSQL\17\bin;C:\Tools",
+            Path(r"C:\Program Files\PostgreSQL\17\bin"),
+        )
+        self.assertEqual(
+            result,
+            r"C:\Program Files\PostgreSQL\17\bin;C:\Windows\System32;C:\Tools",
+        )
+
+    def test_migrate_data_incremental_prepends_pg_bin_to_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            env_path = root / ".env"
+            env_path.write_text(
+                "\n".join(
+                    [
+                        "INTDB_PROFILE__SMOKE__PGHOST=api.intdata.pro",
+                        "INTDB_PROFILE__SMOKE__PGPORT=5432",
+                        "INTDB_PROFILE__SMOKE__PGDATABASE=intdata",
+                        "INTDB_PROFILE__SMOKE__PGUSER=dev_user",
+                        "INTDB_PROFILE__SMOKE__PGPASSWORD=secret",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            repo_root = root / "data"
+            (repo_root / "init").mkdir(parents=True, exist_ok=True)
+            (repo_root / "init" / "010_supabase_migrate.sh").write_text("#!/usr/bin/env bash\n", encoding="utf-8")
+            args = intdb.argparse.Namespace(
+                target="smoke",
+                approve_target="smoke",
+                force_prod_write=False,
+                repo=str(repo_root),
+                mode="incremental",
+                seed_business=False,
+            )
+            previous_root = intdb.TOOL_ROOT
+            captured: dict[str, object] = {}
+            intdb.TOOL_ROOT = root
+            with mock.patch.object(intdb, "_require_bash", return_value=r"C:\Program Files\Git\bin\bash.exe"):
+                with mock.patch.object(intdb, "_require_pg_command", return_value=r"C:\Program Files\PostgreSQL\17\bin\psql.exe"):
+                    with mock.patch.object(intdb, "_run_checked", side_effect=lambda argv, **kwargs: captured.update({"argv": argv, "kwargs": kwargs}) or intdb.subprocess.CompletedProcess(argv, 0, "", "")):
+                        try:
+                            intdb._cmd_migrate_data(args)
+                        finally:
+                            intdb.TOOL_ROOT = previous_root
+
+            self.assertEqual(captured["argv"][0], r"C:\Program Files\Git\bin\bash.exe")
+            self.assertTrue(
+                captured["kwargs"]["extra_env"]["PATH"].startswith(r"C:\Program Files\PostgreSQL\17\bin")
+            )
+
+    def test_migrate_data_bootstrap_passes_profile_password(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            env_path = root / ".env"
+            env_path.write_text(
+                "\n".join(
+                    [
+                        "INTDB_PROFILE__SMOKE__PGHOST=api.intdata.pro",
+                        "INTDB_PROFILE__SMOKE__PGPORT=5432",
+                        "INTDB_PROFILE__SMOKE__PGDATABASE=intdata",
+                        "INTDB_PROFILE__SMOKE__PGUSER=dev_user",
+                        "INTDB_PROFILE__SMOKE__PGPASSWORD=secret",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            repo_root = root / "data"
+            init_dir = repo_root / "init"
+            init_dir.mkdir(parents=True, exist_ok=True)
+            (init_dir / "schema.sql").write_text("select 1;\n", encoding="utf-8")
+            args = intdb.argparse.Namespace(
+                target="smoke",
+                approve_target="smoke",
+                force_prod_write=False,
+                repo=str(repo_root),
+                mode="bootstrap",
+                seed_business=False,
+            )
+            previous_root = intdb.TOOL_ROOT
+            calls: list[dict[str, object]] = []
+            intdb.TOOL_ROOT = root
+            with mock.patch.object(intdb, "_require_pg_command", return_value="psql"):
+                with mock.patch.object(intdb, "_run_checked", side_effect=lambda argv, **kwargs: calls.append({"argv": argv, "kwargs": kwargs}) or intdb.subprocess.CompletedProcess(argv, 0, "", "")):
+                    try:
+                        intdb._cmd_migrate_data(args)
+                    finally:
+                        intdb.TOOL_ROOT = previous_root
+
+            self.assertEqual(len(calls), 1)
+            self.assertEqual(calls[0]["kwargs"]["profile"].password, "secret")
+            self.assertEqual(calls[0]["kwargs"]["extra_env"]["POSTGRES_PASSWORD"], "secret")
+
     def test_test_tcp_wraps_socket_errors(self) -> None:
         profile = intdb.Profile(
             name="intdata-dev",

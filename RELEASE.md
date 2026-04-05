@@ -9,6 +9,12 @@
 - В [README.md](/int/tools/README.md) добавлена canonical команда запуска этого smoke через стандартный `python -m unittest codex.tests.test_publish_repo -v`, без внешней test-зависимости.
 
 ## 2026-04-05
+### intdb: review-fix по native migration path
+- В [intdb/lib/intdb.py](/int/tools/intdb/lib/intdb.py) `migrate data --mode bootstrap` снова использует profile-level `PGPASSWORD`, поэтому native `psql --no-password` больше не ломается на password-auth профилях.
+- В incremental-ветке `intdb` теперь добавляет найденный PostgreSQL `bin` в `PATH` дочернего `bash`, чтобы [init/010_supabase_migrate.sh](/int/data/init/010_supabase_migrate.sh) находил `psql` даже до обновления глобального Windows PATH.
+- В [intdb/tests/test_intdb.py](/int/tools/intdb/tests/test_intdb.py), [intdb/README.md](/int/tools/intdb/README.md) и [README.md](/int/tools/README.md) добавлены точечные проверки и doc-sync под эти два подтверждённых migration-finding.
+
+## 2026-04-05
 ### intdb: runtime переведён с Docker на native PostgreSQL CLI
 - В [intdb/lib/intdb.py](/int/tools/intdb/lib/intdb.py) удалён Docker transport layer: `intdb` теперь запускает системные `psql`, `pg_dump` и `pg_restore` напрямую, а `doctor` сначала проверяет наличие native CLI, затем TCP и SQL-доступ.
 - `migrate data --mode incremental` теперь запускает локальный `bash` для [init/010_supabase_migrate.sh](/int/data/init/010_supabase_migrate.sh), а bootstrap-ветка исполняет [schema.sql](/int/data/init/schema.sql) и [seed_business.sql](/int/data/init/seed_business.sql) через native `psql`.

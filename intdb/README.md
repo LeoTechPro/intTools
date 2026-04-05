@@ -114,5 +114,6 @@ pwsh -File D:\int\tools\intdb\intdb.ps1 migrate data `
 - `sql` и `file` по умолчанию запускаются в `default_transaction_read_only=on`.
 - Типовые runtime-ошибки `psql/pg_dump/pg_restore`, `bash` и TCP-доступа переводятся в обычные `intdb:` сообщения без Python traceback.
 - Секреты профиля передаются внешним PostgreSQL CLI через окружение процесса и не вшиваются в argv.
+- Для `migrate data --mode incremental` `intdb` сам добавляет найденный PostgreSQL `bin` в `PATH` дочернего `bash`, если глобальный `PATH` на машине ещё не обновлён.
 - Временные dump/CSV-файлы складываются в `.tmp/`.
 - `.env` не должен попадать в git.

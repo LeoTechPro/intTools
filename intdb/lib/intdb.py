@@ -203,6 +203,20 @@ def _process_env(profile: Profile, *, read_only: bool = False, extra: dict[str, 
     return env
 
 
+def _prepend_path_entry(path_value: str, entry: Path) -> str:
+    resolved_entry = str(entry.resolve())
+    if not path_value:
+        return resolved_entry
+    parts = [part for part in path_value.split(os.pathsep) if part]
+    normalized_entry = os.path.normcase(os.path.normpath(resolved_entry))
+    filtered = [
+        part
+        for part in parts
+        if os.path.normcase(os.path.normpath(part)) != normalized_entry
+    ]
+    return os.pathsep.join([resolved_entry, *filtered])
+
+
 def _candidate_pg_paths(command_name: str) -> list[Path]:
     if os.name != "nt" or not WINDOWS_PG_ROOT.exists():
         return []
@@ -665,9 +679,12 @@ def _cmd_migrate_data(args: argparse.Namespace) -> int:
 
     if args.mode == "incremental":
         bash_path = _require_bash()
+        psql_dir = Path(_require_pg_command("psql")).resolve().parent
+        incremental_env = dict(env)
+        incremental_env["PATH"] = _prepend_path_entry(os.environ.get("PATH", ""), psql_dir)
         _run_checked(
             [bash_path, str(repo_root / "init" / "010_supabase_migrate.sh")],
-            extra_env=env,
+            extra_env=incremental_env,
             cwd=repo_root,
         )
         return 0
@@ -688,12 +705,14 @@ def _cmd_migrate_data(args: argparse.Namespace) -> int:
     ]
     _run_checked(
         psql_base + ["-f", str(repo_root / "init" / "schema.sql")],
+        profile=profile,
         extra_env=env,
         cwd=repo_root,
     )
     if args.seed_business:
         _run_checked(
             psql_base + ["-f", str(repo_root / "init" / "seed_business.sql")],
+            profile=profile,
             extra_env=env,
             cwd=repo_root,
         )
