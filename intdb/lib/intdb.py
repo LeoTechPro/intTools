@@ -104,10 +104,14 @@ def _load_env_file(env_path: Path) -> dict[str, str]:
     return _parse_env_text(env_path.read_text(encoding="utf-8"))
 
 
-def _load_profiles(env_path: Path) -> dict[str, Profile]:
-    env_values = _load_env_file(env_path)
-    merged = dict(env_values)
+def _load_tool_env(env_path: Path) -> dict[str, str]:
+    merged = _load_env_file(env_path)
     merged.update(os.environ)
+    return merged
+
+
+def _load_profiles(env_path: Path) -> dict[str, Profile]:
+    merged = _load_tool_env(env_path)
     grouped: dict[str, dict[str, str]] = {}
     for key, value in merged.items():
         match = PROFILE_PATTERN.match(key)
@@ -162,7 +166,8 @@ def _resolve_data_repo(requested_repo: str | None) -> Path:
     if requested_repo:
         return _ensure_repo(Path(requested_repo))
 
-    env_repo = os.getenv(DEFAULT_DATA_REPO_ENV, "").strip()
+    env_path = TOOL_ROOT / ".env"
+    env_repo = _load_tool_env(env_path).get(DEFAULT_DATA_REPO_ENV, "").strip()
     if env_repo:
         return _ensure_repo(Path(env_repo))
 
@@ -179,6 +184,16 @@ def _tool_tmp_dir(purpose: str) -> Path:
     path = TOOL_ROOT / ".tmp" / purpose / _utc_stamp()
     path.mkdir(parents=True, exist_ok=True)
     return path
+
+
+def _require_docker() -> None:
+    try:
+        subprocess.run(["docker", "--version"], check=True, text=True, capture_output=True)
+    except FileNotFoundError as exc:
+        raise IntDbError("docker не найден в PATH.") from exc
+    except subprocess.CalledProcessError as exc:
+        detail = (exc.stderr or exc.stdout or "").strip()
+        raise IntDbError(f"docker недоступен: {detail or f'код {exc.returncode}'}") from exc
 
 
 def _docker_env(profile: Profile, *, read_only: bool = False, extra: dict[str, str] | None = None) -> dict[str, str]:
@@ -223,13 +238,16 @@ def _docker_run(
         command.extend(["-e", key])
     command.append(DEFAULT_DOCKER_IMAGE)
     command.extend(argv)
-    return subprocess.run(
-        command,
-        env=child_env,
-        text=True,
-        capture_output=capture_output,
-        check=False,
-    )
+    try:
+        return subprocess.run(
+            command,
+            env=child_env,
+            text=True,
+            capture_output=capture_output,
+            check=False,
+        )
+    except OSError as exc:
+        raise IntDbError(f"Docker-команда не запустилась: {exc}") from exc
 
 
 def _run_checked(
@@ -309,8 +327,11 @@ def _pg_restore_base_args(profile: Profile) -> list[str]:
 
 
 def _test_tcp(profile: Profile, timeout_sec: float = 3.0) -> None:
-    with socket.create_connection((profile.host, int(profile.port)), timeout=timeout_sec):
-        return
+    try:
+        with socket.create_connection((profile.host, int(profile.port)), timeout=timeout_sec):
+            return
+    except OSError as exc:
+        raise IntDbError(f"TCP-подключение к {profile.host}:{profile.port} не удалось: {exc}") from exc
 
 
 def _query_remote_versions(profile: Profile) -> list[str]:
@@ -375,7 +396,7 @@ def _write_text(path: Path, content: str) -> Path:
 def _cmd_doctor(args: argparse.Namespace) -> int:
     env_path = TOOL_ROOT / ".env"
     profile = _get_profile(env_path, args.profile)
-    subprocess.run(["docker", "--version"], check=True, text=True, capture_output=True)
+    _require_docker()
     _test_tcp(profile)
     result = _run_checked(
         _psql_base_args(profile)
@@ -765,6 +786,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     except subprocess.CalledProcessError as exc:
         print(f"intdb: внешняя команда завершилась с кодом {exc.returncode}", file=sys.stderr)
         return exc.returncode or 1
+    except OSError as exc:
+        print(f"intdb: системная ошибка: {exc}", file=sys.stderr)
+        return 1
     except KeyboardInterrupt:
         print("intdb: interrupted", file=sys.stderr)
         return 130

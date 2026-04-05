@@ -279,6 +279,7 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 - tracked bootstrap живёт рядом с инструментом: `README.md`, `AGENTS.md`, `.env.example`, launchers и tests;
 - локальный `.env` допустим только как untracked runtime-файл рядом с инструментом;
 - временные dump/log/CSV-артефакты живут только в ignored путях `.tmp/` и `logs/`;
+- `INTDB_DATA_REPO` может задаваться как через process env, так и через локальный `intdb/.env`; типовые runtime-ошибки должны выходить как обычные `intdb:` сообщения без traceback;
 - для `/int/data` tool не дублирует schema ownership и migration engine, а переиспользует owner flow через `init/010_supabase_migrate.sh`, `init/schema.sql` и `migration_manifest.lock`.
 
 ##### Основные команды

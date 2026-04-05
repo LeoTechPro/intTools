@@ -6,6 +6,7 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "lib" / "intdb.py"
@@ -123,6 +124,28 @@ class IntDbTests(unittest.TestCase):
                     os.environ["INTDB_DATA_REPO"] = previous
             self.assertEqual(resolved, repo.resolve())
 
+    def test_resolve_data_repo_reads_local_env_file(self) -> None:
+        previous_root = intdb.TOOL_ROOT
+        previous = os.environ.get("INTDB_DATA_REPO")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            repo = root / "custom-data"
+            repo.mkdir()
+            tool_root = root / "tools" / "intdb"
+            tool_root.mkdir(parents=True, exist_ok=True)
+            (tool_root / ".env").write_text(f"INTDB_DATA_REPO={repo}\n", encoding="utf-8")
+            intdb.TOOL_ROOT = tool_root
+            try:
+                os.environ.pop("INTDB_DATA_REPO", None)
+                resolved = intdb._resolve_data_repo(None)
+            finally:
+                intdb.TOOL_ROOT = previous_root
+                if previous is None:
+                    os.environ.pop("INTDB_DATA_REPO", None)
+                else:
+                    os.environ["INTDB_DATA_REPO"] = previous
+            self.assertEqual(resolved, repo.resolve())
+
     def test_resolve_data_repo_requires_hint_when_auto_not_found(self) -> None:
         previous_root = intdb.TOOL_ROOT
         previous = os.environ.get("INTDB_DATA_REPO")
@@ -205,6 +228,27 @@ class IntDbTests(unittest.TestCase):
 
         self.assertEqual(versions, [])
         self.assertEqual(len(calls), 1)
+
+    def test_require_docker_wraps_missing_binary(self) -> None:
+        with mock.patch.object(intdb.subprocess, "run", side_effect=FileNotFoundError("missing docker")):
+            with self.assertRaises(intdb.IntDbError):
+                intdb._require_docker()
+
+    def test_test_tcp_wraps_socket_errors(self) -> None:
+        profile = intdb.Profile(
+            name="intdata-dev",
+            key="INTDATA_DEV",
+            values={
+                "PGHOST": "127.0.0.1",
+                "PGPORT": "1",
+                "PGDATABASE": "postgres",
+                "PGUSER": "postgres",
+                "PGPASSWORD": "secret",
+            },
+        )
+        with mock.patch.object(intdb.socket, "create_connection", side_effect=ConnectionRefusedError("refused")):
+            with self.assertRaises(intdb.IntDbError):
+                intdb._test_tcp(profile)
 
 
 if __name__ == "__main__":

@@ -3,6 +3,12 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-04-05
+### intdb: review-fix по runtime error handling и local env data repo
+- В [intdb/lib/intdb.py](/int/tools/intdb/lib/intdb.py) `doctor`, Docker-launch path и TCP-проверка теперь переводят типовые `OSError`/`FileNotFoundError` в обычные `IntDbError`, чтобы CLI не печатал raw Python traceback на отсутствие `docker` или отказ подключения.
+- `INTDB_DATA_REPO` теперь читается тем же merged-контуром, что и profile-переменные: значение можно задавать как через process env, так и через локальный untracked [intdb/.env](/int/tools/intdb/.env).
+- В [intdb/tests/test_intdb.py](/int/tools/intdb/tests/test_intdb.py) добавлены точечные тесты на чтение `INTDB_DATA_REPO` из локального `.env`, а также на wrapping ошибок `docker` и TCP-connect.
+
+## 2026-04-05
 ### intdb: review-fix по confirmed findings
 - В [intdb/lib/intdb.py](/int/tools/intdb/lib/intdb.py) передача `PGPASSWORD` и `POSTGRES_PASSWORD` в `docker run` переведена с `-e KEY=value` на проброс через env текущего процесса, чтобы не светить секреты в локальной командной строке.
 - `migrate status` и `migrate data` больше не привязаны к жёсткому `D:\int\data`: добавлен auto-discovery через `INTDB_DATA_REPO` и sibling repo `..\..\data`, а при отсутствии обоих вариантов CLI даёт явную ошибку с требованием `--repo`.
