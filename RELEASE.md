@@ -3,6 +3,10 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-04-05
+### codex publish: `/int/data` push-default закреплён как wrapper `publish_data.ps1`
+- В [codex/bin/publish_repo.ps1](/int/tools/codex/bin/publish_repo.ps1) failure-contract усилен: при падении после успешного push wrapper теперь печатает уже выполненные шаги и явный `partial_state`, что `origin/main` обновлён, а deploy не завершён.
+- В [README.md](/int/tools/README.md) и policy соседнего контура `/int/data` синхронизирован canonical owner-facing контракт: команда на `push/publish/выкатывай` для `/int/data` должна приводить к запуску `publish_data.ps1`, который уже включает и push, и deploy.
+
 ### intdb: review-fix по runtime error handling и local env data repo
 - В [intdb/lib/intdb.py](/int/tools/intdb/lib/intdb.py) `doctor`, Docker-launch path и TCP-проверка теперь переводят типовые `OSError`/`FileNotFoundError` в обычные `IntDbError`, чтобы CLI не печатал raw Python traceback на отсутствие `docker` или отказ подключения.
 - `INTDB_DATA_REPO` теперь читается тем же merged-контуром, что и profile-переменные: значение можно задавать как через process env, так и через локальный untracked [intdb/.env](/int/tools/intdb/.env).

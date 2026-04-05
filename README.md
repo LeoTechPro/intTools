@@ -57,6 +57,7 @@
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --runtime-root /int/brain/runtime/vault` — compatibility-режим для legacy runtime-path (с deprecation warning);
 - `pwsh -File /int/tools/intdb/intdb.ps1 doctor --profile intdata-dev` — проверка Docker/TCP/SQL для локально настроенного DB profile;
 - `pwsh -File /int/tools/intdb/intdb.ps1 migrate status --target intdata-dev --repo /int/data` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `/int/data`;
+- `pwsh -File /int/tools/codex/bin/publish_data.ps1` — canonical publish-flow для `/int/data`: локальный `push origin/main` и последующий `git pull --ff-only` на `vds.intdata.pro:/int/data`;
 - `/int/tools/codex/bin/mcp-intbrain.sh` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
 - `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
@@ -144,7 +145,7 @@
 - `cloud_access.sh` — ленивый доступ к `gdrive`/`yadisk` через `rclone mount` и единый runtime `RCLONE_CONFIG=/int/.runtime/cloud-access/rclone.conf`
 - `install_cloud_access.sh` — развёртывание runtime-каталогов `/int/.runtime/cloud-access`, mountpoints `/int/cloud/*` и user-level symlink units
 - `bin/` — MCP entrypoints и прочие Codex-facing launcher'ы
-- `bin/publish_*.ps1` — versioned repo-specific publish wrappers для контуров `/int/*`; machine-local `~/.codex/scripts` не является source-of-truth для них
+- `bin/publish_*.ps1` — versioned repo-specific publish wrappers для контуров `/int/*`; machine-local `~/.codex/scripts` не является source-of-truth для них. Для `/int/data` canonical owner-facing entrypoint — именно `publish_data.ps1`, а не raw `git push`.
 - `tools/` — repo-managed helper trees (`mcp-obsidian-memory`, `obsidian-desktop`, `openspec`)
 - `assets/codex-home/` — versioned `AGENTS.md`, `rules/`, `prompts/`, `skills/`, `version.json` для синхронизации в `~/.codex`
 - `projects/` — tracked project-specific overlay-файлы для `~/.codex/projects/`

@@ -95,6 +95,8 @@ else {
 }
 
 $actions = [System.Collections.Generic.List[string]]::new()
+$pushCompleted = $false
+$deployCompleted = $false
 
 try {
     if (-not (Test-Path $RepoPath)) {
@@ -151,6 +153,7 @@ try {
         else {
             Invoke-GitChecked -Repo $RepoPath -Args @("push", $PushRemote, "${ExpectedBranch}:$PushBranch")
             $actions.Add("${resolvedRepoName}: pushed $PushRemote/$PushBranch (ahead=$ahead)")
+            $pushCompleted = $true
         }
     }
     else {
@@ -177,6 +180,7 @@ try {
             $sshCommand = "cd $DeployRepoPath && git fetch --prune origin $DeployFetchRef && git pull --ff-only origin $DeployPullRef"
             Invoke-SshChecked -SshHost $DeployHost -Command $sshCommand
             $actions.Add("${resolvedRepoName}: deployed via ssh-fast-forward to ${DeployHost}:${DeployRepoPath}")
+            $deployCompleted = $true
         }
     }
 
@@ -189,5 +193,11 @@ try {
 catch {
     Write-Host "$SuccessLabel FAILED" -ForegroundColor Red
     Write-Host " - ${resolvedRepoName}: $($_.Exception.Message)"
+    foreach ($action in $actions) {
+        Write-Host " - completed: $action"
+    }
+    if ($pushCompleted -and -not $deployCompleted -and -not $NoDeploy -and $DeployMode -ne "none") {
+        Write-Host " - partial_state: push in $PushRemote/$PushBranch completed; deploy to ${DeployHost}:${DeployRepoPath} did not finish"
+    }
     exit 1
 }
