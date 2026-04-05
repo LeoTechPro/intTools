@@ -3,6 +3,13 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-04-05
+### codex publish: deploy-smoke герметизирован и подключён в pre-push gate
+- В [codex/tests/test_publish_repo.py](/int/tools/codex/tests/test_publish_repo.py) deploy-failure branch больше не зависит от реального DNS/SSH: тест подменяет `ssh` локальным shim в temp `PATH` и запускает wrapper с явным `timeout`, сохраняя проверку `partial_state` и stderr-контракта.
+- В [.githooks/pre-push](/int/tools/.githooks/pre-push) добавлен tracked smoke-gate `python -m unittest codex.tests.test_publish_repo -q` (с fallback на `python3`), чтобы publish-wrapper regression больше не оставался только ручной README-командой.
+- В новой [.gitattributes](/int/tools/.gitattributes) зафиксирован `LF` для [.githooks/pre-push](/int/tools/.githooks/pre-push), чтобы bash-hook с этим smoke-gate не ломался на Windows checkout из-за `CRLF`.
+- В [README.md](/int/tools/README.md) синхронизировано, что publish smoke герметичен и автоматически запускается tracked pre-push hook'ом.
+
+## 2026-04-05
 ### codex publish: smoke cleanup temp-root после прогона
 - В [codex/tests/test_publish_repo.py](/int/tools/codex/tests/test_publish_repo.py) `publish_repo_test_*` temp-root теперь регистрируется через `addCleanup(...)` с принудительным снятием readonly-атрибутов на Windows git object files, чтобы regression smoke действительно удалял временные bare repos и working trees из `%TEMP%`.
 

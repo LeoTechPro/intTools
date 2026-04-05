@@ -44,6 +44,38 @@ def remove_tree_force(path: Path) -> None:
     shutil.rmtree(path, onerror=onerror)
 
 
+def make_fake_ssh(bin_dir: Path, stderr_text: str, exit_code: int = 255) -> Path:
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    if os.name == "nt":
+        script_path = bin_dir / "ssh.cmd"
+        script_path.write_text(
+            "\n".join(
+                [
+                    "@echo off",
+                    f">&2 echo {stderr_text}",
+                    f"exit /b {exit_code}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+    else:
+        script_path = bin_dir / "ssh"
+        script_path.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env bash",
+                    f"echo '{stderr_text}' >&2",
+                    f"exit {exit_code}",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        script_path.chmod(script_path.stat().st_mode | stat.S_IXUSR)
+    return script_path
+
+
 class PublishRepoScriptTest(unittest.TestCase):
     maxDiff = None
 
@@ -73,7 +105,12 @@ class PublishRepoScriptTest(unittest.TestCase):
         git(local, "commit", "-m", message)
         return git(local, "rev-parse", "HEAD", capture=True)
 
-    def _run_publish(self, local: Path, *extra_args: str) -> subprocess.CompletedProcess[str]:
+    def _run_publish(
+        self,
+        local: Path,
+        *extra_args: str,
+        env: dict[str, str] | None = None,
+    ) -> subprocess.CompletedProcess[str]:
         args = [
             PWSH,
             "-NoProfile",
@@ -102,6 +139,8 @@ class PublishRepoScriptTest(unittest.TestCase):
             text=True,
             capture_output=True,
             check=False,
+            env=env,
+            timeout=20,
         )
 
     def test_no_deploy_pushes_origin_and_succeeds(self) -> None:
@@ -131,6 +170,10 @@ class PublishRepoScriptTest(unittest.TestCase):
     def test_deploy_failure_reports_partial_state_and_ssh_stderr(self) -> None:
         remote, local, _ = self._bootstrap_remote_and_local()
         local_head = self._make_local_commit(local, "deploy\n", "deploy")
+        fake_bin = local.parent / "fake-bin"
+        make_fake_ssh(fake_bin, "mock ssh failure: forced deploy error")
+        env = os.environ.copy()
+        env["PATH"] = str(fake_bin) + os.pathsep + env.get("PATH", "")
 
         completed = self._run_publish(
             local,
@@ -144,11 +187,12 @@ class PublishRepoScriptTest(unittest.TestCase):
             "main",
             "-DeployPullRef",
             "main",
+            env=env,
         )
 
         self.assertEqual(completed.returncode, 1, completed.stdout + completed.stderr)
         self.assertIn("partial_state: push in origin/main completed", completed.stdout)
-        self.assertIn("ssh no-such-host.invalid failed:", completed.stdout)
+        self.assertIn("ssh no-such-host.invalid failed: mock ssh failure: forced deploy error", completed.stdout)
         remote_head = git(remote, "rev-parse", "refs/heads/main", capture=True)
         self.assertEqual(remote_head, local_head)
 

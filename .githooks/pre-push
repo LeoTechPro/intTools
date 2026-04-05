@@ -21,6 +21,16 @@ if ((${#blocked_env_files[@]} > 0)); then
   exit 1
 fi
 
+# PUBLISH WRAPPER SMOKE GATE
+if command -v python >/dev/null 2>&1; then
+  python -m unittest codex.tests.test_publish_repo -q
+elif command -v python3 >/dev/null 2>&1; then
+  python3 -m unittest codex.tests.test_publish_repo -q
+else
+  echo "Python interpreter is required to run codex.tests.test_publish_repo." >&2
+  exit 1
+fi
+
 mapfile -t push_lines
 
 for line in "${push_lines[@]}"; do
