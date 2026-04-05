@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 import re
+import shutil
 import socket
 import subprocess
 import sys
@@ -15,9 +16,13 @@ from typing import Sequence
 
 TOOL_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA_REPO_ENV = "INTDB_DATA_REPO"
-DEFAULT_DOCKER_IMAGE = os.getenv("INTDB_DOCKER_IMAGE", "postgres:16")
 PROFILE_PATTERN = re.compile(r"^INTDB_PROFILE__([A-Z0-9_]+)__([A-Z0-9_]+)$")
 SAFE_TABLE_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$")
+WINDOWS_PG_ROOT = Path(r"C:\Program Files\PostgreSQL")
+WINDOWS_GIT_BASH_PATHS = (
+    Path(r"C:\Program Files\Git\bin\bash.exe"),
+    Path(r"C:\Program Files\Git\usr\bin\bash.exe"),
+)
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -186,17 +191,7 @@ def _tool_tmp_dir(purpose: str) -> Path:
     return path
 
 
-def _require_docker() -> None:
-    try:
-        subprocess.run(["docker", "--version"], check=True, text=True, capture_output=True)
-    except FileNotFoundError as exc:
-        raise IntDbError("docker не найден в PATH.") from exc
-    except subprocess.CalledProcessError as exc:
-        detail = (exc.stderr or exc.stdout or "").strip()
-        raise IntDbError(f"docker недоступен: {detail or f'код {exc.returncode}'}") from exc
-
-
-def _docker_env(profile: Profile, *, read_only: bool = False, extra: dict[str, str] | None = None) -> dict[str, str]:
+def _process_env(profile: Profile, *, read_only: bool = False, extra: dict[str, str] | None = None) -> dict[str, str]:
     env = {
         "PGPASSWORD": profile.password,
         "PGSSLMODE": profile.sslmode,
@@ -208,46 +203,70 @@ def _docker_env(profile: Profile, *, read_only: bool = False, extra: dict[str, s
     return env
 
 
-def _docker_run(
+def _candidate_pg_paths(command_name: str) -> list[Path]:
+    if os.name != "nt" or not WINDOWS_PG_ROOT.exists():
+        return []
+    candidates = list(WINDOWS_PG_ROOT.glob(f"*/bin/{command_name}.exe"))
+    return sorted(candidates, reverse=True)
+
+
+def _resolve_command(command_name: str, *, candidates: Sequence[Path] | None = None) -> str | None:
+    resolved = shutil.which(command_name)
+    if resolved:
+        return resolved
+    for candidate in candidates or ():
+        if candidate.exists():
+            return str(candidate)
+    return None
+
+
+def _require_pg_command(command_name: str) -> str:
+    resolved = _resolve_command(command_name, candidates=_candidate_pg_paths(command_name))
+    if not resolved:
+        raise IntDbError(
+            f"{command_name} не найден. Установите PostgreSQL client и убедитесь, что его bin-каталог доступен из PATH."
+        )
+    return resolved
+
+
+def _require_pg_tools() -> dict[str, str]:
+    return {name: _require_pg_command(name) for name in ("psql", "pg_dump", "pg_restore")}
+
+
+def _require_bash() -> str:
+    if os.name == "nt":
+        for candidate in WINDOWS_GIT_BASH_PATHS:
+            if candidate.exists():
+                return str(candidate)
+    resolved = shutil.which("bash")
+    if not resolved:
+        raise IntDbError(
+            "bash не найден. Для incremental migration установите Git for Windows и откройте новый shell."
+        )
+    return resolved
+
+
+def _run_process(
     argv: Sequence[str],
     *,
-    profile: Profile | None = None,
-    read_only: bool = False,
-    mounts: Sequence[tuple[Path, str, str]] | None = None,
-    workdir: str | None = None,
-    extra_env: dict[str, str] | None = None,
+    env_map: dict[str, str] | None = None,
+    cwd: Path | None = None,
     capture_output: bool = False,
 ) -> subprocess.CompletedProcess[str]:
-    command = ["docker", "run", "--rm"]
     child_env = os.environ.copy()
-    if mounts:
-        for host_path, container_path, mode in mounts:
-            host = str(host_path.resolve())
-            spec = f"{host}:{container_path}"
-            if mode:
-                spec = f"{spec}:{mode}"
-            command.extend(["-v", spec])
-    if workdir:
-        command.extend(["-w", workdir])
-    if profile is not None:
-        env_map = _docker_env(profile, read_only=read_only, extra=extra_env)
-    else:
-        env_map = extra_env or {}
-    for key, value in env_map.items():
+    for key, value in (env_map or {}).items():
         child_env[key] = value
-        command.extend(["-e", key])
-    command.append(DEFAULT_DOCKER_IMAGE)
-    command.extend(argv)
     try:
         return subprocess.run(
-            command,
+            list(argv),
             env=child_env,
+            cwd=str(cwd) if cwd else None,
             text=True,
             capture_output=capture_output,
             check=False,
         )
     except OSError as exc:
-        raise IntDbError(f"Docker-команда не запустилась: {exc}") from exc
+        raise IntDbError(f"Внешняя команда не запустилась: {exc}") from exc
 
 
 def _run_checked(
@@ -255,31 +274,32 @@ def _run_checked(
     *,
     profile: Profile | None = None,
     read_only: bool = False,
-    mounts: Sequence[tuple[Path, str, str]] | None = None,
-    workdir: str | None = None,
     extra_env: dict[str, str] | None = None,
     capture_output: bool = False,
+    cwd: Path | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    result = _docker_run(
+    env_map: dict[str, str] = {}
+    if profile is not None:
+        env_map.update(_process_env(profile, read_only=read_only))
+    if extra_env:
+        env_map.update(extra_env)
+    result = _run_process(
         argv,
-        profile=profile,
-        read_only=read_only,
-        mounts=mounts,
-        workdir=workdir,
-        extra_env=extra_env,
+        env_map=env_map,
+        cwd=cwd,
         capture_output=capture_output,
     )
     if result.returncode != 0:
         detail = result.stderr.strip() if result.stderr else ""
         if not detail and result.stdout:
             detail = result.stdout.strip()
-        raise IntDbError(f"Docker-команда завершилась с кодом {result.returncode}: {detail}")
+        raise IntDbError(f"Внешняя команда завершилась с кодом {result.returncode}: {detail}")
     return result
 
 
 def _psql_base_args(profile: Profile) -> list[str]:
     return [
-        "psql",
+        _require_pg_command("psql"),
         "--host",
         profile.host,
         "--port",
@@ -296,7 +316,7 @@ def _psql_base_args(profile: Profile) -> list[str]:
 
 def _pg_dump_base_args(profile: Profile) -> list[str]:
     return [
-        "pg_dump",
+        _require_pg_command("pg_dump"),
         "--host",
         profile.host,
         "--port",
@@ -312,7 +332,7 @@ def _pg_dump_base_args(profile: Profile) -> list[str]:
 
 def _pg_restore_base_args(profile: Profile) -> list[str]:
     return [
-        "pg_restore",
+        _require_pg_command("pg_restore"),
         "--host",
         profile.host,
         "--port",
@@ -393,10 +413,14 @@ def _write_text(path: Path, content: str) -> Path:
     return path
 
 
+def _sql_literal_path(path: Path) -> str:
+    return path.resolve().as_posix().replace("'", "''")
+
+
 def _cmd_doctor(args: argparse.Namespace) -> int:
     env_path = TOOL_ROOT / ".env"
     profile = _get_profile(env_path, args.profile)
-    _require_docker()
+    tools = _require_pg_tools()
     _test_tcp(profile)
     result = _run_checked(
         _psql_base_args(profile)
@@ -410,7 +434,10 @@ def _cmd_doctor(args: argparse.Namespace) -> int:
     )
     db_name, db_user, server_version = (result.stdout.strip().split("|", 2) + ["", "", ""])[:3]
     print(f"profile: {profile.name}")
-    print(f"docker: ok ({DEFAULT_DOCKER_IMAGE})")
+    print(
+        "cli: ok "
+        f"(psql={Path(tools['psql']).name}, pg_dump={Path(tools['pg_dump']).name}, pg_restore={Path(tools['pg_restore']).name})"
+    )
     print(f"tcp: ok ({profile.host}:{profile.port})")
     print(f"sql: ok (db={db_name}, user={db_user}, server={server_version})")
     return 0
@@ -437,13 +464,10 @@ def _cmd_file(args: argparse.Namespace) -> int:
     sql_path = Path(args.path).resolve()
     if not sql_path.exists():
         raise IntDbError(f"SQL-файл не найден: {sql_path}")
-    mounts = [(sql_path.parent, "/workspace/input", "ro")]
-    container_file = f"/workspace/input/{sql_path.name}"
     _run_checked(
-        _psql_base_args(profile) + ["-f", container_file],
+        _psql_base_args(profile) + ["-f", str(sql_path)],
         profile=profile,
         read_only=not args.write,
-        mounts=mounts,
     )
     return 0
 
@@ -459,12 +483,10 @@ def _run_dump(
 ) -> Path:
     output_path = output_path.resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    mounts = [(output_path.parent, "/workspace/out", "rw")]
-    container_output = f"/workspace/out/{output_path.name}"
     argv = _pg_dump_base_args(profile) + [
         f"--format={'p' if format_name == 'plain' else 'c'}",
         "--file",
-        container_output,
+        str(output_path),
     ]
     if schema_only:
         argv.append("--schema-only")
@@ -472,7 +494,7 @@ def _run_dump(
         argv.append("--data-only")
     for table in tables:
         argv.extend(["--table", table])
-    _run_checked(argv, profile=profile, read_only=True, mounts=mounts)
+    _run_checked(argv, profile=profile, read_only=True)
     return output_path
 
 
@@ -504,17 +526,14 @@ def _run_restore(
     input_path = input_path.resolve()
     if not input_path.exists():
         raise IntDbError(f"Файл восстановления не найден: {input_path}")
-    mounts = [(input_path.parent, "/workspace/in", "ro")]
-    container_input = f"/workspace/in/{input_path.name}"
     if restore_format == "plain":
         if clean or schema_only or data_only:
             raise IntDbError(
                 "Для plain SQL restore поддерживается только полное выполнение файла без флагов clean/schema/data."
             )
         _run_checked(
-            _psql_base_args(profile) + ["-f", container_input],
+            _psql_base_args(profile) + ["-f", str(input_path)],
             profile=profile,
-            mounts=mounts,
         )
         return
 
@@ -525,8 +544,8 @@ def _run_restore(
         argv.append("--schema-only")
     if data_only:
         argv.append("--data-only")
-    argv.append(container_input)
-    _run_checked(argv, profile=profile, mounts=mounts)
+    argv.append(str(input_path))
+    _run_checked(argv, profile=profile)
 
 
 def _cmd_restore(args: argparse.Namespace) -> int:
@@ -589,28 +608,25 @@ def _cmd_copy(args: argparse.Namespace) -> int:
 
     _write_text(
         export_sql,
-        f"\\copy ({args.query}) TO '{'/workspace/tmp/' + csv_path.name}' WITH (FORMAT csv, HEADER true)\n",
+        f"\\copy ({args.query}) TO '{_sql_literal_path(csv_path)}' WITH (FORMAT csv, HEADER true)\n",
     )
 
     import_lines = []
     if args.truncate:
         import_lines.append(f"TRUNCATE TABLE {args.target_table};")
     import_lines.append(
-        f"\\copy {args.target_table} FROM '{'/workspace/tmp/' + csv_path.name}' WITH (FORMAT csv, HEADER true)"
+        f"\\copy {args.target_table} FROM '{_sql_literal_path(csv_path)}' WITH (FORMAT csv, HEADER true)"
     )
     _write_text(import_sql, "\n".join(import_lines) + "\n")
 
-    mounts = [(temp_dir, "/workspace/tmp", "rw")]
     _run_checked(
-        _psql_base_args(source_profile) + ["-f", "/workspace/tmp/export.sql"],
+        _psql_base_args(source_profile) + ["-f", str(export_sql)],
         profile=source_profile,
         read_only=True,
-        mounts=mounts,
     )
     _run_checked(
-        _psql_base_args(target_profile) + ["-f", "/workspace/tmp/import.sql"],
+        _psql_base_args(target_profile) + ["-f", str(import_sql)],
         profile=target_profile,
-        mounts=mounts,
     )
     print(csv_path)
     return 0
@@ -638,7 +654,6 @@ def _cmd_migrate_data(args: argparse.Namespace) -> int:
     profile = _get_profile(env_path, args.target)
     _ensure_write_allowed(profile, args.approve_target, args.force_prod_write)
     repo_root = _resolve_data_repo(args.repo)
-    mounts = [(repo_root, "/workspace/data", "ro")]
     env = {
         "POSTGRES_HOST": profile.host,
         "POSTGRES_PORT": profile.port,
@@ -649,16 +664,16 @@ def _cmd_migrate_data(args: argparse.Namespace) -> int:
     }
 
     if args.mode == "incremental":
+        bash_path = _require_bash()
         _run_checked(
-            ["bash", "/workspace/data/init/010_supabase_migrate.sh"],
-            mounts=mounts,
-            workdir="/workspace/data",
+            [bash_path, str(repo_root / "init" / "010_supabase_migrate.sh")],
             extra_env=env,
+            cwd=repo_root,
         )
         return 0
 
     psql_base = [
-        "psql",
+        _require_pg_command("psql"),
         "--host",
         profile.host,
         "--port",
@@ -672,17 +687,15 @@ def _cmd_migrate_data(args: argparse.Namespace) -> int:
         "ON_ERROR_STOP=1",
     ]
     _run_checked(
-        psql_base + ["-f", "/workspace/data/init/schema.sql"],
-        mounts=mounts,
-        workdir="/workspace/data",
+        psql_base + ["-f", str(repo_root / "init" / "schema.sql")],
         extra_env=env,
+        cwd=repo_root,
     )
     if args.seed_business:
         _run_checked(
-            psql_base + ["-f", "/workspace/data/init/seed_business.sql"],
-            mounts=mounts,
-            workdir="/workspace/data",
+            psql_base + ["-f", str(repo_root / "init" / "seed_business.sql")],
             extra_env=env,
+            cwd=repo_root,
         )
     return 0
 
@@ -690,11 +703,11 @@ def _cmd_migrate_data(args: argparse.Namespace) -> int:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="intdb",
-        description="Self-contained operator CLI для remote Postgres/Supabase профилей через Docker client.",
+        description="Self-contained operator CLI для remote Postgres/Supabase профилей через native PostgreSQL CLI.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    doctor = subparsers.add_parser("doctor", help="Проверить Docker, TCP и SQL-доступ к профилю.")
+    doctor = subparsers.add_parser("doctor", help="Проверить native PostgreSQL CLI, TCP и SQL-доступ к профилю.")
     doctor.add_argument("--profile", required=True)
     doctor.set_defaults(handler=_cmd_doctor)
 

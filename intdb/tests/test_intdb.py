@@ -162,7 +162,7 @@ class IntDbTests(unittest.TestCase):
                 else:
                     os.environ["INTDB_DATA_REPO"] = previous
 
-    def test_docker_run_hides_secret_values_from_command_line(self) -> None:
+    def test_run_process_keeps_secrets_in_env_not_in_argv(self) -> None:
         captured: dict[str, object] = {}
 
         def fake_run(command: list[str], **kwargs: object) -> object:
@@ -170,33 +170,22 @@ class IntDbTests(unittest.TestCase):
             captured["env"] = kwargs["env"]
             return intdb.subprocess.CompletedProcess(command, 0, "", "")
 
-        profile = intdb.Profile(
-            name="intdata-dev",
-            key="INTDATA_DEV",
-            values={
-                "PGHOST": "api.intdata.pro",
-                "PGDATABASE": "intdata",
-                "PGUSER": "dev_user",
-                "PGPASSWORD": "secret",
-                "PGSSLMODE": "require",
-            },
-        )
         previous_run = intdb.subprocess.run
         intdb.subprocess.run = fake_run
         try:
-            intdb._docker_run(
+            intdb._run_process(
                 ["psql", "--version"],
-                profile=profile,
-                extra_env={"POSTGRES_PASSWORD": "other-secret"},
+                env_map={
+                    "PGPASSWORD": "secret",
+                    "POSTGRES_PASSWORD": "other-secret",
+                },
             )
         finally:
             intdb.subprocess.run = previous_run
 
         command = captured["command"]
         env_map = captured["env"]
-        self.assertIn("-e", command)
-        self.assertIn("PGPASSWORD", command)
-        self.assertIn("POSTGRES_PASSWORD", command)
+        self.assertEqual(command, ["psql", "--version"])
         self.assertNotIn("PGPASSWORD=secret", command)
         self.assertNotIn("POSTGRES_PASSWORD=other-secret", command)
         self.assertEqual(env_map["PGPASSWORD"], "secret")
@@ -220,19 +209,38 @@ class IntDbTests(unittest.TestCase):
             },
         )
         previous_run_checked = intdb._run_checked
+        previous_require_pg_command = intdb._require_pg_command
         intdb._run_checked = fake_run_checked
+        intdb._require_pg_command = lambda command_name: command_name
         try:
             versions = intdb._query_remote_versions(profile)
         finally:
             intdb._run_checked = previous_run_checked
+            intdb._require_pg_command = previous_require_pg_command
 
         self.assertEqual(versions, [])
         self.assertEqual(len(calls), 1)
 
-    def test_require_docker_wraps_missing_binary(self) -> None:
-        with mock.patch.object(intdb.subprocess, "run", side_effect=FileNotFoundError("missing docker")):
+    def test_require_pg_command_wraps_missing_binary(self) -> None:
+        with mock.patch.object(intdb, "_resolve_command", return_value=None):
             with self.assertRaises(intdb.IntDbError):
-                intdb._require_docker()
+                intdb._require_pg_command("psql")
+
+    def test_require_bash_wraps_missing_binary(self) -> None:
+        with mock.patch.object(intdb, "WINDOWS_GIT_BASH_PATHS", tuple()):
+            with mock.patch.object(intdb.os, "name", "nt"):
+                with mock.patch.object(intdb.shutil, "which", return_value=None):
+                    with self.assertRaises(intdb.IntDbError):
+                        intdb._require_bash()
+
+    def test_require_bash_prefers_git_for_windows_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            git_bash = Path(tmpdir) / "bash.exe"
+            git_bash.write_text("", encoding="utf-8")
+            with mock.patch.object(intdb, "WINDOWS_GIT_BASH_PATHS", (git_bash,)):
+                with mock.patch.object(intdb.os, "name", "nt"):
+                    with mock.patch.object(intdb.shutil, "which", return_value=r"C:\Windows\System32\bash.exe"):
+                        self.assertEqual(intdb._require_bash(), str(git_bash))
 
     def test_test_tcp_wraps_socket_errors(self) -> None:
         profile = intdb.Profile(

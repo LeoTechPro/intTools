@@ -4,7 +4,7 @@
 
 ## Что умеет v1
 
-- `doctor` — проверить Docker, TCP и SQL-доступ к профилю;
+- `doctor` — проверить native PostgreSQL CLI, TCP и SQL-доступ к профилю;
 - `sql` — выполнить ad-hoc SQL;
 - `file` — выполнить SQL-файл;
 - `dump` / `restore` — выгрузить и залить dump;
@@ -25,9 +25,10 @@
 
 - Windows PowerShell;
 - `python` или `py` в `PATH`;
-- Docker Desktop;
-- сетевой доступ до нужных PostgreSQL endpoint'ов.
-- для `migrate *`: либо sibling checkout `..\..\data`, либо явный `--repo`, либо `INTDB_DATA_REPO`.
+- `psql`, `pg_dump`, `pg_restore` в `PATH` или в стандартном каталоге `C:\Program Files\PostgreSQL\<version>\bin`;
+- сетевой доступ до нужных PostgreSQL endpoint'ов;
+- для `migrate *`: либо sibling checkout `..\..\data`, либо явный `--repo`, либо `INTDB_DATA_REPO`;
+- для `migrate data --mode incremental`: `bash` из Git for Windows или иной совместимый `bash`.
 
 ## Быстрый старт
 
@@ -111,7 +112,7 @@ pwsh -File D:\int\tools\intdb\intdb.ps1 migrate data `
 - Все mutating-команды требуют явный `--approve-target`.
 - Для профилей класса `prod` обязателен `--force-prod-write`.
 - `sql` и `file` по умолчанию запускаются в `default_transaction_read_only=on`.
-- Типовые runtime-ошибки `docker` и TCP-доступа переводятся в обычные `intdb:` сообщения без Python traceback.
-- Секреты профиля передаются в Docker через окружение процесса, а не как `-e KEY=value` в командной строке.
+- Типовые runtime-ошибки `psql/pg_dump/pg_restore`, `bash` и TCP-доступа переводятся в обычные `intdb:` сообщения без Python traceback.
+- Секреты профиля передаются внешним PostgreSQL CLI через окружение процесса и не вшиваются в argv.
 - Временные dump/CSV-файлы складываются в `.tmp/`.
 - `.env` не должен попадать в git.

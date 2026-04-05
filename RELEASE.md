@@ -3,6 +3,12 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-04-05
+### intdb: runtime переведён с Docker на native PostgreSQL CLI
+- В [intdb/lib/intdb.py](/int/tools/intdb/lib/intdb.py) удалён Docker transport layer: `intdb` теперь запускает системные `psql`, `pg_dump` и `pg_restore` напрямую, а `doctor` сначала проверяет наличие native CLI, затем TCP и SQL-доступ.
+- `migrate data --mode incremental` теперь запускает локальный `bash` для [init/010_supabase_migrate.sh](/int/data/init/010_supabase_migrate.sh), а bootstrap-ветка исполняет [schema.sql](/int/data/init/schema.sql) и [seed_business.sql](/int/data/init/seed_business.sql) через native `psql`.
+- В [intdb/tests/test_intdb.py](/int/tools/intdb/tests/test_intdb.py), [intdb/README.md](/int/tools/intdb/README.md), [intdb/.env.example](/int/tools/intdb/.env.example) и [README.md](/int/tools/README.md) синхронизирован новый контракт без Docker-зависимости.
+
+## 2026-04-05
 ### codex publish: `/int/data` push-default закреплён как wrapper `publish_data.ps1`
 - В [codex/bin/publish_repo.ps1](/int/tools/codex/bin/publish_repo.ps1) failure-contract усилен: при падении после успешного push wrapper теперь печатает уже выполненные шаги и явный `partial_state`, что `origin/main` обновлён, а deploy не завершён.
 - В [README.md](/int/tools/README.md) и policy соседнего контура `/int/data` синхронизирован canonical owner-facing контракт: команда на `push/publish/выкатывай` для `/int/data` должна приводить к запуску `publish_data.ps1`, который уже включает и push, и deploy.

@@ -55,7 +55,7 @@
 - `python /int/tools/vault/installers/vault_sanitize.py --dry-run --profile strict` — dry-run санитарной миграции vault;
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --brain-root /int/brain` — dry-run архивации и очистки canonical runtime-root (`/int/.tmp/brain-runtime-vault`);
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --runtime-root /int/brain/runtime/vault` — compatibility-режим для legacy runtime-path (с deprecation warning);
-- `pwsh -File /int/tools/intdb/intdb.ps1 doctor --profile intdata-dev` — проверка Docker/TCP/SQL для локально настроенного DB profile;
+- `pwsh -File /int/tools/intdb/intdb.ps1 doctor --profile intdata-dev` — проверка native PostgreSQL CLI, TCP и SQL для локально настроенного DB profile;
 - `pwsh -File /int/tools/intdb/intdb.ps1 migrate status --target intdata-dev --repo /int/data` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `/int/data`;
 - `pwsh -File /int/tools/codex/bin/publish_data.ps1` — canonical publish-flow для `/int/data`: локальный `push origin/main` и последующий `git pull --ff-only` на `vds.intdata.pro:/int/data`;
 - `/int/tools/codex/bin/mcp-intbrain.sh` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
@@ -285,7 +285,7 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 
 ##### Основные команды
 
-- `doctor` — Docker/TCP/SQL проверка профиля;
+- `doctor` — проверка native PostgreSQL CLI, TCP и SQL для профиля;
 - `sql` / `file` — ad-hoc SQL и SQL-файлы, по умолчанию в read-only режиме;
 - `dump` / `restore` / `clone` / `copy` — перенос данных между профилями через локальную машину;
 - `migrate status` / `migrate data` — remote-операции для migration flow `/int/data`.
