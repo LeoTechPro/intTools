@@ -1,0 +1,744 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import os
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+import re
+import socket
+import subprocess
+import sys
+from typing import Sequence
+
+
+TOOL_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_DATA_REPO = Path(r"D:\int\data")
+DEFAULT_DOCKER_IMAGE = os.getenv("INTDB_DOCKER_IMAGE", "postgres:16")
+PROFILE_PATTERN = re.compile(r"^INTDB_PROFILE__([A-Z0-9_]+)__([A-Z0-9_]+)$")
+SAFE_TABLE_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$")
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
+
+class IntDbError(RuntimeError):
+    pass
+
+
+@dataclass(frozen=True)
+class Profile:
+    name: str
+    key: str
+    values: dict[str, str]
+
+    @property
+    def host(self) -> str:
+        return self.values["PGHOST"]
+
+    @property
+    def port(self) -> str:
+        return self.values.get("PGPORT", "5432")
+
+    @property
+    def database(self) -> str:
+        return self.values["PGDATABASE"]
+
+    @property
+    def user(self) -> str:
+        return self.values["PGUSER"]
+
+    @property
+    def password(self) -> str:
+        return self.values["PGPASSWORD"]
+
+    @property
+    def sslmode(self) -> str:
+        return self.values.get("PGSSLMODE", "require")
+
+    @property
+    def write_class(self) -> str:
+        return self.values.get("WRITE_CLASS", "nonprod").strip().lower() or "nonprod"
+
+
+def _utc_stamp() -> str:
+    return datetime.now(tz=timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+
+
+def _canonical_profile_key(value: str) -> str:
+    canonical = re.sub(r"[^A-Za-z0-9]+", "_", value.strip().upper()).strip("_")
+    if not canonical:
+        raise IntDbError("Имя профиля не задано.")
+    return canonical
+
+
+def _parse_env_text(text: str) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[len("export ") :].lstrip()
+        if "=" not in line:
+            continue
+        key, raw_value = line.split("=", 1)
+        key = key.strip()
+        value = raw_value.strip()
+        if not key:
+            continue
+        if value and value[0] in {"'", '"'} and value[-1:] == value[0]:
+            value = value[1:-1]
+        else:
+            value = re.sub(r"\s+#.*$", "", value).rstrip()
+        result[key] = value
+    return result
+
+
+def _load_env_file(env_path: Path) -> dict[str, str]:
+    if not env_path.exists():
+        return {}
+    return _parse_env_text(env_path.read_text(encoding="utf-8"))
+
+
+def _load_profiles(env_path: Path) -> dict[str, Profile]:
+    env_values = _load_env_file(env_path)
+    merged = dict(env_values)
+    merged.update(os.environ)
+    grouped: dict[str, dict[str, str]] = {}
+    for key, value in merged.items():
+        match = PROFILE_PATTERN.match(key)
+        if not match:
+            continue
+        profile_key, field_name = match.groups()
+        grouped.setdefault(profile_key, {})[field_name] = value
+
+    profiles: dict[str, Profile] = {}
+    required = {"PGHOST", "PGDATABASE", "PGUSER", "PGPASSWORD"}
+    for profile_key, values in grouped.items():
+        missing = sorted(required - values.keys())
+        if missing:
+            raise IntDbError(
+                f"Профиль {profile_key} неполный: отсутствуют {', '.join(missing)}."
+            )
+        display_name = profile_key.lower().replace("_", "-")
+        profiles[profile_key] = Profile(name=display_name, key=profile_key, values=values)
+    return profiles
+
+
+def _get_profile(env_path: Path, requested_name: str) -> Profile:
+    profiles = _load_profiles(env_path)
+    profile_key = _canonical_profile_key(requested_name)
+    try:
+        return profiles[profile_key]
+    except KeyError as exc:
+        known = ", ".join(sorted(profile.name for profile in profiles.values())) or "нет профилей"
+        raise IntDbError(f"Профиль {requested_name!r} не найден. Доступно: {known}.") from exc
+
+
+def _ensure_write_allowed(profile: Profile, approve_target: str | None, force_prod_write: bool) -> None:
+    approved_key = _canonical_profile_key(approve_target or "")
+    if approved_key != profile.key:
+        raise IntDbError(
+            f"Mutating-операция для {profile.name} требует --approve-target {profile.name}."
+        )
+    if profile.write_class == "prod" and not force_prod_write:
+        raise IntDbError(
+            f"Профиль {profile.name} помечен как prod; добавьте --force-prod-write."
+        )
+
+
+def _ensure_repo(path: Path) -> Path:
+    repo = path.resolve()
+    if not repo.exists():
+        raise IntDbError(f"Путь не найден: {repo}")
+    return repo
+
+
+def _tool_tmp_dir(purpose: str) -> Path:
+    path = TOOL_ROOT / ".tmp" / purpose / _utc_stamp()
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def _docker_env(profile: Profile, *, read_only: bool = False, extra: dict[str, str] | None = None) -> dict[str, str]:
+    env = {
+        "PGPASSWORD": profile.password,
+        "PGSSLMODE": profile.sslmode,
+    }
+    if read_only:
+        env["PGOPTIONS"] = "-c default_transaction_read_only=on"
+    if extra:
+        env.update(extra)
+    return env
+
+
+def _docker_run(
+    argv: Sequence[str],
+    *,
+    profile: Profile | None = None,
+    read_only: bool = False,
+    mounts: Sequence[tuple[Path, str, str]] | None = None,
+    workdir: str | None = None,
+    extra_env: dict[str, str] | None = None,
+    capture_output: bool = False,
+) -> subprocess.CompletedProcess[str]:
+    command = ["docker", "run", "--rm"]
+    if mounts:
+        for host_path, container_path, mode in mounts:
+            host = str(host_path.resolve())
+            spec = f"{host}:{container_path}"
+            if mode:
+                spec = f"{spec}:{mode}"
+            command.extend(["-v", spec])
+    if workdir:
+        command.extend(["-w", workdir])
+    if profile is not None:
+        env_map = _docker_env(profile, read_only=read_only, extra=extra_env)
+    else:
+        env_map = extra_env or {}
+    for key, value in env_map.items():
+        command.extend(["-e", f"{key}={value}"])
+    command.append(DEFAULT_DOCKER_IMAGE)
+    command.extend(argv)
+    return subprocess.run(
+        command,
+        text=True,
+        capture_output=capture_output,
+        check=False,
+    )
+
+
+def _run_checked(
+    argv: Sequence[str],
+    *,
+    profile: Profile | None = None,
+    read_only: bool = False,
+    mounts: Sequence[tuple[Path, str, str]] | None = None,
+    workdir: str | None = None,
+    extra_env: dict[str, str] | None = None,
+    capture_output: bool = False,
+) -> subprocess.CompletedProcess[str]:
+    result = _docker_run(
+        argv,
+        profile=profile,
+        read_only=read_only,
+        mounts=mounts,
+        workdir=workdir,
+        extra_env=extra_env,
+        capture_output=capture_output,
+    )
+    if result.returncode != 0:
+        detail = result.stderr.strip() if result.stderr else ""
+        if not detail and result.stdout:
+            detail = result.stdout.strip()
+        raise IntDbError(f"Docker-команда завершилась с кодом {result.returncode}: {detail}")
+    return result
+
+
+def _psql_base_args(profile: Profile) -> list[str]:
+    return [
+        "psql",
+        "--host",
+        profile.host,
+        "--port",
+        profile.port,
+        "--username",
+        profile.user,
+        "--dbname",
+        profile.database,
+        "--no-password",
+        "-v",
+        "ON_ERROR_STOP=1",
+    ]
+
+
+def _pg_dump_base_args(profile: Profile) -> list[str]:
+    return [
+        "pg_dump",
+        "--host",
+        profile.host,
+        "--port",
+        profile.port,
+        "--username",
+        profile.user,
+        "--dbname",
+        profile.database,
+        "--no-password",
+        "--verbose",
+    ]
+
+
+def _pg_restore_base_args(profile: Profile) -> list[str]:
+    return [
+        "pg_restore",
+        "--host",
+        profile.host,
+        "--port",
+        profile.port,
+        "--username",
+        profile.user,
+        "--dbname",
+        profile.database,
+        "--no-password",
+        "--verbose",
+    ]
+
+
+def _test_tcp(profile: Profile, timeout_sec: float = 3.0) -> None:
+    with socket.create_connection((profile.host, int(profile.port)), timeout=timeout_sec):
+        return
+
+
+def _query_remote_versions(profile: Profile) -> list[str]:
+    query = (
+        "SELECT version::text "
+        "FROM public.schema_migrations "
+        "WHERE version::text ~ '^[0-9]{14}$' "
+        "ORDER BY version::text"
+    )
+    result = _run_checked(
+        _psql_base_args(profile) + ["-Atqc", query],
+        profile=profile,
+        read_only=True,
+        capture_output=True,
+    )
+    return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+
+
+def _read_manifest_versions(repo_root: Path) -> list[tuple[str, str]]:
+    manifest_path = repo_root / "init" / "migration_manifest.lock"
+    if not manifest_path.exists():
+        raise IntDbError(f"Не найден manifest: {manifest_path}")
+    versions: list[tuple[str, str]] = []
+    for raw_line in manifest_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = [part.strip() for part in line.split("|")]
+        if len(parts) < 2:
+            continue
+        versions.append((parts[0], parts[1]))
+    return versions
+
+
+def _default_dump_output(profile: Profile, format_name: str) -> Path:
+    suffix = ".sql" if format_name == "plain" else ".dump"
+    out_dir = _tool_tmp_dir("dumps")
+    return out_dir / f"{profile.name}{suffix}"
+
+
+def _detect_restore_format(path: Path, selected: str) -> str:
+    if selected != "auto":
+        return selected
+    return "plain" if path.suffix.lower() in {".sql", ".psql"} else "custom"
+
+
+def _write_text(path: Path, content: str) -> Path:
+    path.write_text(content, encoding="utf-8")
+    return path
+
+
+def _cmd_doctor(args: argparse.Namespace) -> int:
+    env_path = TOOL_ROOT / ".env"
+    profile = _get_profile(env_path, args.profile)
+    subprocess.run(["docker", "--version"], check=True, text=True, capture_output=True)
+    _test_tcp(profile)
+    result = _run_checked(
+        _psql_base_args(profile)
+        + [
+            "-Atqc",
+            "SELECT current_database() || '|' || current_user || '|' || current_setting('server_version')",
+        ],
+        profile=profile,
+        read_only=True,
+        capture_output=True,
+    )
+    db_name, db_user, server_version = (result.stdout.strip().split("|", 2) + ["", "", ""])[:3]
+    print(f"profile: {profile.name}")
+    print(f"docker: ok ({DEFAULT_DOCKER_IMAGE})")
+    print(f"tcp: ok ({profile.host}:{profile.port})")
+    print(f"sql: ok (db={db_name}, user={db_user}, server={server_version})")
+    return 0
+
+
+def _cmd_sql(args: argparse.Namespace) -> int:
+    env_path = TOOL_ROOT / ".env"
+    profile = _get_profile(env_path, args.profile)
+    if args.write:
+        _ensure_write_allowed(profile, args.approve_target, args.force_prod_write)
+    _run_checked(
+        _psql_base_args(profile) + ["-c", args.sql],
+        profile=profile,
+        read_only=not args.write,
+    )
+    return 0
+
+
+def _cmd_file(args: argparse.Namespace) -> int:
+    env_path = TOOL_ROOT / ".env"
+    profile = _get_profile(env_path, args.profile)
+    if args.write:
+        _ensure_write_allowed(profile, args.approve_target, args.force_prod_write)
+    sql_path = Path(args.path).resolve()
+    if not sql_path.exists():
+        raise IntDbError(f"SQL-файл не найден: {sql_path}")
+    mounts = [(sql_path.parent, "/workspace/input", "ro")]
+    container_file = f"/workspace/input/{sql_path.name}"
+    _run_checked(
+        _psql_base_args(profile) + ["-f", container_file],
+        profile=profile,
+        read_only=not args.write,
+        mounts=mounts,
+    )
+    return 0
+
+
+def _run_dump(
+    profile: Profile,
+    output_path: Path,
+    *,
+    format_name: str,
+    schema_only: bool,
+    data_only: bool,
+    tables: Sequence[str],
+) -> Path:
+    output_path = output_path.resolve()
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    mounts = [(output_path.parent, "/workspace/out", "rw")]
+    container_output = f"/workspace/out/{output_path.name}"
+    argv = _pg_dump_base_args(profile) + [
+        f"--format={'p' if format_name == 'plain' else 'c'}",
+        "--file",
+        container_output,
+    ]
+    if schema_only:
+        argv.append("--schema-only")
+    if data_only:
+        argv.append("--data-only")
+    for table in tables:
+        argv.extend(["--table", table])
+    _run_checked(argv, profile=profile, read_only=True, mounts=mounts)
+    return output_path
+
+
+def _cmd_dump(args: argparse.Namespace) -> int:
+    env_path = TOOL_ROOT / ".env"
+    profile = _get_profile(env_path, args.source)
+    output_path = Path(args.output).resolve() if args.output else _default_dump_output(profile, args.format)
+    final_path = _run_dump(
+        profile,
+        output_path,
+        format_name=args.format,
+        schema_only=args.schema_only,
+        data_only=args.data_only,
+        tables=args.table or [],
+    )
+    print(final_path)
+    return 0
+
+
+def _run_restore(
+    profile: Profile,
+    input_path: Path,
+    *,
+    restore_format: str,
+    clean: bool,
+    schema_only: bool,
+    data_only: bool,
+) -> None:
+    input_path = input_path.resolve()
+    if not input_path.exists():
+        raise IntDbError(f"Файл восстановления не найден: {input_path}")
+    mounts = [(input_path.parent, "/workspace/in", "ro")]
+    container_input = f"/workspace/in/{input_path.name}"
+    if restore_format == "plain":
+        if clean or schema_only or data_only:
+            raise IntDbError(
+                "Для plain SQL restore поддерживается только полное выполнение файла без флагов clean/schema/data."
+            )
+        _run_checked(
+            _psql_base_args(profile) + ["-f", container_input],
+            profile=profile,
+            mounts=mounts,
+        )
+        return
+
+    argv = _pg_restore_base_args(profile)
+    if clean:
+        argv.append("--clean")
+    if schema_only:
+        argv.append("--schema-only")
+    if data_only:
+        argv.append("--data-only")
+    argv.append(container_input)
+    _run_checked(argv, profile=profile, mounts=mounts)
+
+
+def _cmd_restore(args: argparse.Namespace) -> int:
+    env_path = TOOL_ROOT / ".env"
+    profile = _get_profile(env_path, args.target)
+    _ensure_write_allowed(profile, args.approve_target, args.force_prod_write)
+    input_path = Path(args.input).resolve()
+    restore_format = _detect_restore_format(input_path, args.format)
+    _run_restore(
+        profile,
+        input_path,
+        restore_format=restore_format,
+        clean=args.clean,
+        schema_only=args.schema_only,
+        data_only=args.data_only,
+    )
+    return 0
+
+
+def _cmd_clone(args: argparse.Namespace) -> int:
+    env_path = TOOL_ROOT / ".env"
+    source_profile = _get_profile(env_path, args.source)
+    target_profile = _get_profile(env_path, args.target)
+    _ensure_write_allowed(target_profile, args.approve_target, args.force_prod_write)
+    clone_dir = _tool_tmp_dir("clone")
+    dump_path = clone_dir / f"{source_profile.name}-to-{target_profile.name}.dump"
+    _run_dump(
+        source_profile,
+        dump_path,
+        format_name="custom",
+        schema_only=args.schema_only,
+        data_only=args.data_only,
+        tables=args.table or [],
+    )
+    _run_restore(
+        target_profile,
+        dump_path,
+        restore_format="custom",
+        clean=args.clean,
+        schema_only=args.schema_only,
+        data_only=args.data_only,
+    )
+    print(dump_path)
+    return 0
+
+
+def _cmd_copy(args: argparse.Namespace) -> int:
+    if not SAFE_TABLE_PATTERN.match(args.target_table):
+        raise IntDbError("target-table должен быть в формате schema.table или table без произвольного SQL.")
+
+    env_path = TOOL_ROOT / ".env"
+    source_profile = _get_profile(env_path, args.source)
+    target_profile = _get_profile(env_path, args.target)
+    _ensure_write_allowed(target_profile, args.approve_target, args.force_prod_write)
+
+    temp_dir = _tool_tmp_dir("copy")
+    csv_path = temp_dir / "copy.csv"
+    export_sql = temp_dir / "export.sql"
+    import_sql = temp_dir / "import.sql"
+
+    _write_text(
+        export_sql,
+        f"\\copy ({args.query}) TO '{'/workspace/tmp/' + csv_path.name}' WITH (FORMAT csv, HEADER true)\n",
+    )
+
+    import_lines = []
+    if args.truncate:
+        import_lines.append(f"TRUNCATE TABLE {args.target_table};")
+    import_lines.append(
+        f"\\copy {args.target_table} FROM '{'/workspace/tmp/' + csv_path.name}' WITH (FORMAT csv, HEADER true)"
+    )
+    _write_text(import_sql, "\n".join(import_lines) + "\n")
+
+    mounts = [(temp_dir, "/workspace/tmp", "rw")]
+    _run_checked(
+        _psql_base_args(source_profile) + ["-f", "/workspace/tmp/export.sql"],
+        profile=source_profile,
+        read_only=True,
+        mounts=mounts,
+    )
+    _run_checked(
+        _psql_base_args(target_profile) + ["-f", "/workspace/tmp/import.sql"],
+        profile=target_profile,
+        mounts=mounts,
+    )
+    print(csv_path)
+    return 0
+
+
+def _cmd_migrate_status(args: argparse.Namespace) -> int:
+    env_path = TOOL_ROOT / ".env"
+    profile = _get_profile(env_path, args.target)
+    repo_root = _ensure_repo(Path(args.repo))
+    manifest_versions = _read_manifest_versions(repo_root)
+    applied_versions = set(_query_remote_versions(profile))
+
+    pending = [(version, filename) for version, filename in manifest_versions if version not in applied_versions]
+    print(f"profile: {profile.name}")
+    print(f"manifest_total: {len(manifest_versions)}")
+    print(f"applied_total: {len(applied_versions)}")
+    print(f"pending_total: {len(pending)}")
+    for version, filename in pending:
+        print(f"pending: {version} {filename}")
+    return 0
+
+
+def _cmd_migrate_data(args: argparse.Namespace) -> int:
+    env_path = TOOL_ROOT / ".env"
+    profile = _get_profile(env_path, args.target)
+    _ensure_write_allowed(profile, args.approve_target, args.force_prod_write)
+    repo_root = _ensure_repo(Path(args.repo))
+    mounts = [(repo_root, "/workspace/data", "ro")]
+    env = {
+        "POSTGRES_HOST": profile.host,
+        "POSTGRES_PORT": profile.port,
+        "POSTGRES_DB": profile.database,
+        "POSTGRES_USER": profile.user,
+        "POSTGRES_PASSWORD": profile.password,
+        "PGSSLMODE": profile.sslmode,
+    }
+
+    if args.mode == "incremental":
+        _run_checked(
+            ["bash", "/workspace/data/init/010_supabase_migrate.sh"],
+            mounts=mounts,
+            workdir="/workspace/data",
+            extra_env=env,
+        )
+        return 0
+
+    psql_base = [
+        "psql",
+        "--host",
+        profile.host,
+        "--port",
+        profile.port,
+        "--username",
+        profile.user,
+        "--dbname",
+        profile.database,
+        "--no-password",
+        "-v",
+        "ON_ERROR_STOP=1",
+    ]
+    _run_checked(
+        psql_base + ["-f", "/workspace/data/init/schema.sql"],
+        mounts=mounts,
+        workdir="/workspace/data",
+        extra_env=env,
+    )
+    if args.seed_business:
+        _run_checked(
+            psql_base + ["-f", "/workspace/data/init/seed_business.sql"],
+            mounts=mounts,
+            workdir="/workspace/data",
+            extra_env=env,
+        )
+    return 0
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="intdb",
+        description="Self-contained operator CLI для remote Postgres/Supabase профилей через Docker client.",
+    )
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    doctor = subparsers.add_parser("doctor", help="Проверить Docker, TCP и SQL-доступ к профилю.")
+    doctor.add_argument("--profile", required=True)
+    doctor.set_defaults(handler=_cmd_doctor)
+
+    sql = subparsers.add_parser("sql", help="Выполнить ad-hoc SQL на выбранном профиле.")
+    sql.add_argument("--profile", required=True)
+    sql.add_argument("--sql", required=True)
+    sql.add_argument("--write", action="store_true")
+    sql.add_argument("--approve-target")
+    sql.add_argument("--force-prod-write", action="store_true")
+    sql.set_defaults(handler=_cmd_sql)
+
+    file_cmd = subparsers.add_parser("file", help="Выполнить SQL-файл на выбранном профиле.")
+    file_cmd.add_argument("--profile", required=True)
+    file_cmd.add_argument("--path", required=True)
+    file_cmd.add_argument("--write", action="store_true")
+    file_cmd.add_argument("--approve-target")
+    file_cmd.add_argument("--force-prod-write", action="store_true")
+    file_cmd.set_defaults(handler=_cmd_file)
+
+    dump = subparsers.add_parser("dump", help="Снять dump с source-профиля.")
+    dump.add_argument("--source", required=True)
+    dump.add_argument("--output")
+    dump.add_argument("--format", choices=("plain", "custom"), default="custom")
+    dump.add_argument("--schema-only", action="store_true")
+    dump.add_argument("--data-only", action="store_true")
+    dump.add_argument("--table", action="append")
+    dump.set_defaults(handler=_cmd_dump)
+
+    restore = subparsers.add_parser("restore", help="Залить dump в target-профиль.")
+    restore.add_argument("--target", required=True)
+    restore.add_argument("--input", required=True)
+    restore.add_argument("--format", choices=("auto", "plain", "custom"), default="auto")
+    restore.add_argument("--clean", action="store_true")
+    restore.add_argument("--schema-only", action="store_true")
+    restore.add_argument("--data-only", action="store_true")
+    restore.add_argument("--approve-target", required=True)
+    restore.add_argument("--force-prod-write", action="store_true")
+    restore.set_defaults(handler=_cmd_restore)
+
+    clone = subparsers.add_parser("clone", help="Скопировать dump source -> target через локальную машину.")
+    clone.add_argument("--source", required=True)
+    clone.add_argument("--target", required=True)
+    clone.add_argument("--schema-only", action="store_true")
+    clone.add_argument("--data-only", action="store_true")
+    clone.add_argument("--table", action="append")
+    clone.add_argument("--clean", action="store_true")
+    clone.add_argument("--approve-target", required=True)
+    clone.add_argument("--force-prod-write", action="store_true")
+    clone.set_defaults(handler=_cmd_clone)
+
+    copy_cmd = subparsers.add_parser("copy", help="Сделать query-export из source и залить в target table.")
+    copy_cmd.add_argument("--source", required=True)
+    copy_cmd.add_argument("--target", required=True)
+    copy_cmd.add_argument("--query", required=True)
+    copy_cmd.add_argument("--target-table", required=True)
+    copy_cmd.add_argument("--truncate", action="store_true")
+    copy_cmd.add_argument("--approve-target", required=True)
+    copy_cmd.add_argument("--force-prod-write", action="store_true")
+    copy_cmd.set_defaults(handler=_cmd_copy)
+
+    migrate = subparsers.add_parser("migrate", help="Операции с migration flow `/int/data`.")
+    migrate_subparsers = migrate.add_subparsers(dest="migrate_command", required=True)
+
+    migrate_status = migrate_subparsers.add_parser("status", help="Сравнить manifest и remote schema_migrations.")
+    migrate_status.add_argument("--target", required=True)
+    migrate_status.add_argument("--repo", default=str(DEFAULT_DATA_REPO))
+    migrate_status.set_defaults(handler=_cmd_migrate_status)
+
+    migrate_data = migrate_subparsers.add_parser("data", help="Применить migration flow `/int/data` на target-профиль.")
+    migrate_data.add_argument("--target", required=True)
+    migrate_data.add_argument("--repo", default=str(DEFAULT_DATA_REPO))
+    migrate_data.add_argument("--mode", choices=("incremental", "bootstrap"), default="incremental")
+    migrate_data.add_argument("--seed-business", action="store_true")
+    migrate_data.add_argument("--approve-target", required=True)
+    migrate_data.add_argument("--force-prod-write", action="store_true")
+    migrate_data.set_defaults(handler=_cmd_migrate_data)
+
+    return parser
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    parser = _build_parser()
+    args = parser.parse_args(argv)
+    try:
+        return int(args.handler(args))
+    except IntDbError as exc:
+        print(f"intdb: {exc}", file=sys.stderr)
+        return 2
+    except subprocess.CalledProcessError as exc:
+        print(f"intdb: внешняя команда завершилась с кодом {exc.returncode}", file=sys.stderr)
+        return exc.returncode or 1
+    except KeyboardInterrupt:
+        print("intdb: interrupted", file=sys.stderr)
+        return 130
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -19,6 +19,7 @@
 - `lockctl/` — machine-local runtime writer-lock для Codex/OpenClaw;
 - `gatesctl/` — machine-wide runtime для gate receipts, approvals и commit binding;
 - `vault/installers/` — канонический machine-wide vault tooling (`vault_sanitize.py`, `runtime_vault_gc.py`) для контуров `/2brain` + `/int/brain`;
+- `intdb/` — self-contained operator CLI для remote Postgres/Supabase профилей, dump/restore и migration flow `/int/data`;
 - `codex/` — versioned host-tooling, managed assets и project overlays для Codex CLI;
 - `openclaw/` — versioned overlay для локального OpenClaw runtime;
 - `data/` — внешний tooling/configs слой для backend-core `/int/data`;
@@ -54,6 +55,8 @@
 - `python /int/tools/vault/installers/vault_sanitize.py --dry-run --profile strict` — dry-run санитарной миграции vault;
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --brain-root /int/brain` — dry-run архивации и очистки canonical runtime-root (`/int/.tmp/brain-runtime-vault`);
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --runtime-root /int/brain/runtime/vault` — compatibility-режим для legacy runtime-path (с deprecation warning);
+- `pwsh -File /int/tools/intdb/intdb.ps1 doctor --profile intdata-dev` — проверка Docker/TCP/SQL для локально настроенного DB profile;
+- `pwsh -File /int/tools/intdb/intdb.ps1 migrate status --target intdata-dev --repo /int/data` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `/int/data`;
 - `/int/tools/codex/bin/mcp-intbrain.sh` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
 - `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
@@ -264,6 +267,32 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 - `~/.config/obsidian/obsidian.json -> /int/tools/codex/tools/obsidian-desktop/obsidian.json`
 
 Это гарантирует, что конфиги и launcher'ы не зависят от `~/.codex/tools`.
+
+### `intdb/`
+
+#### intdb
+
+`/int/tools/intdb` — self-contained operator CLI для remote Postgres/Supabase профилей с этой машины.
+
+##### Контракт
+
+- tracked bootstrap живёт рядом с инструментом: `README.md`, `AGENTS.md`, `.env.example`, launchers и tests;
+- локальный `.env` допустим только как untracked runtime-файл рядом с инструментом;
+- временные dump/log/CSV-артефакты живут только в ignored путях `.tmp/` и `logs/`;
+- для `/int/data` tool не дублирует schema ownership и migration engine, а переиспользует owner flow через `init/010_supabase_migrate.sh`, `init/schema.sql` и `migration_manifest.lock`.
+
+##### Основные команды
+
+- `doctor` — Docker/TCP/SQL проверка профиля;
+- `sql` / `file` — ad-hoc SQL и SQL-файлы, по умолчанию в read-only режиме;
+- `dump` / `restore` / `clone` / `copy` — перенос данных между профилями через локальную машину;
+- `migrate status` / `migrate data` — remote-операции для migration flow `/int/data`.
+
+##### Safety
+
+- mutating-команды требуют `--approve-target <profile>`;
+- для `WRITE_CLASS=prod` дополнительно обязателен `--force-prod-write`;
+- thin wrappers в `codex/bin/intdb.*` только проксируют вызов в `/int/tools/intdb`.
 
 ### `data/`
 

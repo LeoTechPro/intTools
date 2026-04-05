@@ -2,6 +2,14 @@
 
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
+## 2026-04-05
+### Добавлен self-contained `intdb` для remote Postgres/Supabase профилей
+- Создан новый machine-wide модуль [intdb/README.md](/int/tools/intdb/README.md), [intdb/AGENTS.md](/int/tools/intdb/AGENTS.md), [intdb/.env.example](/int/tools/intdb/.env.example) и локальные launchers [intdb/intdb.ps1](/int/tools/intdb/intdb.ps1), [intdb/intdb.cmd](/int/tools/intdb/intdb.cmd).
+- Python core [intdb/lib/intdb.py](/int/tools/intdb/lib/intdb.py) реализует `doctor`, `sql`, `file`, `dump`, `restore`, `clone`, `copy`, `migrate status` и `migrate data` через Docker-backed PostgreSQL client.
+- Для mutating-операций добавлены target-guard'ы `--approve-target` и `--force-prod-write` по `WRITE_CLASS` профиля.
+- Для `/int/data` migration flow не дублируется: `intdb` переиспользует owner scripts `init/010_supabase_migrate.sh`, `init/schema.sql` и `migration_manifest.lock`.
+- Добавлены thin wrappers [codex/bin/intdb.ps1](/int/tools/codex/bin/intdb.ps1) и [codex/bin/intdb.cmd](/int/tools/codex/bin/intdb.cmd), а корневой [README.md](/int/tools/README.md) обновлён под новый модуль и публичные команды.
+
 ## 2026-04-04
 ### review-fix: tighten `review-sql-fix` safety and deterministic mapping
 - В `review-sql-fix/scripts/fix_pipeline.py` запрещено выполнение shell-команд из `postcheck_commands` в `prod` и в любом `plan_only` запуске; в отчёте такие команды фиксируются как `skipped_by_policy`.
