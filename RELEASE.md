@@ -3,6 +3,13 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-04-05
+### intdb: review-fix по confirmed findings
+- В [intdb/lib/intdb.py](/int/tools/intdb/lib/intdb.py) передача `PGPASSWORD` и `POSTGRES_PASSWORD` в `docker run` переведена с `-e KEY=value` на проброс через env текущего процесса, чтобы не светить секреты в локальной командной строке.
+- `migrate status` и `migrate data` больше не привязаны к жёсткому `D:\int\data`: добавлен auto-discovery через `INTDB_DATA_REPO` и sibling repo `..\..\data`, а при отсутствии обоих вариантов CLI даёт явную ошибку с требованием `--repo`.
+- `migrate status` теперь корректно обрабатывает target без `public.schema_migrations` и считает такую БД pristine-состоянием с пустым списком applied versions.
+- В [intdb/tests/test_intdb.py](/int/tools/intdb/tests/test_intdb.py) добавлены точечные unit-тесты на скрытие секретов в argv Docker, auto-discovery data repo и fallback при отсутствии `schema_migrations`.
+
+## 2026-04-05
 ### Добавлен self-contained `intdb` для remote Postgres/Supabase профилей
 - Создан новый machine-wide модуль [intdb/README.md](/int/tools/intdb/README.md), [intdb/AGENTS.md](/int/tools/intdb/AGENTS.md), [intdb/.env.example](/int/tools/intdb/.env.example) и локальные launchers [intdb/intdb.ps1](/int/tools/intdb/intdb.ps1), [intdb/intdb.cmd](/int/tools/intdb/intdb.cmd).
 - Python core [intdb/lib/intdb.py](/int/tools/intdb/lib/intdb.py) реализует `doctor`, `sql`, `file`, `dump`, `restore`, `clone`, `copy`, `migrate status` и `migrate data` через Docker-backed PostgreSQL client.

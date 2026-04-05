@@ -14,7 +14,7 @@ from typing import Sequence
 
 
 TOOL_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DATA_REPO = Path(r"D:\int\data")
+DEFAULT_DATA_REPO_ENV = "INTDB_DATA_REPO"
 DEFAULT_DOCKER_IMAGE = os.getenv("INTDB_DOCKER_IMAGE", "postgres:16")
 PROFILE_PATTERN = re.compile(r"^INTDB_PROFILE__([A-Z0-9_]+)__([A-Z0-9_]+)$")
 SAFE_TABLE_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$")
@@ -158,6 +158,23 @@ def _ensure_repo(path: Path) -> Path:
     return repo
 
 
+def _resolve_data_repo(requested_repo: str | None) -> Path:
+    if requested_repo:
+        return _ensure_repo(Path(requested_repo))
+
+    env_repo = os.getenv(DEFAULT_DATA_REPO_ENV, "").strip()
+    if env_repo:
+        return _ensure_repo(Path(env_repo))
+
+    sibling_repo = TOOL_ROOT.parent.parent / "data"
+    if sibling_repo.exists():
+        return sibling_repo.resolve()
+
+    raise IntDbError(
+        "Не удалось автоматически найти repo `/int/data`; укажите --repo или задайте INTDB_DATA_REPO."
+    )
+
+
 def _tool_tmp_dir(purpose: str) -> Path:
     path = TOOL_ROOT / ".tmp" / purpose / _utc_stamp()
     path.mkdir(parents=True, exist_ok=True)
@@ -187,6 +204,7 @@ def _docker_run(
     capture_output: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     command = ["docker", "run", "--rm"]
+    child_env = os.environ.copy()
     if mounts:
         for host_path, container_path, mode in mounts:
             host = str(host_path.resolve())
@@ -201,11 +219,13 @@ def _docker_run(
     else:
         env_map = extra_env or {}
     for key, value in env_map.items():
-        command.extend(["-e", f"{key}={value}"])
+        child_env[key] = value
+        command.extend(["-e", key])
     command.append(DEFAULT_DOCKER_IMAGE)
     command.extend(argv)
     return subprocess.run(
         command,
+        env=child_env,
         text=True,
         capture_output=capture_output,
         check=False,
@@ -294,6 +314,16 @@ def _test_tcp(profile: Profile, timeout_sec: float = 3.0) -> None:
 
 
 def _query_remote_versions(profile: Profile) -> list[str]:
+    exists_query = "SELECT COALESCE(to_regclass('public.schema_migrations')::text, '')"
+    exists_result = _run_checked(
+        _psql_base_args(profile) + ["-Atqc", exists_query],
+        profile=profile,
+        read_only=True,
+        capture_output=True,
+    )
+    if not exists_result.stdout.strip():
+        return []
+
     query = (
         "SELECT version::text "
         "FROM public.schema_migrations "
@@ -568,7 +598,7 @@ def _cmd_copy(args: argparse.Namespace) -> int:
 def _cmd_migrate_status(args: argparse.Namespace) -> int:
     env_path = TOOL_ROOT / ".env"
     profile = _get_profile(env_path, args.target)
-    repo_root = _ensure_repo(Path(args.repo))
+    repo_root = _resolve_data_repo(args.repo)
     manifest_versions = _read_manifest_versions(repo_root)
     applied_versions = set(_query_remote_versions(profile))
 
@@ -586,7 +616,7 @@ def _cmd_migrate_data(args: argparse.Namespace) -> int:
     env_path = TOOL_ROOT / ".env"
     profile = _get_profile(env_path, args.target)
     _ensure_write_allowed(profile, args.approve_target, args.force_prod_write)
-    repo_root = _ensure_repo(Path(args.repo))
+    repo_root = _resolve_data_repo(args.repo)
     mounts = [(repo_root, "/workspace/data", "ro")]
     env = {
         "POSTGRES_HOST": profile.host,
@@ -709,12 +739,12 @@ def _build_parser() -> argparse.ArgumentParser:
 
     migrate_status = migrate_subparsers.add_parser("status", help="Сравнить manifest и remote schema_migrations.")
     migrate_status.add_argument("--target", required=True)
-    migrate_status.add_argument("--repo", default=str(DEFAULT_DATA_REPO))
+    migrate_status.add_argument("--repo")
     migrate_status.set_defaults(handler=_cmd_migrate_status)
 
     migrate_data = migrate_subparsers.add_parser("data", help="Применить migration flow `/int/data` на target-профиль.")
     migrate_data.add_argument("--target", required=True)
-    migrate_data.add_argument("--repo", default=str(DEFAULT_DATA_REPO))
+    migrate_data.add_argument("--repo")
     migrate_data.add_argument("--mode", choices=("incremental", "bootstrap"), default="incremental")
     migrate_data.add_argument("--seed-business", action="store_true")
     migrate_data.add_argument("--approve-target", required=True)

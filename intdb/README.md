@@ -27,6 +27,7 @@
 - `python` или `py` в `PATH`;
 - Docker Desktop;
 - сетевой доступ до нужных PostgreSQL endpoint'ов.
+- для `migrate *`: либо sibling checkout `..\..\data`, либо явный `--repo`, либо `INTDB_DATA_REPO`.
 
 ## Быстрый старт
 
@@ -103,10 +104,13 @@ pwsh -File D:\int\tools\intdb\intdb.ps1 migrate data `
   --approve-target intdata-dev
 ```
 
+Если `--repo` не указан, `intdb` сначала смотрит `INTDB_DATA_REPO`, затем пытается найти sibling repo `..\..\data` относительно самого инструмента. Если ни один вариант не найден, команда завершится с явной ошибкой и попросит указать `--repo`.
+
 ## Safety
 
 - Все mutating-команды требуют явный `--approve-target`.
 - Для профилей класса `prod` обязателен `--force-prod-write`.
 - `sql` и `file` по умолчанию запускаются в `default_transaction_read_only=on`.
+- Секреты профиля передаются в Docker через окружение процесса, а не как `-e KEY=value` в командной строке.
 - Временные dump/CSV-файлы складываются в `.tmp/`.
 - `.env` не должен попадать в git.
