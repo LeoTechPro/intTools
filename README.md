@@ -58,6 +58,7 @@
 - `pwsh -File /int/tools/intdb/intdb.ps1 doctor --profile intdata-dev` — проверка native PostgreSQL CLI, TCP и SQL для локально настроенного DB profile;
 - `pwsh -File /int/tools/intdb/intdb.ps1 migrate status --target intdata-dev --repo /int/data` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `/int/data`;
 - `pwsh -File /int/tools/codex/bin/publish_data.ps1` — canonical publish-flow для `/int/data`: локальный `push origin/main` и последующий `git pull --ff-only` на `vds.intdata.pro:/int/data`;
+- `python -m unittest codex.tests.test_publish_repo -v` — regression smoke для `publish_repo.ps1`: clean-tree guard, `-NoDeploy` publish и `partial_state` при post-push deploy failure;
 - `/int/tools/codex/bin/mcp-intbrain.sh` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
 - `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;

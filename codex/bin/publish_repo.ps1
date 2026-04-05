@@ -81,9 +81,10 @@ function Invoke-SshChecked {
         [string]$Command
     )
 
-    & ssh $SshHost $Command
+    $output = (& ssh $SshHost $Command 2>&1 | Out-String).Trim()
     if ($LASTEXITCODE -ne 0) {
-        throw "ssh $SshHost failed"
+        $suffix = if ([string]::IsNullOrWhiteSpace($output)) { "" } else { ": $output" }
+        throw "ssh $SshHost failed$suffix"
     }
 }
 

@@ -3,6 +3,12 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-04-05
+### codex publish: stderr deploy-ошибок и regression smoke для `publish_repo.ps1`
+- В [codex/bin/publish_repo.ps1](/int/tools/codex/bin/publish_repo.ps1) `Invoke-SshChecked` теперь сохраняет stderr `ssh` и включает его в сообщение об ошибке, чтобы post-push deploy failure было диагностируемо без повторного ручного воспроизведения.
+- Добавлен versioned smoke [codex/tests/test_publish_repo.py](/int/tools/codex/tests/test_publish_repo.py) на три критичных ветки `publish_repo.ps1`: `-NoDeploy` success, dirty-tree rejection и `push completed / deploy failed` с `partial_state`.
+- В [README.md](/int/tools/README.md) добавлена canonical команда запуска этого smoke через стандартный `python -m unittest codex.tests.test_publish_repo -v`, без внешней test-зависимости.
+
+## 2026-04-05
 ### intdb: runtime переведён с Docker на native PostgreSQL CLI
 - В [intdb/lib/intdb.py](/int/tools/intdb/lib/intdb.py) удалён Docker transport layer: `intdb` теперь запускает системные `psql`, `pg_dump` и `pg_restore` напрямую, а `doctor` сначала проверяет наличие native CLI, затем TCP и SQL-доступ.
 - `migrate data --mode incremental` теперь запускает локальный `bash` для [init/010_supabase_migrate.sh](/int/data/init/010_supabase_migrate.sh), а bootstrap-ветка исполняет [schema.sql](/int/data/init/schema.sql) и [seed_business.sql](/int/data/init/seed_business.sql) через native `psql`.
