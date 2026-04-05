@@ -13,7 +13,6 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "codex" / "bin" / "publish_repo.ps1"
 PWSH = shutil.which("pwsh") or shutil.which("powershell")
-assert PWSH, "PowerShell executable is required for publish_repo tests"
 
 
 def run_checked(args: list[str], cwd: Path) -> str:
@@ -111,6 +110,8 @@ class PublishRepoScriptTest(unittest.TestCase):
         *extra_args: str,
         env: dict[str, str] | None = None,
     ) -> subprocess.CompletedProcess[str]:
+        if not PWSH:
+            self.skipTest("PowerShell executable is required for publish_repo tests")
         args = [
             PWSH,
             "-NoProfile",

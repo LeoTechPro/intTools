@@ -21,25 +21,24 @@ if ((${#blocked_env_files[@]} > 0)); then
   exit 1
 fi
 
-# PUBLISH WRAPPER SMOKE GATE
-if command -v python >/dev/null 2>&1; then
-  python -m unittest codex.tests.test_publish_repo -q
-elif command -v python3 >/dev/null 2>&1; then
-  python3 -m unittest codex.tests.test_publish_repo -q
-else
-  echo "Python interpreter is required to run codex.tests.test_publish_repo." >&2
-  exit 1
-fi
-
 mapfile -t push_lines
+main_push_lines=()
 
 for line in "${push_lines[@]}"; do
   [[ -z "$line" ]] && continue
   read -r local_ref local_sha remote_ref remote_sha <<<"$line"
 
-  if [[ "$remote_ref" != "refs/heads/main" ]]; then
-    continue
+  if [[ "$remote_ref" == "refs/heads/main" ]]; then
+    main_push_lines+=("$line")
   fi
+done
+
+if ((${#main_push_lines[@]} == 0)); then
+  exit 0
+fi
+
+for line in "${main_push_lines[@]}"; do
+  read -r local_ref local_sha remote_ref remote_sha <<<"$line"
 
   if [[ "${ALLOW_MAIN_PUSH:-}" != "1" ]]; then
     echo "Push в удалённый main требует подтверждения владельца. Запустите с ALLOW_MAIN_PUSH=1." >&2
@@ -56,5 +55,20 @@ for line in "${push_lines[@]}"; do
     exit 1
   fi
 done
+
+# PUBLISH WRAPPER SMOKE GATE
+if ! command -v pwsh >/dev/null 2>&1 && ! command -v powershell >/dev/null 2>&1; then
+  echo "PowerShell executable is required to run codex.tests.test_publish_repo for pushes to main." >&2
+  exit 1
+fi
+
+if command -v python >/dev/null 2>&1; then
+  python -m unittest codex.tests.test_publish_repo -q
+elif command -v python3 >/dev/null 2>&1; then
+  python3 -m unittest codex.tests.test_publish_repo -q
+else
+  echo "Python interpreter is required to run codex.tests.test_publish_repo for pushes to main." >&2
+  exit 1
+fi
 
 exit 0

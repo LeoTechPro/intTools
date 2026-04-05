@@ -3,6 +3,12 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-04-05
+### codex publish: main-only smoke gate и graceful PowerShell degradation
+- В [.githooks/pre-push](/int/tools/.githooks/pre-push) publish smoke теперь запускается только для push в `refs/heads/main`, поэтому non-main pushes снова не зависят от `publish_repo.ps1` regression suite и не конфликтуют с repo-policy.
+- Для push в `main` hook теперь отдельно требует PowerShell до запуска smoke и печатает явную ошибку, вместо скрытого import-time падения Python suite на хостах без `pwsh`/`powershell`.
+- В [codex/tests/test_publish_repo.py](/int/tools/codex/tests/test_publish_repo.py) убран import-time `assert` на PowerShell: manual smoke на PowerShell-less host теперь корректно помечает tests как skipped, а не валится до старта.
+
+## 2026-04-05
 ### codex publish: deploy-smoke герметизирован и подключён в pre-push gate
 - В [codex/tests/test_publish_repo.py](/int/tools/codex/tests/test_publish_repo.py) deploy-failure branch больше не зависит от реального DNS/SSH: тест подменяет `ssh` локальным shim в temp `PATH` и запускает wrapper с явным `timeout`, сохраняя проверку `partial_state` и stderr-контракта.
 - В [.githooks/pre-push](/int/tools/.githooks/pre-push) добавлен tracked smoke-gate `python -m unittest codex.tests.test_publish_repo -q` (с fallback на `python3`), чтобы publish-wrapper regression больше не оставался только ручной README-командой.
