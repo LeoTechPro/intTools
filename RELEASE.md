@@ -3,6 +3,10 @@
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
 ## 2026-04-05
+### codex publish: smoke cleanup temp-root после прогона
+- В [codex/tests/test_publish_repo.py](/int/tools/codex/tests/test_publish_repo.py) `publish_repo_test_*` temp-root теперь регистрируется через `addCleanup(...)` с принудительным снятием readonly-атрибутов на Windows git object files, чтобы regression smoke действительно удалял временные bare repos и working trees из `%TEMP%`.
+
+## 2026-04-05
 ### codex publish: stderr deploy-ошибок и regression smoke для `publish_repo.ps1`
 - В [codex/bin/publish_repo.ps1](/int/tools/codex/bin/publish_repo.ps1) `Invoke-SshChecked` теперь сохраняет stderr `ssh` и включает его в сообщение об ошибке, чтобы post-push deploy failure было диагностируемо без повторного ручного воспроизведения.
 - Добавлен versioned smoke [codex/tests/test_publish_repo.py](/int/tools/codex/tests/test_publish_repo.py) на три критичных ветки `publish_repo.ps1`: `-NoDeploy` success, dirty-tree rejection и `push completed / deploy failed` с `partial_state`.

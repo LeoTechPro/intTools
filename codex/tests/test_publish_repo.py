@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import os
 import shutil
+import stat
 import subprocess
 import tempfile
 import unittest
@@ -33,11 +35,21 @@ def git(repo: Path, *args: str, capture: bool = False) -> str:
     return ""
 
 
+def remove_tree_force(path: Path) -> None:
+    def onerror(func, target, exc_info):  # type: ignore[no-untyped-def]
+        target_path = Path(target)
+        os.chmod(target_path, stat.S_IWRITE)
+        func(target)
+
+    shutil.rmtree(path, onerror=onerror)
+
+
 class PublishRepoScriptTest(unittest.TestCase):
     maxDiff = None
 
     def _bootstrap_remote_and_local(self) -> tuple[Path, Path, str]:
         temp_root = Path(tempfile.mkdtemp(prefix="publish_repo_test_"))
+        self.addCleanup(remove_tree_force, temp_root)
         remote = temp_root / "remote.git"
         local = temp_root / "local"
         remote.mkdir(parents=True, exist_ok=True)
