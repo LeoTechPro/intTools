@@ -19,6 +19,10 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 ⚠️ Сначала прочитайте [корневой AGENTS.md](/int/AGENTS.md).
 
+## Browser Attach Inheritance
+- Для сессий, стартующих из этого репозитория, правило frontend-диагностики через attached Chrome владельца обязательно.
+- Канонический policy и fallback-ограничения задаются только в `/int/AGENTS.md` (раздел `Frontend Browser Diagnostics Policy`) и наследуются без локальной переинтерпретации.
+- Headless/isolated fallback допустим только по явному разрешению владельца.
 # AGENTS — intTools
 
 ## Allowed scope
