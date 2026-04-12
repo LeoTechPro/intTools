@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -27,9 +29,18 @@ def run_checked(args: list[str], *, cwd: Path | None = None, capture: bool = Fal
     return ""
 
 
+def resolve_ssh_executable() -> str:
+    if os.name == "nt":
+        for candidate in ("ssh.cmd", "ssh.bat", "ssh.exe", "ssh"):
+            resolved = shutil.which(candidate)
+            if resolved:
+                return resolved
+    return shutil.which("ssh") or "ssh"
+
+
 def run_ssh_checked(host: str, command: str) -> None:
     completed = subprocess.run(
-        ["ssh", host, command],
+        [resolve_ssh_executable(), host, command],
         text=True,
         capture_output=True,
         check=False,
