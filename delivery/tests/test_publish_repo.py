@@ -11,8 +11,7 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-SCRIPT_PATH = REPO_ROOT / "codex" / "bin" / "publish_repo.ps1"
-PWSH = shutil.which("pwsh") or shutil.which("powershell")
+SCRIPT_PATH = REPO_ROOT / "delivery" / "bin" / "publish_repo.py"
 
 
 def run_checked(args: list[str], cwd: Path) -> str:
@@ -110,28 +109,24 @@ class PublishRepoScriptTest(unittest.TestCase):
         *extra_args: str,
         env: dict[str, str] | None = None,
     ) -> subprocess.CompletedProcess[str]:
-        if not PWSH:
-            self.skipTest("PowerShell executable is required for publish_repo tests")
         args = [
-            PWSH,
-            "-NoProfile",
-            "-File",
+            shutil.which("python3") or shutil.which("python") or "python3",
             str(SCRIPT_PATH),
-            "-RepoPath",
+            "--repo-path",
             str(local),
-            "-RepoName",
+            "--repo-name",
             "smoke",
-            "-SuccessLabel",
+            "--success-label",
             "smoke_publish",
-            "-ExpectedBranch",
+            "--expected-branch",
             "main",
-            "-ExpectedUpstream",
+            "--expected-upstream",
             "origin/main",
-            "-PushRemote",
+            "--push-remote",
             "origin",
-            "-PushBranch",
+            "--push-branch",
             "main",
-            "-RequireClean",
+            "--require-clean",
             *extra_args,
         ]
         return subprocess.run(
@@ -148,7 +143,7 @@ class PublishRepoScriptTest(unittest.TestCase):
         remote, local, _ = self._bootstrap_remote_and_local()
         local_head = self._make_local_commit(local, "ahead\n", "ahead")
 
-        completed = self._run_publish(local, "-NoDeploy")
+        completed = self._run_publish(local, "--no-deploy")
 
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
         self.assertIn("smoke_publish OK", completed.stdout)
@@ -160,7 +155,7 @@ class PublishRepoScriptTest(unittest.TestCase):
         remote, local, base_remote_head = self._bootstrap_remote_and_local()
         (local / "README.md").write_text("dirty\n", encoding="utf-8")
 
-        completed = self._run_publish(local, "-NoDeploy")
+        completed = self._run_publish(local, "--no-deploy")
 
         self.assertEqual(completed.returncode, 1, completed.stdout + completed.stderr)
         self.assertIn("working tree is not clean", completed.stdout)
@@ -178,15 +173,15 @@ class PublishRepoScriptTest(unittest.TestCase):
 
         completed = self._run_publish(
             local,
-            "-DeployMode",
+            "--deploy-mode",
             "ssh-fast-forward",
-            "-DeployHost",
+            "--deploy-host",
             "no-such-host.invalid",
-            "-DeployRepoPath",
+            "--deploy-repo-path",
             "/int/data",
-            "-DeployFetchRef",
+            "--deploy-fetch-ref",
             "main",
-            "-DeployPullRef",
+            "--deploy-pull-ref",
             "main",
             env=env,
         )

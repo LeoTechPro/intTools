@@ -25,6 +25,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 - `ops-tooling` contour для machine-wide automation;
 - machine-wide ops/process/tooling, hooks, bootstrap scripts и shared runbooks;
+- machine-wide delivery/publish automation для top-level repo contours `/int/*`;
 - внешние tooling contours для `intdata`, `crm`, `probe`, `codex` и соседних repos;
 - repo-level docs по reusable tooling и host helpers.
 
@@ -45,6 +46,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - reusable tooling хранится здесь, а не в корне `/int` и не в чужих product repos;
 - product repos подключают этот contour извне через scripts, hooks и documented runbooks;
 - self-authored/versioned Codex tooling и wrapper-скрипты должны жить в `/int/tools/codex/**`, а не в `~/.codex` / `C:\Users\intData\.codex`;
+- cross-platform publish/release tooling должно жить в нейтральном `/int/tools/delivery/**`; `codex/bin/publish_*.ps1` допустимы только как compatibility shims;
 - repo остаётся machine-wide tooling layer, а не отдельным business runtime.
 - прямые кодовые импорты между `/int/tools` и другими top-level root-контурами `/int/*` запрещены; интеграция допустима только через documented scripts/hooks/CLI entrypoints, public APIs/contracts, events или иные явно согласованные boundary contracts.
 

@@ -20,6 +20,7 @@
 - `gatesctl/` — machine-wide runtime для gate receipts, approvals и commit binding;
 - `vault/installers/` — канонический machine-wide vault tooling (`vault_sanitize.py`, `runtime_vault_gc.py`) для контуров `/2brain` + `/int/brain`;
 - `intdb/` — self-contained operator CLI для remote Postgres/Supabase профилей, dump/restore и migration flow `/int/data`;
+- `delivery/` — machine-wide publish/release automation и cross-platform wrappers для repo delivery flow;
 - `codex/` — versioned host-tooling, managed assets и project overlays для Codex CLI;
 - `openclaw/` — versioned overlay для локального OpenClaw runtime;
 - `data/` — внешний tooling/configs слой для backend-core `/int/data`;
@@ -57,8 +58,8 @@
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --runtime-root /int/brain/runtime/vault` — compatibility-режим для legacy runtime-path (с deprecation warning);
 - `pwsh -File /int/tools/intdb/intdb.ps1 doctor --profile intdata-dev` — проверка native PostgreSQL CLI, TCP и SQL для локально настроенного DB profile;
 - `pwsh -File /int/tools/intdb/intdb.ps1 migrate status --target intdata-dev --repo /int/data` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `/int/data`;
-- `pwsh -File /int/tools/codex/bin/publish_data.ps1` — canonical publish-flow для `/int/data`: локальный `push origin/main` и последующий `git pull --ff-only` на `vds.intdata.pro:/int/data`;
-- `python -m unittest codex.tests.test_publish_repo -v` — hermetic regression smoke для `publish_repo.ps1`: clean-tree guard, `-NoDeploy` publish и `partial_state` на локально подменённом `ssh` без реальной сети; на хостах без PowerShell suite корректно помечает publish-тесты как skipped вместо import-time crash;
+- `python3 /int/tools/delivery/bin/publish_data.py` — canonical publish-flow для `/int/data`: локальный `push origin/main` и последующий `git pull --ff-only` на `vds.intdata.pro:/int/data`; Windows compatibility shim остаётся в `/int/tools/codex/bin/publish_data.ps1`;
+- `python3 -m unittest discover -s delivery/tests -p test_publish_repo.py -v` — hermetic regression smoke для cross-platform `delivery/bin/publish_repo.py`: clean-tree guard, `--no-deploy` publish и `partial_state` на локально подменённом `ssh` без реальной сети;
 - `/int/tools/codex/bin/mcp-intbrain.sh` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
 - `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
@@ -100,7 +101,7 @@
 ## Git Branch Policy
 
 - для каждого checkout/worktree локально включаем `git config core.hooksPath .githooks`, чтобы активировать tracked guardrail из `.githooks/pre-push`;
-- tracked `.githooks/pre-push` дополнительно запускает `python -m unittest codex.tests.test_publish_repo -q` как smoke-gate только для push в `main`; non-main push этим smoke-path не блокируются;
+- tracked `.githooks/pre-push` дополнительно запускает `python -m unittest discover -s delivery/tests -p test_publish_repo.py -q` как smoke-gate только для push в `main`; non-main push этим smoke-path не блокируются;
 - любой push в удалённый `main` требует явный `ALLOW_MAIN_PUSH=1` и допускается только из локальной `main`;
 - push в `dev` и другие non-main branches этим repo-local guardrail не ограничивается.
 
@@ -147,7 +148,8 @@
 - `cloud_access.sh` — ленивый доступ к `gdrive`/`yadisk` через `rclone mount` и единый runtime `RCLONE_CONFIG=/int/.runtime/cloud-access/rclone.conf`
 - `install_cloud_access.sh` — развёртывание runtime-каталогов `/int/.runtime/cloud-access`, mountpoints `/int/cloud/*` и user-level symlink units
 - `bin/` — MCP entrypoints и прочие Codex-facing launcher'ы
-- `bin/publish_*.ps1` — versioned repo-specific publish wrappers для контуров `/int/*`; machine-local `~/.codex/scripts` не является source-of-truth для них. Для `/int/data` canonical owner-facing entrypoint — именно `publish_data.ps1`, а не raw `git push`.
+- `delivery/bin/` — canonical cross-platform publish/release engine и repo-specific Python wrappers для контуров `/int/*`.
+- `codex/bin/publish_*.ps1` — compatibility shims для Windows/legacy вызовов поверх `delivery/bin/`; machine-local `~/.codex/scripts` не является source-of-truth для publish tooling.
 - `tools/` — repo-managed helper trees (`mcp-obsidian-memory`, `obsidian-desktop`, `openspec`)
 - `assets/codex-home/` — versioned `AGENTS.md`, `rules/`, `prompts/`, `skills/`, `version.json` для синхронизации в `~/.codex`
 - `projects/` — tracked project-specific overlay-файлы для `~/.codex/projects/`

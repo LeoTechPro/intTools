@@ -2,6 +2,13 @@
 
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
+## 2026-04-12
+### delivery publish: канонический engine вынесен из `codex/` в cross-platform Python contour
+- Добавлен нейтральный publish contour `delivery/bin/` с cross-platform engine [delivery/bin/publish_repo.py](/int/tools/delivery/bin/publish_repo.py) и canonical wrapper [delivery/bin/publish_data.py](/int/tools/delivery/bin/publish_data.py) для `/int/data`.
+- [codex/bin/publish_repo.ps1](/int/tools/codex/bin/publish_repo.ps1) и [codex/bin/publish_data.ps1](/int/tools/codex/bin/publish_data.ps1) переведены в compatibility shims: они больше не владеют publish-логикой, а только делегируют её в Python engine.
+- Regression suite перенесён из `codex/tests` в [delivery/tests/test_publish_repo.py](/int/tools/delivery/tests/test_publish_repo.py), а `.githooks/pre-push` теперь проверяет именно delivery smoke без зависимости от `pwsh`.
+- В [README.md](/int/tools/README.md), [AGENTS.md](/int/tools/AGENTS.md) и policy соседнего `/int/data` обновлён canonical контракт: publish для `/int/data` теперь должен идти через `python .../delivery/bin/publish_data.py`, а `codex/bin/publish_*.ps1` считаются только legacy/Windows shims.
+
 ## 2026-04-05
 ### codex publish: main-only smoke gate и graceful PowerShell degradation
 - В [.githooks/pre-push](/int/tools/.githooks/pre-push) publish smoke теперь запускается только для push в `refs/heads/main`, поэтому non-main pushes снова не зависят от `publish_repo.ps1` regression suite и не конфликтуют с repo-policy.
