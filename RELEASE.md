@@ -156,7 +156,7 @@
 - Обновлены интеграции `gatesctl` и `punctb` (`lock_issue_resolver.py`, `lock_release_by_issue.py`, `agent_lock_cleanup.py`) для Windows-style `LOCKCTL_BIN` path resolution.
 - Обновлены runtime/config контракты: `codex/templates/config.toml.tmpl`, `codex/layout-policy.json`, `codex/bin/codex-host-verify`, `codex/projects/punctb/.mcp.json`, `codex/tools/install_tools.sh`.
 - Добавлен skill `codex/assets/codex-home/skills/lockctl/SKILL.md`, plugin scaffold `codex/plugins/lockctl/.codex-plugin/plugin.json` и marketplace entry `.agents/plugins/marketplace.json`.
-- Обновлена документация lockctl/openclaw/process: `README.md`, `codex/assets/codex-home/AGENTS.md`, `punctb/docs/process/issue-commit-flow.md`, `openclaw/docs/reinstall-and-restore.md`, `openclaw/docs/lockctl-mcp.md`.
+- Обновлена документация lockctl/openclaw/process: `README.md`, `codex/assets/codex-home/AGENTS.md`, `punkt-b/docs/process/issue-commit-flow.md`, `openclaw/docs/reinstall-and-restore.md`, `openclaw/docs/lockctl-mcp.md`.
 - Добавлен unit test `lockctl/tests/test_lockctl_core.py` для path/state behavior.
 
 ## 2026-03-29

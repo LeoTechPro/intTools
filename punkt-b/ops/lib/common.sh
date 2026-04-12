@@ -13,7 +13,7 @@ else
       ops_home="$(cd "$script_dir/.." && pwd)"
       ;;
     *)
-      ops_home="/int/tools/punctb"
+      ops_home="/int/tools/punkt-b"
       ;;
   esac
 fi

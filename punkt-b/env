@@ -1,4 +1,4 @@
-# Template for punctb/.env. Copy to punctb/.env and replace placeholders.
+# Template for punkt-b/.env. Copy to punkt-b/.env and replace placeholders.
 
 # Source database (read-only)
 SRC_HOST=source-db.example
