@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from importlib.util import module_from_spec, spec_from_file_location
+import io
 from pathlib import Path
 import os
 import sys
@@ -16,8 +17,34 @@ intdb = module_from_spec(SPEC)
 sys.modules[SPEC.name] = intdb
 SPEC.loader.exec_module(intdb)
 
+ENTRYPOINT_MODULE_PATH = Path(__file__).resolve().parents[1] / "bin" / "_entrypoint_common.py"
+ENTRYPOINT_SPEC = spec_from_file_location("intdb_entrypoint_common", ENTRYPOINT_MODULE_PATH)
+assert ENTRYPOINT_SPEC is not None and ENTRYPOINT_SPEC.loader is not None
+entrypoints = module_from_spec(ENTRYPOINT_SPEC)
+sys.modules[ENTRYPOINT_SPEC.name] = entrypoints
+ENTRYPOINT_SPEC.loader.exec_module(entrypoints)
+
 
 class IntDbTests(unittest.TestCase):
+    def test_entrypoint_confirmation_requires_exact_target(self) -> None:
+        with self.assertRaises(entrypoints.WrapperError):
+            entrypoints._require_confirmation("wrong", "punkt_b_prod")
+        entrypoints._require_confirmation("punkt_b_prod", "punkt_b_prod")
+
+    def test_entrypoint_prints_banner(self) -> None:
+        config = entrypoints.EntryPointConfig(
+            profile="punktb-prod-ro",
+            role="db_readonly_prod",
+            database="punkt_b_prod",
+            environment="prod",
+        )
+        with mock.patch("sys.stdout", new_callable=io.StringIO) as fake_stdout:
+            entrypoints._print_banner(config, "READONLY")
+            text = fake_stdout.getvalue()
+        self.assertIn("YOU ARE CONNECTING TO PROD", text)
+        self.assertIn("ROLE = db_readonly_prod", text)
+        self.assertIn("MODE = READONLY", text)
+
     def test_parse_env_text_strips_comments(self) -> None:
         values = intdb._parse_env_text(
             """

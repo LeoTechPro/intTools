@@ -30,16 +30,6 @@
 - для `migrate *`: либо sibling checkout `..\..\data`, либо явный `--repo`, либо `INTDB_DATA_REPO`;
 - для `migrate data --mode incremental`: `bash` из Git for Windows или иной совместимый `bash`.
 
-## Быстрый старт
-
-1. Скопируйте `.env.example` в `.env`.
-2. Заполните реальные `PGHOST`, `PGPORT`, `PGDATABASE`, `PGUSER`, `PGPASSWORD`.
-3. Проверьте профиль:
-
-```powershell
-pwsh -File D:\int\tools\intdb\intdb.ps1 doctor --profile intdata-dev
-```
-
 ## Профили
 
 Формат переменных:
@@ -61,51 +51,31 @@ CLI обращается к такому профилю как `intdata-dev`.
 - `nonprod` — достаточно `--approve-target <profile>`;
 - `prod` — дополнительно требуется `--force-prod-write`.
 
-## Примеры
+## Guardrail entrypoints (Punkt-B)
 
-Проверить dev-профиль:
+Для безопасной модели доступа используйте Python wrappers из `D:\int\tools\intdb\bin`:
 
-```powershell
-pwsh -File D:\int\tools\intdb\intdb.ps1 doctor --profile intdata-dev
+- `pg-prod-ro.py` -> `punktb-prod-ro` (`db_readonly_prod`)
+- `pg-legacy-ro.py` -> `punktb-legacy-ro` (`db_readonly_legacy`)
+- `pg-dev-ro.py` -> `intdata-dev-ro` (`db_readonly_dev`)
+- `pg-prod-migrate.py` -> `punktb-prod-migrator` (`db_migrator_prod`)
+- `pg-dev-migrate.py` -> `intdata-dev-migrator` (`db_migrator_dev`)
+- `pg-prod-admin.py` -> `punktb-prod-admin` (`db_admin_prod`, breakglass)
+- `pg-dev-admin.py` -> `intdata-dev-admin` (`db_admin_dev`, breakglass)
+- `pg-test-bootstrap.py` -> `punktb-test-bootstrap` (disposable `punkt_b_test`)
+
+Запуск одинаковый на Windows и Linux:
+
+```bash
+python /int/tools/intdb/bin/pg-prod-ro.py --doctor
+python /int/tools/intdb/bin/pg-dev-migrate.py --path /path/to/change.sql --write --confirm-target intdata
 ```
 
-Прочитать данные:
+### Важно
 
-```powershell
-pwsh -File D:\int\tools\intdb\intdb.ps1 sql `
-  --profile intdata-dev `
-  --sql "select now(), current_database();"
-```
-
-Выполнить mutating SQL:
-
-```powershell
-pwsh -File D:\int\tools\intdb\intdb.ps1 sql `
-  --profile intdata-dev `
-  --write `
-  --approve-target intdata-dev `
-  --sql "update public.some_table set touched_at = now() where id = 1;"
-```
-
-Проверить pending migration'ы `/int/data`:
-
-```powershell
-pwsh -File D:\int\tools\intdb\intdb.ps1 migrate status `
-  --target intdata-dev `
-  --repo D:\int\data
-```
-
-Применить incremental migration flow `/int/data`:
-
-```powershell
-pwsh -File D:\int\tools\intdb\intdb.ps1 migrate data `
-  --target intdata-dev `
-  --mode incremental `
-  --repo D:\int\data `
-  --approve-target intdata-dev
-```
-
-Если `--repo` не указан, `intdb` сначала смотрит `INTDB_DATA_REPO` из process env или локального `.env`, затем пытается найти sibling repo `..\..\data` относительно самого инструмента. Если ни один вариант не найден, команда завершится с явной ошибкой и попросит указать `--repo`.
+- Supabase system roles (`authenticator`, `anon`, `authenticated`, `service_role`, `supabase_*`) в этой модели считаются immutable.
+- Wrappers должны использовать только custom роли.
+- Raw `psql` с ad-hoc DSN для agent workflow запрещен process-policy.
 
 ## Safety
 

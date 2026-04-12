@@ -20,7 +20,6 @@
 - `gatesctl/` — machine-wide runtime для gate receipts, approvals и commit binding;
 - `vault/installers/` — канонический machine-wide vault tooling (`vault_sanitize.py`, `runtime_vault_gc.py`) для контуров `/2brain` + `/int/brain`;
 - `intdb/` — self-contained operator CLI для remote Postgres/Supabase профилей, dump/restore и migration flow `/int/data`;
-- `delivery/` — machine-wide publish/release automation и cross-platform wrappers для repo delivery flow;
 - `codex/` — versioned host-tooling, managed assets и project overlays для Codex CLI;
 - `openclaw/` — versioned overlay для локального OpenClaw runtime;
 - `data/` — внешний tooling/configs слой для backend-core `/int/data`;
@@ -56,10 +55,10 @@
 - `python /int/tools/vault/installers/vault_sanitize.py --dry-run --profile strict` — dry-run санитарной миграции vault;
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --brain-root /int/brain` — dry-run архивации и очистки canonical runtime-root (`/int/.tmp/brain-runtime-vault`);
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --runtime-root /int/brain/runtime/vault` — compatibility-режим для legacy runtime-path (с deprecation warning);
-- `pwsh -File /int/tools/intdb/intdb.ps1 doctor --profile intdata-dev` — проверка native PostgreSQL CLI, TCP и SQL для локально настроенного DB profile;
-- `pwsh -File /int/tools/intdb/intdb.ps1 migrate status --target intdata-dev --repo /int/data` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `/int/data`;
-- `python3 /int/tools/delivery/bin/publish_data.py` — canonical publish-flow для `/int/data`: локальный `push origin/main` и последующий `git pull --ff-only` на `vds.intdata.pro:/int/data`; Windows compatibility shim остаётся в `/int/tools/codex/bin/publish_data.ps1`;
-- `python3 -m unittest discover -s delivery/tests -p test_publish_repo.py -v` — hermetic regression smoke для cross-platform `delivery/bin/publish_repo.py`: clean-tree guard, `--no-deploy` publish и `partial_state` на локально подменённом `ssh` без реальной сети;
+- `python /int/tools/intdb/lib/intdb.py doctor --profile intdata-dev` — проверка native PostgreSQL CLI, TCP и SQL для локально настроенного DB profile;
+- `python /int/tools/intdb/lib/intdb.py migrate status --target intdata-dev --repo /int/data` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `/int/data`;
+- `pwsh -File /int/tools/codex/bin/publish_data.ps1` — canonical publish-flow для `/int/data`: локальный `push origin/main` и последующий `git pull --ff-only` на `vds.intdata.pro:/int/data`;
+- `python -m unittest codex.tests.test_publish_repo -v` — hermetic regression smoke для `publish_repo.ps1`: clean-tree guard, `-NoDeploy` publish и `partial_state` на локально подменённом `ssh` без реальной сети; на хостах без PowerShell suite корректно помечает publish-тесты как skipped вместо import-time crash;
 - `/int/tools/codex/bin/mcp-intbrain.sh` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
 - `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
@@ -101,7 +100,7 @@
 ## Git Branch Policy
 
 - для каждого checkout/worktree локально включаем `git config core.hooksPath .githooks`, чтобы активировать tracked guardrail из `.githooks/pre-push`;
-- tracked `.githooks/pre-push` дополнительно запускает `python -m unittest discover -s delivery/tests -p test_publish_repo.py -q` как smoke-gate только для push в `main`; non-main push этим smoke-path не блокируются;
+- tracked `.githooks/pre-push` дополнительно запускает `python -m unittest codex.tests.test_publish_repo -q` как smoke-gate только для push в `main`; non-main push этим smoke-path не блокируются;
 - любой push в удалённый `main` требует явный `ALLOW_MAIN_PUSH=1` и допускается только из локальной `main`;
 - push в `dev` и другие non-main branches этим repo-local guardrail не ограничивается.
 
@@ -148,8 +147,7 @@
 - `cloud_access.sh` — ленивый доступ к `gdrive`/`yadisk` через `rclone mount` и единый runtime `RCLONE_CONFIG=/int/.runtime/cloud-access/rclone.conf`
 - `install_cloud_access.sh` — развёртывание runtime-каталогов `/int/.runtime/cloud-access`, mountpoints `/int/cloud/*` и user-level symlink units
 - `bin/` — MCP entrypoints и прочие Codex-facing launcher'ы
-- `delivery/bin/` — canonical cross-platform publish/release engine и repo-specific Python wrappers для контуров `/int/*`.
-- `codex/bin/publish_*.ps1` — compatibility shims для Windows/legacy вызовов поверх `delivery/bin/`; machine-local `~/.codex/scripts` не является source-of-truth для publish tooling.
+- `bin/publish_*.ps1` — versioned repo-specific publish wrappers для контуров `/int/*`; machine-local `~/.codex/scripts` не является source-of-truth для них. Для `/int/data` canonical owner-facing entrypoint — именно `publish_data.ps1`, а не raw `git push`.
 - `tools/` — repo-managed helper trees (`mcp-obsidian-memory`, `obsidian-desktop`, `openspec`)
 - `assets/codex-home/` — versioned `AGENTS.md`, `rules/`, `prompts/`, `skills/`, `version.json` для синхронизации в `~/.codex`
 - `projects/` — tracked project-specific overlay-файлы для `~/.codex/projects/`
@@ -391,12 +389,11 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
    ```
 2. Для каждого нового домена пропишите webroot (см. конфиги — `/var/www/<domain>`):
    ```bash
-   sudo mkdir -p /var/www/bot.dev.intdata.pro
+   sudo mkdir -p /var/www/bot.intdata.pro
    sudo mkdir -p /var/www/id.intdata.pro
-   sudo mkdir -p /var/www/id.test.intdata.pro
+   sudo mkdir -p /var/www/id.intdata.pro
    sudo mkdir -p /var/www/nexus.intdata.pro
-   sudo mkdir -p /var/www/sso.test.intdata.pro
-   sudo mkdir -p /var/www/suite.intdata.pro
+   sudo mkdir -p /var/www/sso.intdata.pro
    ```
 3. Выпустите сертификаты (пример для одного домена, перечислите нужные `-d`; переменная `CERTBOT_EMAIL` обязательна). Проще всего использовать автоматизированный скрипт:
    ```bash
@@ -405,12 +402,11 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
    ```
    Либо вызвать вручную:
    ```bash
-   sudo certbot certonly --webroot -w /var/www/bot.dev.intdata.pro -d bot.dev.intdata.pro
+   sudo certbot certonly --webroot -w /var/www/bot.intdata.pro -d bot.intdata.pro
    sudo certbot certonly --webroot -w /var/www/id.intdata.pro -d id.intdata.pro
-   sudo certbot certonly --webroot -w /var/www/id.test.intdata.pro -d id.test.intdata.pro
+   sudo certbot certonly --webroot -w /var/www/id.intdata.pro -d id.intdata.pro
    sudo certbot certonly --webroot -w /var/www/nexus.intdata.pro -d nexus.intdata.pro
-   sudo certbot certonly --webroot -w /var/www/sso.test.intdata.pro -d sso.test.intdata.pro
-   sudo certbot certonly --webroot -w /var/www/suite.intdata.pro -d suite.intdata.pro
+   sudo certbot certonly --webroot -w /var/www/sso.intdata.pro -d sso.intdata.pro
    ```
 4. После успешного выпуска перезагрузите nginx:
    ```bash
@@ -487,7 +483,7 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 
 > **Примечание:** `docker compose down` удаляет контейнеры/volume’ы; используйте опцию `down` скрипта только при необходимости.
 >
-> При bootstrap Keycloak создаётся (или обновляется) realm `intdata`, а также полный набор OIDC-клиентов для модулей платформы (`<module>-web`, `<module>-admin`, `<module>-api`). Конфигурация (client id, redirect-uri, web origins, client secret) считывается из переменных `*_SSO_*`/`*_ADMIN_SSO_*`/`*_API_SSO_*`. Значения по умолчанию ориентированы на домены `*.dev.intdata.pro` и локальные порты; перед запуском продакшн-стека обязательно синхронизируйте их через OpenBao.
+> При bootstrap Keycloak создаётся (или обновляется) realm `intdata`, а также полный набор OIDC-клиентов для модулей платформы (`<module>-web`, `<module>-admin`, `<module>-api`). Конфигурация (client id, redirect-uri, web origins, client secret) считывается из переменных `*_SSO_*`/`*_ADMIN_SSO_*`/`*_API_SSO_*`. Значения по умолчанию ориентированы на домены `*.intdata.pro` и локальные порты; перед запуском продакшн-стека обязательно синхронизируйте их через OpenBao.
 >
 > Сессия bootstrap также применяет тему `ID_KEYCLOAK_LOGIN_THEME` и отображаемое имя Realm (`ID_KEYCLOAK_DISPLAY_NAME`, `ID_KEYCLOAK_DISPLAY_NAME_HTML`). Для брендовой темы `intdata` убедитесь, что в репозитории обновлены файлы `id/keycloak/themes/intdata`, затем выполните `restart` + `logs` + smoke.
 
@@ -601,7 +597,6 @@ PY
 
 ###### OpenBao (self-host)
 - Конфиг объединён в `id/docker-compose.yaml` (profile `openbao`); переменные читаются из корневого `.env` (`OPENBAO_*`). Отдельный `.env.infisical УДАЛЁН` больше не используется.
-- UI/API доступен по `https://kms.intdata.pro`. Apache/Nginx проксируют запросы на локальный порт `8200` (см. `configs/apache2/kms.intdata.pro.conf`).
 - Запуск/перезапуск:
 
 ```bash
@@ -613,7 +608,6 @@ scripts/devops/run-openbao.sh
 - Проверка доступности:
 
 ```bash
-curl -Ik https://kms.intdata.pro/v1/sys/health
 ```
 
 - Root token (`ID_OPENBAO_TOKEN`) хранится только во внешнем секрет-хранилище. При ротации токена сначала обновите `.env`, затем повторно выполните `sync-openbao`.
