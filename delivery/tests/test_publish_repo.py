@@ -74,6 +74,51 @@ def make_fake_ssh(bin_dir: Path, stderr_text: str, exit_code: int = 255) -> Path
     return script_path
 
 
+def make_fake_ssh_probe_fail_deploy_ok(bin_dir: Path) -> Path:
+    bin_dir.mkdir(parents=True, exist_ok=True)
+    if os.name == "nt":
+        script_path = bin_dir / "ssh.cmd"
+        script_path.write_text(
+            "\n".join(
+                [
+                    "@echo off",
+                    "setlocal",
+                    "set ARGS=%*",
+                    "echo %ARGS% | findstr /C:\" true\" >nul",
+                    "if not errorlevel 1 (",
+                    "  >&2 echo mock ssh probe failure",
+                    "  exit /b 255",
+                    ")",
+                    ">&2 echo mock ssh deploy success",
+                    "exit /b 0",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+    else:
+        script_path = bin_dir / "ssh"
+        script_path.write_text(
+            "\n".join(
+                [
+                    "#!/usr/bin/env bash",
+                    "set -euo pipefail",
+                    "args=\"$*\"",
+                    "if [[ \"$args\" == *\" true\" ]]; then",
+                    "  echo 'mock ssh probe failure' >&2",
+                    "  exit 255",
+                    "fi",
+                    "echo 'mock ssh deploy success' >&2",
+                    "exit 0",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        script_path.chmod(script_path.stat().st_mode | stat.S_IXUSR)
+    return script_path
+
+
 class PublishRepoScriptTest(unittest.TestCase):
     maxDiff = None
 
@@ -191,6 +236,33 @@ class PublishRepoScriptTest(unittest.TestCase):
         self.assertIn("ssh no-such-host.invalid failed: mock ssh failure: forced deploy error", completed.stdout)
         remote_head = git(remote, "rev-parse", "refs/heads/main", capture=True)
         self.assertEqual(remote_head, local_head)
+
+    def test_deploy_auto_mode_falls_back_to_public_when_tailnet_probe_fails(self) -> None:
+        _remote, local, _ = self._bootstrap_remote_and_local()
+        fake_bin = local.parent / "fake-bin"
+        make_fake_ssh_probe_fail_deploy_ok(fake_bin)
+        env = os.environ.copy()
+        env["PATH"] = str(fake_bin) + os.pathsep + env.get("PATH", "")
+        env["INT_SSH_MODE"] = "auto"
+
+        completed = self._run_publish(
+            local,
+            "-NoPush",
+            "-DeployMode",
+            "ssh-fast-forward",
+            "-DeployHost",
+            "vds-intdata-intdata",
+            "-DeployRepoPath",
+            "/int/data",
+            "-DeployFetchRef",
+            "main",
+            "-DeployPullRef",
+            "main",
+            env=env,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+        self.assertIn("transport=public, fallback=public", completed.stdout)
 
 
 if __name__ == "__main__":

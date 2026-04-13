@@ -82,6 +82,24 @@
 - Для `vds.intdata.pro` сохраняется разделение host-users: `intdata` (automation/deploy), `codex` (Codex runtime), `openclaw` (OpenClaw runtime/service).
 - Для `prod` действует stricter policy: default-path только read-first и отдельный restricted SSH user; full root workflow не открывается автоматически.
 
+### Tailnet-First SSH Transport (repo-managed)
+
+- Канонический transport-слой для publish/deploy находится в:
+  - `/int/tools/codex/bin/int_ssh_resolve.ps1`
+  - `/int/tools/codex/bin/int_ssh_host.sh`
+  - `/int/tools/codex/config/int_ssh_config`
+- User-home `~/.ssh/config`/`C:\Users\intData\.ssh\config` этим rollout-ом не редактируется.
+- Контракт режима:
+  - `INT_SSH_MODE=auto|tailnet|public` (default `auto`)
+  - `auto`: сначала tailnet probe, потом fallback в public с явным логом выбранного канала;
+  - `tailnet`: только tailnet endpoint (без fallback);
+  - `public`: только публичный endpoint.
+- Контракт host-map/suffix:
+  - `INT_SSH_TAILNET_SUFFIX`
+  - `INT_SSH_DEV_PUBLIC_HOST`, `INT_SSH_PROD_PUBLIC_HOST`
+  - `INT_SSH_DEV_TAILNET_NODE/HOST`, `INT_SSH_PROD_TAILNET_NODE/HOST`
+- Короткий probe timeout: `INT_SSH_PROBE_TIMEOUT_SEC`.
+
 ## IntBrain Agent-Memory Integration
 
 - `codex/bin/mcp-intbrain.py` и `codex/bin/mcp-intbrain.sh` публикуют универсальный MCP toolset:

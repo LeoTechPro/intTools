@@ -45,3 +45,10 @@ Ambiguity считается значимой только при неяснос
 ## Bootstrap note
 - `openspec/project.md` в bootstrap-репозиториях не является полным handbook.
 - За фактической архитектурой, ветками, ownership и ограничениями всегда идите в root `README.md`, root `AGENTS.md` и `/int/AGENTS.md`.
+
+## Spec-First Policy
+- Главный приоритет любой реализации — согласованная актуальная спека (OpenSpec / approved spec source-of-truth для контура).
+- Если спеки нет, она неполная, противоречивая или не фиксирует API/contracts/capability boundaries, сначала нужно довести спеку до согласованного состояния и только потом приступать к реализации.
+- Изменения API, RPC, schema contracts, payload shape, capability boundaries и access semantics без зафиксированной и согласованной спеки запрещены.
+- Если реализация расходится со спекой, приоритет у спеки; сначала исправляется/уточняется spec-source-of-truth, затем код.
+- Любой owner-facing triage обязан явно ответить: какая спека является source-of-truth, полна ли она и разрешает ли текущую реализацию.
