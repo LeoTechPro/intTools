@@ -71,6 +71,8 @@
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
 - `pwsh -File /int/tools/scripts/codex/bootstrap_windows_toolchain.ps1 -AllowUserFallback` — idempotent bootstrap Windows CLI-toolchain (`rg`, `fd`, `yq`, `uv`, `pnpm`, `terraform`, `make`, PATH-normalization, fallback для `cmake/7z`);
 - `pwsh -File /int/tools/scripts/codex/codex_preflight.ps1` — preflight-проверка ключевых CLI с machine-readable режимом `-Json`;
+- `pwsh -File /int/tools/codex/bin/int_git_sync_gate.ps1 -Stage start` — обязательный start-gate для top-level repo в `/int/*` (clean-tree + `pull --ff-only`);
+- `pwsh -File /int/tools/codex/bin/int_git_sync_gate.ps1 -Stage finish -Push` — обязательный finish-gate (clean-tree + push всех `ahead>0` репозиториев);
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
 - `bash /int/tools/openclaw/ops/verify.sh` — проверка overlay OpenClaw;
 - `AUTH_TYPE=oauth-personal HOST=127.0.0.1 PORT=11434 npm start` из `gemini-openai-proxy/` — локальный запуск proxy.
@@ -133,6 +135,7 @@
 ## Git Branch Policy
 
 - для каждого checkout/worktree локально включаем `git config core.hooksPath .githooks`, чтобы активировать tracked guardrail из `.githooks/pre-push`;
+- для multi-machine работы в `/int/*` обязателен двухфазный sync-gate: `int_git_sync_gate.ps1 -Stage start` до правок и `int_git_sync_gate.ps1 -Stage finish -Push` перед закрытием задачи;
 - tracked `.githooks/pre-push` дополнительно запускает `python -m unittest codex.tests.test_publish_repo -q` как smoke-gate только для push в `main`; non-main push этим smoke-path не блокируются;
 - любой push в удалённый `main` требует явный `ALLOW_MAIN_PUSH=1` и допускается только из локальной `main`;
 - push в `dev` и другие non-main branches этим repo-local guardrail не ограничивается.
