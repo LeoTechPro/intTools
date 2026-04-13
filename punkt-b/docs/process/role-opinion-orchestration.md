@@ -9,14 +9,14 @@
 - Независимость мнений обеспечивается отдельными `codex exec --ephemeral` запусками без shared transcript.
 - Teamlead orchestrator обязателен перед green-milestone commit и в финальном finish.
 - Milestone commit делается автоматически после зелёного workstream без отдельного owner prompt.
-- Если acceptance checklist в issue зелёный, финальный путь — `issue:push:done` + cleanup issue-scoped `~/.codex/tmp/punctb`.
+- Если acceptance checklist в issue зелёный, финальный путь — `issue:push:done` + cleanup issue-scoped `~/.codex/tmp/punkt-b`.
 
 ## Артефакты процесса
 - Matrix classification: `templates/swarm-risk-matrix.yaml`
 - Role opinion schema: `templates/role-opinion-result.schema.json`
 - Orchestrator: `ops/teamlead/teamlead_orchestrator.sh`
 - Helper classifier: `ops/teamlead/role_opinion_matrix.py`
-- Runtime artifacts: `~/.codex/tmp/punctb/teamlead-orchestrator/<issue>/...`
+- Runtime artifacts: `~/.codex/tmp/punkt-b/teamlead-orchestrator/<issue>/...`
 
 ## Роли по умолчанию
 - Visual/UI change: `frontend-role` + `frontend-design`, при маршрутах/guard/entry additionally `qa-role`
@@ -35,5 +35,5 @@
 ## Цикл finish
 1. `teamlead_orchestrator --mode finish` запускается по финальному scope/range в read-only режиме.
 2. `issue:push:done` дополнительно проверяет acceptance checklist.
-3. После успешного push и `issue:done` чистятся issue-scoped временные артефакты в `~/.codex/tmp/punctb`.
+3. После успешного push и `issue:done` чистятся issue-scoped временные артефакты в `~/.codex/tmp/punkt-b`.
 4. Владелец подключается только при `blocked`/`owner_choice_required`.

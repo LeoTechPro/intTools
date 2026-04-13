@@ -1,6 +1,6 @@
 ---
 name: getcourse
-description: "Безопасная работа с API GetCourse для punctb.pro: хранение ключей, read-only проверка, обезличенные шаблоны запросов и ссылки на актуальные материалы."
+description: "Безопасная работа с API GetCourse для punkt-b.pro: хранение ключей, read-only проверка, обезличенные шаблоны запросов и ссылки на актуальные материалы."
 ---
 
 # GetCourse
@@ -8,7 +8,7 @@ description: "Безопасная работа с API GetCourse для punctb.p
 ## Когда использовать
 
 Используй этот навык, когда нужно:
-- работать с API GetCourse в проекте `punctb.pro`;
+- работать с API GetCourse в проекте `punkt-b.pro`;
 - проверить/описать возможности API-ключа без изменения данных;
 - быстро найти актуальные официальные материалы по GetCourse API.
 
@@ -18,11 +18,11 @@ description: "Безопасная работа с API GetCourse для punctb.p
 - Не выполняй операции создания/редактирования (`add`, `update`, изменение статусов), если пользователь явно не попросил.
 - Не печатай реальные ключи в выводе, логах и коде.
 
-## Где лежат данные проекта punctb.pro
+## Где лежат данные проекта punkt-b.pro
 
 - Локальные ключи интеграций хранятся в: `/int/assess/backend/.env`.
 - Переменная Bitrix24: `BITRIX_WEBHOOK_BASE_URL`.
-- Переменная GetCourse LMS: `GETCOURSE_LMS_PUNCTB_PRO_API_KEY`.
+- Переменная GetCourse LMS: `GETCOURSE_LMS_PUNKTB_PRO_API_KEY`.
 - Значения секретов не коммитить и не дублировать в markdown/репозиторий.
 
 ## Обезличенный безопасный workflow

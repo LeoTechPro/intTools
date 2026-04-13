@@ -280,8 +280,8 @@ refresh_scope_contract_state() {
   if [[ "$full_mode" == "1" ]]; then
     docs_sync_mode="blocking"
   fi
-  if [[ "${PUNCTB_DOCS_SYNC_MODE:-auto}" != "auto" ]]; then
-    docs_sync_mode="${PUNCTB_DOCS_SYNC_MODE}"
+  if [[ "${PUNKTB_DOCS_SYNC_MODE:-auto}" != "auto" ]]; then
+    docs_sync_mode="${PUNKTB_DOCS_SYNC_MODE}"
   fi
   if [[ "$docs_sync_mode" != "blocking" && "$docs_sync_mode" != "advisory" ]]; then
     echo "[INVALID_DOCS_SYNC_MODE] expected blocking|advisory, got: ${docs_sync_mode}" >&2
@@ -304,7 +304,7 @@ refresh_scope_contract_state() {
     exit 2
   fi
 
-  if [[ "$full_mode" == "1" && ( "$scope_has_major_change" == "1" || "$scope_has_migration" == "1" || "$scope_has_release_main" == "1" || "${PUNCTB_FORCE_TEAMLEAD:-NO}" == "YES" ) ]]; then
+  if [[ "$full_mode" == "1" && ( "$scope_has_major_change" == "1" || "$scope_has_migration" == "1" || "$scope_has_release_main" == "1" || "${PUNKTB_FORCE_TEAMLEAD:-NO}" == "YES" ) ]]; then
     teamlead_required=1
   fi
 }
@@ -475,7 +475,7 @@ if ! assert_issue_files; then
   exit 2
 fi
 
-finish_loop_max="${PUNCTB_FINISH_LOOP_MAX:-2}"
+finish_loop_max="${PUNKTB_FINISH_LOOP_MAX:-2}"
 if ! [[ "$finish_loop_max" =~ ^[1-9][0-9]*$ ]]; then
   echo "[INVALID_FINISH_LOOP_MAX] expected positive integer, got: $finish_loop_max" >&2
   exit 2
@@ -622,7 +622,7 @@ PY
     run_autoreview=1
   fi
 
-  if [[ "${PUNCTB_AUTOREVIEW_BYPASS:-NO}" != "YES" && "$run_autoreview" == "1" && ${#non_migration_scope[@]} -gt 0 ]]; then
+  if [[ "${PUNKTB_AUTOREVIEW_BYPASS:-NO}" != "YES" && "$run_autoreview" == "1" && ${#non_migration_scope[@]} -gt 0 ]]; then
     autoreview_cmd=(bash "$autoreview_script" --issue "$issue_id")
     for file in "${non_migration_scope[@]}"; do
       autoreview_cmd+=(--file "$file")
@@ -633,8 +633,8 @@ PY
     fi
     autoreview_artifact_dir="$(python3 -c 'import json,sys; payload=json.loads(sys.stdin.read()); print(str(payload.get("artifact_dir", "")).strip())' <<< "$autoreview_json" 2>/dev/null || true)"
     approve_gate "autoreview" "system" "$autoreview_artifact_dir"
-  elif [[ "${PUNCTB_AUTOREVIEW_BYPASS:-NO}" == "YES" ]]; then
-    echo "[AUTOREVIEW_BYPASS] PUNCTB_AUTOREVIEW_BYPASS=YES; skipping autoreview gate for issue #${issue_id}" >&2
+  elif [[ "${PUNKTB_AUTOREVIEW_BYPASS:-NO}" == "YES" ]]; then
+    echo "[AUTOREVIEW_BYPASS] PUNKTB_AUTOREVIEW_BYPASS=YES; skipping autoreview gate for issue #${issue_id}" >&2
   fi
 
   if [[ "$teamlead_required" != "1" ]]; then

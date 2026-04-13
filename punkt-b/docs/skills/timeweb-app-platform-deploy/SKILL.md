@@ -1,13 +1,13 @@
 ---
 name: timeweb-app-platform-deploy
-description: "Развёртывание frontend PunctB в Timeweb App Platform и historical reference по старому Timeweb backend-контуру; актуальный prod backend живёт на отдельном VDS."
+description: "Развёртывание frontend PunktB в Timeweb App Platform и historical reference по старому Timeweb backend-контуру; актуальный prod backend живёт на отдельном VDS."
 ---
 
 # Timeweb App Platform Deploy
 
 ## Goal
 Используй этот skill, когда нужно:
-- спланировать или выполнить развёртывание frontend PunctB в Timeweb App Platform;
+- спланировать или выполнить развёртывание frontend PunktB в Timeweb App Platform;
 - свериться с ограничениями App Platform для публичного frontend-контура;
 - поднять historical context по старому backend-контуру в Timeweb без возврата к нему как к актуальному production target.
 
@@ -20,47 +20,47 @@ description: "Развёртывание frontend PunctB в Timeweb App Platform
 - Operational note: при локальной интеграции с жёсткими stdio-MCP клиентами проверь startup output сервера. Валидация `timeweb-mcp-server@0.1.3` на этой машине показала лишнюю stdout-строку `Timeweb MCP server started`, из-за чего строгому клиенту может понадобиться stdout-filter/proxy.
 
 ## Read Order
-1. Сначала открой `references/punctb-production-on-timeweb.md`.
+1. Сначала открой `references/punkt-b-production-on-timeweb.md`.
 2. Затем открой `references/timeweb-app-platform.md`.
 3. Если пользователь просит проверить `latest`/изменения UI/лимитов/поддерживаемых фич, заново открой официальные страницы Timeweb перед ответом.
 
 ## Quick Verdict For This Repo
 - `web/` разворачивается напрямую как Frontend App через режим `Other JS framework` на `Node.js 24`.
-- Продовый frontend нельзя оставлять без явных `VITE_SUPABASE_URL` и `VITE_SUPABASE_ANON_KEY`: код имеет dev-fallback и при ошибке конфигурации может уехать в `api-dev.punctb.pro`.
-- Актуальный prod backend `api.punctb.pro` больше не разворачивается в Timeweb App Platform: он живёт на отдельном VDS `5.42.105.191`.
+- Продовый frontend нельзя оставлять без явных `VITE_SUPABASE_URL` и `VITE_SUPABASE_ANON_KEY`: код имеет dev-fallback и при ошибке конфигурации может уехать в `api-dev.punkt-b.pro`.
+- Актуальный prod backend `api.punkt-b.pro` больше не разворачивается в Timeweb App Platform: он живёт на отдельном VDS `5.42.105.191`.
 - Корневой [`docker-compose.yml`](/int/assess/docker-compose.yml) теперь трактуется как production backend artifact для VDS runtime, а не для Timeweb App Platform.
-- Канонический production checkout backend на VDS: `/punctb`, отдельный clone `git@github.com:LeoTechPro/PunctB.git`, только ветка `main`.
+- Канонический production checkout backend на VDS: `/punkt-b`, отдельный clone `git@github.com:LeoTechPro/PunktB.git`, только ветка `main`.
 - Для будущего вывода старого backend с Timeweb на тот же VDS разрешён отдельный clone `/punkt-b/backend` из `git@github.com:punktbDev/punktb.git`, только ветка `master`; до owner-approved cutover любые действия в живом Timeweb backend запрещены.
 - Root `deploy/timeweb` в репозитории больше не является допустимым местом для deploy-артефактов: frontend Timeweb runbook хранится только в `references/*` этого skill.
 
-## Default Recommendation For PunctB
+## Default Recommendation For PunktB
 1. Frontend публиковать как отдельный Timeweb `Frontend App`.
-2. Backend `api.punctb.pro` держать на отдельном VDS `5.42.105.191`.
+2. Backend `api.punkt-b.pro` держать на отдельном VDS `5.42.105.191`.
 3. Dev-контур на `vds.intdata.pro` сохранять отдельно, но на том же tracked `docker-compose.yml` и root `.env`.
 
 ## Hard DB Guardrail
-- DEV-контур `dev.punctb.pro` на текущей машине `vds.intdata.pro` использует локальный PostgreSQL этой машины; этот skill не вводит для него дополнительных запретов сверх обычных проектных правил разработки.
-- БД `77.95.201.51:5432/PunctBPro` и DSN `<REDACTED_DSN_PUNCTBPRO>` — prod БД `punctb.pro`.
-- Read-only аудит и проверки для `77.95.201.51:5432/PunctBPro` в рамках этого skill допустимы по умолчанию.
-- Любые изменения в `77.95.201.51:5432/PunctBPro` допустимы только после явного согласования владельца на конкретную операцию, когда владелец прямо понимает и осознаёт последствия и состояние до/после.
-- Без такого согласования в рамках этого skill запрещены любые mutating-операции против `77.95.201.51:5432/PunctBPro`: записи, DDL, миграции, ownership/grant-операции, rename/drop/reset и любые иные правки.
-- БД `77.95.201.51:5432/PunktB` и `77.95.201.51:5432/PunctB`, а также DSN `<REDACTED_LEGACY_DSN_PUNKB>` — запрещённые к изменениям legacy-контуры старой платформы.
-- Для `77.95.201.51:5432/PunktB` и `77.95.201.51:5432/PunctB` в рамках этого skill допустимы только read-only проверки и аудит; любые изменения запрещены при любых обстоятельствах.
+- DEV-контур `dev.punkt-b.pro` на текущей машине `vds.intdata.pro` использует локальный PostgreSQL этой машины; этот skill не вводит для него дополнительных запретов сверх обычных проектных правил разработки.
+- БД `77.95.201.51:5432/PunktBPro` и DSN `<REDACTED_DSN_PUNKTBPRO>` — prod БД `punkt-b.pro`.
+- Read-only аудит и проверки для `77.95.201.51:5432/PunktBPro` в рамках этого skill допустимы по умолчанию.
+- Любые изменения в `77.95.201.51:5432/PunktBPro` допустимы только после явного согласования владельца на конкретную операцию, когда владелец прямо понимает и осознаёт последствия и состояние до/после.
+- Без такого согласования в рамках этого skill запрещены любые mutating-операции против `77.95.201.51:5432/PunktBPro`: записи, DDL, миграции, ownership/grant-операции, rename/drop/reset и любые иные правки.
+- БД `77.95.201.51:5432/PunktB` и `77.95.201.51:5432/PunktB`, а также DSN `<REDACTED_LEGACY_DSN_PUNKB>` — запрещённые к изменениям legacy-контуры старой платформы.
+- Для `77.95.201.51:5432/PunktB` и `77.95.201.51:5432/PunktB` в рамках этого skill допустимы только read-only проверки и аудит; любые изменения запрещены при любых обстоятельствах.
 - Эти контуры запрещено смешивать и путать между собой в deploy/runbook решениях.
 
 ## Deployment Modes
 ### Mode A: Frontend Only In App Platform
-Используй, если нужно быстро вынести `punctb.pro` в App Platform, а API пока остаётся на другом контуре.
+Используй, если нужно быстро вынести `punkt-b.pro` в App Platform, а API пока остаётся на другом контуре.
 
 ### Mode B: Frontend In App Platform + Backend On VDS
-Это актуальный target для PunctB:
+Это актуальный target для PunktB:
 - frontend -> отдельный Timeweb `Frontend App`;
-- backend -> отдельный VDS `5.42.105.191` с production checkout `/punctb` и backend runtime из root `docker-compose.yml`;
+- backend -> отдельный VDS `5.42.105.191` с production checkout `/punkt-b` и backend runtime из root `docker-compose.yml`;
 - dev -> отдельный VDS contour на том же tracked `docker-compose.yml`, но со своим root `.env`.
 
 ## Workflow
 1. Проверь целевой контур и домены в `README.md`, `.env.example`, `web/src/shared/lib/supabaseClient.ts`.
-2. Для frontend используй точные настройки из `references/punctb-production-on-timeweb.md`.
+2. Для frontend используй точные настройки из `references/punkt-b-production-on-timeweb.md`.
 3. Для backend сначала пройди раздел `Блокеры и обязательные адаптации`.
 4. Не смешивай tracked compose и runtime env: root `docker-compose.yml` един для `dev` и `prod`, а различия задаются только через root `.env`.
 5. Если задача про инцидент, deploy-failure или runtime error, сначала собери read-only контекст из `Public API`: app metadata, последние deploys, app logs. Только после этого переходи к гипотезам и рекомендациям.
@@ -69,7 +69,7 @@ description: "Развёртывание frontend PunctB в Timeweb App Platform
   - `VITE_SUPABASE_URL` и `VITE_SUPABASE_ANON_KEY`;
   - auth redirects;
   - восстановление доступа;
-  - что frontend ходит в `api.punctb.pro`, а не в dev-контур.
+  - что frontend ходит в `api.punkt-b.pro`, а не в dev-контур.
 
 ## What To Avoid
 - Не предлагай Timeweb `Backend / Node.js` как прямой target для текущего backend: это не одиночный Node service, а multi-service self-hosted Supabase stack.
@@ -83,4 +83,4 @@ description: "Развёртывание frontend PunctB в Timeweb App Platform
 
 ## References
 - `references/timeweb-app-platform.md` — сжатая карта официальной документации Timeweb App Platform.
-- `references/punctb-production-on-timeweb.md` — PunctB-specific deployment matrix, exact commands, env и smoke.
+- `references/punkt-b-production-on-timeweb.md` — PunktB-specific deployment matrix, exact commands, env и smoke.

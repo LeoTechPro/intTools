@@ -1,7 +1,7 @@
 # Аудит conclusion perms/functions
 
 Дата: 2026-02-22  
-Контур: `backend + web` (локальный runtime PunctB)
+Контур: `backend + web` (локальный runtime PunktB)
 
 ## 1. Канонический источник истины
 - Хранилище заключений: `app.user_conclusions`.

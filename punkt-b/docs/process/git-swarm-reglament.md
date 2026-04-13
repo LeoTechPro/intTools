@@ -8,11 +8,11 @@
 
 ## NOW (активный режим)
 - Обязателен issue-driven flow с machine-wide `lockctl`: каждый коммит должен содержать `Refs #<issue_id>`, а файлы коммита должны иметь активные lease-locks этой же issue.
-- Hard gate: новые агентные файлы в `docs/**` запрещены (исключение только через явный owner override `PUNCTB_DOCS_OWNER_APPROVED=YES`).
+- Hard gate: новые агентные файлы в `docs/**` запрещены (исключение только через явный owner override `PUNKTB_DOCS_OWNER_APPROVED=YES`).
 - Локальные hooks (`git-hooks/commit-msg`, `git-hooks/pre-push`, `git-hooks/post-commit`) обязательны к установке (`npm run issue:hooks:install`).
 - CI fallback-аудит `issue-link-audit.yml` запускается на `push`/`pull_request`.
 - Никаких автоматических git-действий (rebase/pull/push/commit) без явного запуска команд владельцем/агентом.
-- Автоматизированные сценарии (очереди/автопуш/cron), которые выполняют git без прямого запуска команды человеком, должны требовать явного opt-in владельца (`PUNCTB_GIT_APPROVED=YES`).
+- Автоматизированные сценарии (очереди/автопуш/cron), которые выполняют git без прямого запуска команды человеком, должны требовать явного opt-in владельца (`PUNKTB_GIT_APPROVED=YES`).
 - Вся обычная разработка и все штатные push идут только через ветку `dev`.
 - `main` трактуется как prod-like ветка и обновляется только fast-forward promotion на commit, уже находящийся в `origin/dev`.
 - Дополнительные рабочие ветки вне `dev` не используются без явной команды владельца.

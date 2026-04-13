@@ -1,7 +1,7 @@
 # Аудит event-системы и legacy-cleanup (2026-02-21)
 
 ## 1. Контекст и объём
-- Контур: локальный репозиторий `/int/assess`, локальная БД `intdata`, read-only smoke `https://api.punctb.pro`.
+- Контур: локальный репозиторий `/int/assess`, локальная БД `intdata`, read-only smoke `https://api.punkt-b.pro`.
 - Цель: проверить и зафиксировать реальное состояние event-centric модели (`event_log` + timeline + notifications), устранить runtime-остатки legacy, синхронизировать документацию.
 - Вне scope: архивные миграции (`backend/init/migrations/archive/**`) как historical/no-runtime.
 
@@ -127,7 +127,7 @@ order by marker;
 - `app.collect_specialist_timeline(`: `0`
 - `impersonation`: `0`
 
-## 5. Read-only API smoke (`api.punctb.pro`)
+## 5. Read-only API smoke (`api.punkt-b.pro`)
 Проверка `POST /rest/v1/rpc/user_profile_detail` с anon key:
 - HTTP: `401`
 - payload: `{"code":"42501", ... "message":"permission denied for function user_profile_detail"}`

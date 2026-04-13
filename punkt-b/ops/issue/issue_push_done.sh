@@ -274,13 +274,13 @@ with open(approval_file, "w", encoding="utf-8") as fh:
 PY
 trap '[[ -n "${approval_file:-}" ]] && rm -f -- "$approval_file"' EXIT
 
-PUNCTB_PUSH_GATE_APPROVAL_FILE="$approval_file" git -C "$repo_root" push
+PUNKTB_PUSH_GATE_APPROVAL_FILE="$approval_file" git -C "$repo_root" push
 
 done_cmd=(bash "$done_script" --issue "$issue_id")
 if [[ -n "$repo_arg" ]]; then
   done_cmd+=( --repo "$repo_arg" )
 fi
-PUNCTB_PUSH_GATE_APPROVAL_FILE="$approval_file" "${done_cmd[@]}" >/dev/null
+PUNKTB_PUSH_GATE_APPROVAL_FILE="$approval_file" "${done_cmd[@]}" >/dev/null
 
 cleanup_targets=(
   "$ops_runtime_root/autoreview/$issue_id"

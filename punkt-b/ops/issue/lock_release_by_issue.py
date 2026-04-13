@@ -79,7 +79,7 @@ def _lockctl_cmd(*args: str) -> list[str]:
 
 
 def _resolve_repo_root() -> Path:
-    env_root = os.environ.get("PUNCTB_REPO_ROOT", "").strip()
+    env_root = os.environ.get("PUNKTB_REPO_ROOT", "").strip()
     if env_root:
         candidate = Path(env_root).expanduser().resolve()
         resolved = _git_toplevel(candidate)

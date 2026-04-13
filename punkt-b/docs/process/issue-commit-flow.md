@@ -44,12 +44,12 @@
 npm run issue:hooks:install
 ```
 3. Machine-wide source-of-truth по локам: `lockctl` (CLI/MCP); каноническое ядро лежит в `/int/tools/lockctl/lockctl_core.py`, CLI entrypoints — `/int/tools/lockctl/lockctl.py`, `/int/tools/lockctl/lockctl`, `/int/tools/lockctl/lockctl.ps1`, `/int/tools/lockctl/lockctl.cmd`, MCP entrypoint — `/int/tools/codex/bin/mcp-lockctl.py`.
-4. Для PunctB любой write-scope должен быть предварительно закрыт активными `lockctl` lease-locks с числовым `GitHub issue id`.
+4. Для PunktB любой write-scope должен быть предварительно закрыт активными `lockctl` lease-locks с числовым `GitHub issue id`.
 
 ## Контракт `lockctl`
 - один активный writer-lock на файл;
 - ключ блокировки = `(repo_root, path_rel)`;
-- для PunctB `issue_id` обязателен и равен числовому `GitHub issue id`;
+- для PunktB `issue_id` обязателен и равен числовому `GitHub issue id`;
 - активность определяется `expires_utc > now_utc`;
 - просроченный lease не является truth и требует нового `lockctl acquire`.
 
@@ -79,7 +79,7 @@ npm run issue:hooks:install
 6. Если scope содержит `backend/init/migrations/**` или `backend/init/migration_manifest.lock`, commit-path разрешён только через `--full`, а review идёт через `dba_review_gate.sh`.
 7. Для risky/full scope запускается `autoreview_gate.sh`; pure process/docs-only scope по умолчанию не тянет LLM-review на commit-time.
 8. `teamlead_orchestrator.sh --mode milestone` обязателен только для `--full` major/risky scope или при явном форсинге.
-9. Только после зелёного full-loop `docs_boundary_guard.sh` запрещает новые `docs/**` файлы и любые tracked internal docs внутри product repo; runtime-артефакты должны оставаться только в `~/.codex/tmp/punctb/**`.
+9. Только после зелёного full-loop `docs_boundary_guard.sh` запрещает новые `docs/**` файлы и любые tracked internal docs внутри product repo; runtime-артефакты должны оставаться только в `~/.codex/tmp/punkt-b/**`.
 10. `branch_policy_audit.py validate-staged` подтверждает ветку `dev` и разрешает изменение `docs/release.md` только issue с label `release`.
 11. `gates_verify_commit.sh` вызывает global `gatesctl verify --stage commit`, проверяет обязательный receipt и возвращает `receipt_id`, `policy_version`, `scope_fingerprint`.
 12. `Refs #<id>` добавляется/валидируется через `ensure-message`, после чего в commit message обязательно дописываются `Gate-Receipt: <receipt_id>` и `Gate-Policy: <policy_version>`.
@@ -106,7 +106,7 @@ npm run issue:hooks:install
 5. Если любой обязательный check падает, gate завершает работу с `CHECK_FAILED` до LLM-review.
 6. При зелёных checks запускает `reviewer_a` в read-only; при `request_changes` допускает один fixer-pass в workspace-write только по scope и повторяет цикл до лимита.
 7. Только после `ok` от reviewer A запускает независимый `reviewer_b`; его `request_changes` тоже переводит gate в следующий bounded fixer-цикл.
-8. Итоговый summary всегда пишется в `~/.codex/tmp/punctb/autoreview/<issue>/<timestamp>/final-gate.json` с `reason`, `attempts_used`, `required_checks` и метаданными checks.
+8. Итоговый summary всегда пишется в `~/.codex/tmp/punkt-b/autoreview/<issue>/<timestamp>/final-gate.json` с `reason`, `attempts_used`, `required_checks` и метаданными checks.
 9. Основные причины отказа: `CHECK_FAILED`, `CHECK_UNAVAILABLE`, `HUMAN_GATE_REQUIRED`, `REVIEWER_*`, `FIXER_AFTER_REVIEWER_*`, `MAX_ATTEMPTS_EXCEEDED`.
 
 ## Алгоритм `teamlead_orchestrator`
@@ -127,7 +127,7 @@ npm run issue:hooks:install
 1. Для заметной пользователю задачи в обычной feature/bug issue хранится публичный текст в `## Release note`, а issue получает label `release-note`.
 2. Для выпуска создаётся отдельная `OPEN` release issue с label `release` и секцией `## Release includes` (или `## Included issues`) со списком включаемых issue-id.
 3. `npm run release:prepare -- --issue <release_issue_id>` работает только на `dev`, собирает `docs/release.md` из закрытых `release-note` issues и коммитит файл через `issue:commit --full --expand-doc-targets` под release issue.
-4. `PUNCTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue <release_issue_id> [--sha <commit>]` проверяет clean tree, fast-forward topology `main`, достижимость target SHA из `origin/dev`, branch-aware main audit и только затем делает `git push origin <sha>:main`.
+4. `PUNKTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue <release_issue_id> [--sha <commit>]` проверяет clean tree, fast-forward topology `main`, достижимость target SHA из `origin/dev`, branch-aware main audit и только затем делает `git push origin <sha>:main`.
 5. После успешного promotion release issue закрывается отдельным комментарием о выпущенном SHA.
 
 ## Базовый рабочий цикл
@@ -171,11 +171,11 @@ npm run release:prepare -- --issue 1205
 ```
 4. После review и owner-approved promotion выполнить:
 ```bash
-PUNCTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue 1205
+PUNKTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue 1205
 ```
 
 ## Finish: local vs remote
-- Команда владельца «Завершайся» закрывает локальный цикл: проверки, документация/worklog, локальный commit-path и cleanup `~/.codex/tmp/punctb`.
+- Команда владельца «Завершайся» закрывает локальный цикл: проверки, документация/worklog, локальный commit-path и cleanup `~/.codex/tmp/punkt-b`.
 - Fast local commits в `dev` допустимы, но перед push итоговый range обязан пройти `issue:push:done`.
 - `issue:commit` обязан выпустить bound receipt через `gatesctl verify -> Gate-Receipt/Gate-Policy -> bind-commit`; lock для коммитнутых путей снимается через `post-commit`, а в `issue:commit` сохранён fallback release.
 - При закрытии через `issue:done` дополнительно снимаются оставшиеся активные `lockctl` locks по `GitHub issue id`.
@@ -195,7 +195,7 @@ PUNCTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue 1205
 ### `reference-transaction`
 - блокирует создание новых локальных веток без явного owner override;
 - не блокирует только узкий bootstrap локальной `dev`, когда новая ветка создаётся ровно на текущем tip `origin/dev` (`git switch -c dev --track origin/dev`);
-- разрешает только `PUNCTB_ALLOW_NEW_BRANCH=YES` и опциональный `PUNCTB_ALLOW_BRANCH_NAME=<name>`;
+- разрешает только `PUNKTB_ALLOW_NEW_BRANCH=YES` и опциональный `PUNKTB_ALLOW_BRANCH_NAME=<name>`;
 - не влияет на обновление существующих веток и не участвует в release-path напрямую.
 
 ### `pre-push`
@@ -226,7 +226,7 @@ PUNCTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue 1205
 - `bash ops/gates/gates_verify_push.sh --range "@{upstream}..HEAD"` — thin wrapper над global `gatesctl audit-range`.
 - `bash ops/gates/gates_bind_commit.sh --issue <id> --commit <sha> --receipt <id>` — привязка receipt к коммиту и issue-audit trail.
 - `npm run release:prepare -- --issue <release_issue_id>` — собрать и закоммитить release-only запись в `docs/release.md`.
-- `PUNCTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue <release_issue_id>` — fast-forward promotion `origin/dev` -> `main`.
+- `PUNKTB_MAIN_PUSH_APPROVED=YES npm run release:main -- --issue <release_issue_id>` — fast-forward promotion `origin/dev` -> `main`.
 - `bash ops/gates/docs_boundary_guard.sh --staged --allow-owner-override` — hard gate на новые файлы в `docs/**`.
 
 ## CI fallback (`issue-link-audit.yml`)
@@ -261,7 +261,7 @@ Workflow запускается на `push` и `pull_request`:
 - Коммиты с `Fixes/Closes/Resolves #...`.
 - Коммит файлов, принадлежащих разным issue.
 - Закрытие issue без проверки синхронизации и без release активных locks по `GitHub issue id` (`issue:done` делает это автоматически).
-- Создание новых файлов в `docs/**` без owner override (`PUNCTB_DOCS_OWNER_APPROVED=YES`).
+- Создание новых файлов в `docs/**` без owner override (`PUNKTB_DOCS_OWNER_APPROVED=YES`).
 - Прямые рабочие коммиты в `main`.
 - Изменение `docs/release.md` вне release issue с label `release`.
 

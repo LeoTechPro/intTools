@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ops_home="${PUNCTB_OPS_HOME:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
-export PUNCTB_OPS_HOME="$ops_home"
+ops_home="${PUNKTB_OPS_HOME:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+export PUNKTB_OPS_HOME="$ops_home"
 
 if [[ $# -lt 1 ]]; then
-  echo "Usage: punctb-ops <command> [args...]" >&2
+  echo "Usage: punktb-ops <command> [args...]" >&2
   exit 2
 fi
 

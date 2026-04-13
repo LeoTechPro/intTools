@@ -7,14 +7,14 @@
 Приоритет N1: **не потерять изменения**. Поэтому:
 - никаких “тихих” cron-автозапусков;
 - запуск только вручную и только opt-in;
-- требуются флаги `PUNCTB_GIT_APPROVED=YES` и `ENABLE_SAFE_AUTOPUSH=1`.
+- требуются флаги `PUNKTB_GIT_APPROVED=YES` и `ENABLE_SAFE_AUTOPUSH=1`.
 
 ## Почему
 Старый подход (`git add -A && push main`) создаёт гонки и может запушить чужую незавершённую работу в prod-like ветку.
 
 ## Новый подход
 Опционально можно использовать `ops/issue/safe_autopush.sh`, который:
-- обрабатывает только явные заявки из `~/.codex/tmp/punctb/autopush/*.env`;
+- обрабатывает только явные заявки из `~/.codex/tmp/punkt-b/autopush/*.env`;
 - требует `ISSUE_ID` в заявке и коммитит только перечисленные файлы через `ops/issue/issue_commit.sh --issue <id>`;
 - блокирует пуш, если в рабочем дереве есть несвязанные изменения;
 - перед push запускает локальный `codex` CLI review по diff заявленных файлов;
@@ -31,7 +31,7 @@
 - схема ответа review: `templates/codex-review.schema.json`.
 
 ## Формат заявки
-Пример файла `~/.codex/tmp/punctb/autopush/2026-02-13-001.env`:
+Пример файла `~/.codex/tmp/punkt-b/autopush/2026-02-13-001.env`:
 
 ```bash
 REQUEST_ID=shared-org.193.frontend
@@ -43,7 +43,7 @@ TARGET_BRANCH=dev
 
 ## Явное включение (только после прямого “да” владельца)
 ```bash
-PUNCTB_GIT_APPROVED=YES ENABLE_SAFE_AUTOPUSH=1 bash ops/issue/safe_autopush.sh
+PUNKTB_GIT_APPROVED=YES ENABLE_SAFE_AUTOPUSH=1 bash ops/issue/safe_autopush.sh
 ```
 
 ## Статусы заявок
@@ -51,4 +51,4 @@ PUNCTB_GIT_APPROVED=YES ENABLE_SAFE_AUTOPUSH=1 bash ops/issue/safe_autopush.sh
 - `.blocked` — есть несвязанные грязные файлы или Codex-review не прошёл.
 - `.rejected` — invalid/forbidden request.
 
-Отчёты ревью сохраняются в `~/.codex/tmp/punctb/autopush/reports/` (`<REQUEST_ID>.json` + `<REQUEST_ID>.log`).
+Отчёты ревью сохраняются в `~/.codex/tmp/punkt-b/autopush/reports/` (`<REQUEST_ID>.json` + `<REQUEST_ID>.log`).

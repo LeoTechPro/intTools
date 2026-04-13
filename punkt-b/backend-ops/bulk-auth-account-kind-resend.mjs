@@ -16,7 +16,7 @@ try {
 }
 
 const ACCOUNT_KIND_KEY = "account_kind";
-const TEST_EMAIL_SUFFIX = "@punctb.test";
+const TEST_EMAIL_SUFFIX = "@punkt-b.test";
 const PROFILE_CHUNK_SIZE = 40;
 
 const defaultEnvPath = path.resolve(process.cwd(), ".env");
@@ -238,7 +238,7 @@ const chunkArray = (items, size) => {
 const supabaseUrl = envValue("SUPABASE_PUBLIC_URL", "SUPABASE_URL");
 const anonKey = envValue("ANON_KEY", "SUPABASE_ANON_KEY");
 const serviceRoleKey = envValue("SERVICE_ROLE_KEY", "SUPABASE_SERVICE_ROLE_KEY");
-const siteUrl = envValue("SITE_URL", "PUBLIC_SITE_URL") || "https://dev.punctb.pro";
+const siteUrl = envValue("SITE_URL", "PUBLIC_SITE_URL") || "https://dev.punkt-b.pro";
 
 if (!supabaseUrl || !anonKey || !serviceRoleKey) {
   console.error("Missing required env values: SUPABASE_PUBLIC_URL/SUPABASE_URL, ANON_KEY/SUPABASE_ANON_KEY, SERVICE_ROLE_KEY/SUPABASE_SERVICE_ROLE_KEY");

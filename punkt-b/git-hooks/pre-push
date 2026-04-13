@@ -9,7 +9,7 @@ resolver="$ops_home/ops/issue/lock_issue_resolver.py"
 docs_guard="$ops_home/ops/gates/docs_boundary_guard.sh"
 branch_policy="$ops_home/ops/issue/branch_policy_audit.py"
 gates_push_script="$ops_home/ops/gates/gates_verify_push.sh"
-approval_file="${PUNCTB_PUSH_GATE_APPROVAL_FILE:-}"
+approval_file="${PUNKTB_PUSH_GATE_APPROVAL_FILE:-}"
 
 if [[ ! -x "$resolver" ]]; then
   echo "[MISSING_RESOLVER] expected executable: $resolver" >&2
@@ -102,8 +102,8 @@ while read -r local_ref local_sha remote_ref remote_sha; do
       failed=1
       continue
     fi
-    if [[ "$target_branch" == "main" && "${PUNCTB_MAIN_PUSH_APPROVED:-NO}" != "YES" ]]; then
-      echo "[PRE_PUSH_MAIN_REJECTED] main is prod-like; set PUNCTB_MAIN_PUSH_APPROVED=YES only after owner-approved full review" >&2
+    if [[ "$target_branch" == "main" && "${PUNKTB_MAIN_PUSH_APPROVED:-NO}" != "YES" ]]; then
+      echo "[PRE_PUSH_MAIN_REJECTED] main is prod-like; set PUNKTB_MAIN_PUSH_APPROVED=YES only after owner-approved full review" >&2
       failed=1
       continue
     fi

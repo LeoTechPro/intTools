@@ -3,7 +3,7 @@
 
 const { chromium } = require('@playwright/test');
 
-const baseUrl = process.env.BASE_URL || 'https://dev.punctb.pro';
+const baseUrl = process.env.BASE_URL || 'https://dev.punkt-b.pro';
 const email = process.env.WORKSPACE_EMAIL;
 const password = process.env.WORKSPACE_PASSWORD;
 

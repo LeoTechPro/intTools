@@ -1,19 +1,19 @@
 ---
 name: n8n
-description: "Операционный skill для инстанса n8n на n8n.punctb.pro: проверка здоровья, логи, restart/update, backup/restore, nginx/TLS и безопасная работа с workflow через UI/API."
+description: "Операционный skill для инстанса n8n на n8n.punkt-b.pro: проверка здоровья, логи, restart/update, backup/restore, nginx/TLS и безопасная работа с workflow через UI/API."
 ---
 
 # n8n
 
 ## Overview
 
-Использовать этот skill, когда пользователь просит настроить, диагностировать, обновить или обслужить `n8n` на сервере `punctb.pro`.
+Использовать этот skill, когда пользователь просит настроить, диагностировать, обновить или обслужить `n8n` на сервере `punkt-b.pro`.
 Этот skill покрывает инфраструктурные операции и базовый прикладной контур workflow.
 
 ## When To Use
 
 - Установка и эксплуатация `n8n` в Docker.
-- Проверка доступности `https://n8n.punctb.pro`.
+- Проверка доступности `https://n8n.punkt-b.pro`.
 - Диагностика ошибок выполнения workflow.
 - Обновление `n8n` и контроль миграций.
 - Backup/restore базы и данных `n8n`.
@@ -28,7 +28,7 @@ description: "Операционный skill для инстанса n8n на n8
 
 ## Execution Flow
 
-1. Проверить состояние инстанса по quick-check из `references/punctb-instance.md`.
+1. Проверить состояние инстанса по quick-check из `references/punkt-b-instance.md`.
 2. Если проблема инфраструктурная: контейнер -> порт -> nginx -> TLS -> Postgres.
 3. Если проблема прикладная: логи `n8n`, состояние execution, credentials и webhook URL.
 4. Если нужен апдейт: backup -> pull/up -d -> smoke (`/healthz`, UI login page).
@@ -42,4 +42,4 @@ description: "Операционный skill для инстанса n8n на n8
 
 ## Reference
 
-- Всегда читать: `references/punctb-instance.md`.
+- Всегда читать: `references/punkt-b-instance.md`.

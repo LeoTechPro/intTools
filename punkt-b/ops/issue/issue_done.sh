@@ -55,7 +55,7 @@ repo_root="$(git rev-parse --show-toplevel)"
 lock_release_script="$ops_home/ops/issue/lock_release_by_issue.py"
 current_branch="$(git -C "$repo_root" rev-parse --abbrev-ref HEAD)"
 gates_show_cmd=(gatesctl show-receipt --repo-root "$repo_root")
-approval_file="${PUNCTB_PUSH_GATE_APPROVAL_FILE:-}"
+approval_file="${PUNKTB_PUSH_GATE_APPROVAL_FILE:-}"
 
 if [[ ! -x "$lock_release_script" ]]; then
   echo "[MISSING_LOCK_RELEASE_SCRIPT] expected executable: $lock_release_script" >&2

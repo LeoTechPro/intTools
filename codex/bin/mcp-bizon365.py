@@ -13,8 +13,8 @@ from mcp.types import ToolAnnotations
 
 
 def resolve_default_env_path() -> Path:
-    primary = Path(os.environ.get("CODEX_SECRETS_ROOT", "/int/.runtime/codex-secrets")) / "bizon365-punctb.env"
-    legacy = Path.home() / ".codex" / "var" / "bizon365-punctb.env"
+    primary = Path(os.environ.get("CODEX_SECRETS_ROOT", "/int/.runtime/codex-secrets")) / "bizon365-punkt-b.env"
+    legacy = Path.home() / ".codex" / "var" / "bizon365-punkt-b.env"
     return primary if primary.exists() else legacy
 
 

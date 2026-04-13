@@ -35,7 +35,7 @@ def _git_toplevel(start: Path) -> Path | None:
 
 
 def _repo_root() -> Path:
-    env_root = os.environ.get("PUNCTB_REPO_ROOT", "").strip()
+    env_root = os.environ.get("PUNKTB_REPO_ROOT", "").strip()
     if env_root:
         candidate = Path(env_root).expanduser().resolve()
         resolved = _git_toplevel(candidate)
@@ -55,7 +55,7 @@ def _repo_root() -> Path:
 
 
 def _resolver_path(repo_root: Path) -> Path:
-    ops_home = Path(os.environ.get("PUNCTB_OPS_HOME", Path(__file__).resolve().parents[2]))
+    ops_home = Path(os.environ.get("PUNKTB_OPS_HOME", Path(__file__).resolve().parents[2]))
     return ops_home / "ops" / "issue" / "lock_issue_resolver.py"
 
 

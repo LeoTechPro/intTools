@@ -4,7 +4,7 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$(cd "$script_dir/../lib" && pwd)/common.sh"
 
-API_BASE_URL="${API_BASE_URL:-https://api-dev.punctb.pro}"
+API_BASE_URL="${API_BASE_URL:-https://api-dev.punkt-b.pro}"
 SERVICE_ROLE_KEY="${SERVICE_ROLE_KEY:-}"
 REQUEST_TIMEOUT="${REQUEST_TIMEOUT:-20}"
 API_HOST_HEADER="${API_HOST_HEADER:-}"

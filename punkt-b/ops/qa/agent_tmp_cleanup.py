@@ -7,13 +7,13 @@ import sys
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Remove files older than N days from the PunctB ops runtime temp directory."
+        description="Remove files older than N days from the PunktB ops runtime temp directory."
     )
     parser.add_argument(
         "--dir",
         type=Path,
         default=None,
-        help="Target directory (default: ~/.codex/tmp/punctb)",
+        help="Target directory (default: ~/.codex/tmp/punkt-b)",
     )
     parser.add_argument(
         "--days",
@@ -30,7 +30,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
-    default_dir = Path.home() / ".codex" / "tmp" / "punctb"
+    default_dir = Path.home() / ".codex" / "tmp" / "punkt-b"
 
     args = parse_args()
     target_dir = (args.dir or default_dir).resolve()

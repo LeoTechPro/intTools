@@ -1,4 +1,4 @@
-# PunctB -> Timeweb: frontend runbook и historical backend notes
+# PunktB -> Timeweb: frontend runbook и historical backend notes
 
 Проверено по коду и документации репозитория `2026-03-08`.
 
@@ -7,18 +7,18 @@
 ## 1. Краткий вывод
 - `web` публикуется как отдельный Timeweb `Frontend App`.
 - `backend` больше не публикуется в Timeweb App Platform: актуальный production backend живёт на отдельном VDS `5.42.105.191`.
-- Production checkout backend на VDS: `/punctb` как отдельный clone `git@github.com:LeoTechPro/PunctB.git`, только ветка `main`.
+- Production checkout backend на VDS: `/punkt-b` как отдельный clone `git@github.com:LeoTechPro/PunktB.git`, только ветка `main`.
 - Для миграции backend старой платформы допускается второй отдельный clone `/punkt-b/backend` из `git@github.com:punktbDev/punktb.git`, только ветка `master`.
 - Dev-контур на `vds.intdata.pro` не мигрирует и запускается только через явные `*.dev.yml`.
 
 ## DB Guardrail
-- DEV-контур `dev.punctb.pro` на текущей машине `vds.intdata.pro` использует локальный PostgreSQL этой машины; для него этот runbook не вводит новых ограничений сверх обычных проектных правил разработки.
-- БД `77.95.201.51:5432/PunctBPro` и DSN `<REDACTED_DSN_PUNCTBPRO>` считать prod БД `punctb.pro`.
-- Read-only аудит и проверки для `77.95.201.51:5432/PunctBPro` допустимы по умолчанию.
-- Любые изменения в `77.95.201.51:5432/PunctBPro` допускаются только после явного согласования владельца на конкретную операцию, когда владелец прямо понимает и осознаёт последствия и состояние до/после.
-- Без такого согласования запрещены любые записи и structural changes против `77.95.201.51:5432/PunctBPro`: `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, DDL, миграции, rename/drop/reset, смена владельца, `GRANT/REVOKE` и любые иные правки.
-- БД `77.95.201.51:5432/PunktB` и `77.95.201.51:5432/PunctB`, а также DSN `<REDACTED_LEGACY_DSN_PUNKB>` считать запрещёнными к изменениям legacy-контурами старой платформы.
-- Для `77.95.201.51:5432/PunktB` и `77.95.201.51:5432/PunctB` допустимы только read-only проверки и аудит; любые mutating-операции запрещены при любых обстоятельствах.
+- DEV-контур `dev.punkt-b.pro` на текущей машине `vds.intdata.pro` использует локальный PostgreSQL этой машины; для него этот runbook не вводит новых ограничений сверх обычных проектных правил разработки.
+- БД `77.95.201.51:5432/PunktBPro` и DSN `<REDACTED_DSN_PUNKTBPRO>` считать prod БД `punkt-b.pro`.
+- Read-only аудит и проверки для `77.95.201.51:5432/PunktBPro` допустимы по умолчанию.
+- Любые изменения в `77.95.201.51:5432/PunktBPro` допускаются только после явного согласования владельца на конкретную операцию, когда владелец прямо понимает и осознаёт последствия и состояние до/после.
+- Без такого согласования запрещены любые записи и structural changes против `77.95.201.51:5432/PunktBPro`: `INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, DDL, миграции, rename/drop/reset, смена владельца, `GRANT/REVOKE` и любые иные правки.
+- БД `77.95.201.51:5432/PunktB` и `77.95.201.51:5432/PunktB`, а также DSN `<REDACTED_LEGACY_DSN_PUNKB>` считать запрещёнными к изменениям legacy-контурами старой платформы.
+- Для `77.95.201.51:5432/PunktB` и `77.95.201.51:5432/PunktB` допустимы только read-only проверки и аудит; любые mutating-операции запрещены при любых обстоятельствах.
 
 ## 2. Что именно есть в проекте сейчас
 
@@ -33,7 +33,7 @@
   - `VITE_SUPABASE_REALTIME_ENABLED` (опционально, по умолчанию в коде включён)
 
 ### Frontend-specific risk
-- В [`web/src/shared/lib/supabaseClient.ts`](/int/assess/web/src/shared/lib/supabaseClient.ts) есть fallback на `https://api-dev.punctb.pro` и dev anon key.
+- В [`web/src/shared/lib/supabaseClient.ts`](/int/assess/web/src/shared/lib/supabaseClient.ts) есть fallback на `https://api-dev.punkt-b.pro` и dev anon key.
 - Следствие: если в проде забыть `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`, frontend может начать работать против dev-контура.
 - Для production это считать hard blocker конфигурации.
 
@@ -55,11 +55,11 @@
 ### Backend-specific risks
 - Root [`docker-compose.yml`](/int/assess/docker-compose.yml) теперь один для `dev` и `prod`; различие между контурами задаётся только root `.env`.
 - Для актуального VDS backend file-backed storage допустим и уже каноничен; S3 остаётся только опциональным backend mode, а не обязательным production-требованием.
-- Несколько backend-функций используют fallback `SITE_URL=https://dev.punctb.pro`, поэтому `SITE_URL` и `SUPABASE_PUBLIC_URL` в production обязательны.
+- Несколько backend-функций используют fallback `SITE_URL=https://dev.punkt-b.pro`, поэтому `SITE_URL` и `SUPABASE_PUBLIC_URL` в production обязательны.
 
 ## 3. Матрица применимости Timeweb App Platform
 
-| Часть PunctB | Режим Timeweb | Статус | Комментарий |
+| Часть PunktB | Режим Timeweb | Статус | Комментарий |
 | --- | --- | --- | --- |
 | `web/` | `Frontend -> Other JS framework` | `YES` | Прямой target |
 | `backend` как single Node app | `Backend` | `NO` | Это не одиночный Node/API процесс |
@@ -69,12 +69,12 @@
 ## 4. Рекомендуемая целевая схема
 
 ### Вариант 1. Актуальный production contour
-1. Frontend (`punctb.pro`) -> Timeweb App Platform Frontend.
-2. Backend (`api.punctb.pro`) -> отдельный prod VDS `5.42.105.191`.
+1. Frontend (`punkt-b.pro`) -> Timeweb App Platform Frontend.
+2. Backend (`api.punkt-b.pro`) -> отдельный prod VDS `5.42.105.191`.
 3. PostgreSQL -> нативно на том же VDS, вне Docker Compose.
 
 ### Вариант 2. Historical fallback, неканонический
-1. Frontend (`punctb.pro`) можно продолжать держать в Timeweb Apps.
+1. Frontend (`punkt-b.pro`) можно продолжать держать в Timeweb Apps.
 2. Старый backend можно заранее подготовить на VDS через `/punkt-b/backend`, но не считать cutover завершённым без отдельного owner decision и без остановки живого Timeweb backend в рамках отдельного окна переключения.
 
 ## 5. Frontend: точные настройки в Timeweb
@@ -97,10 +97,10 @@ web/dist
 
 ### Обязательные env для frontend app
 ```env
-VITE_SUPABASE_URL=https://api.punctb.pro
+VITE_SUPABASE_URL=https://api.punkt-b.pro
 VITE_SUPABASE_ANON_KEY=<prod-anon-key>
 VITE_SUPABASE_REALTIME_ENABLED=true
-VITE_PUNCTB_REQUIRE_EXPLICIT_SUPABASE_CONFIG=true
+VITE_PUNKTB_REQUIRE_EXPLICIT_SUPABASE_CONFIG=true
 ```
 
 Последняя переменная включает strict gate, который запрещает production frontend молча уходить на dev Supabase defaults.
@@ -109,22 +109,22 @@ VITE_PUNCTB_REQUIRE_EXPLICIT_SUPABASE_CONFIG=true
 1. Открыть `/`.
 2. Открыть `/login`.
 3. Проверить прямой вход на client-side route вроде `/<slug>` и `/conclusions`.
-4. Убедиться, что frontend ходит в `api.punctb.pro`, а не в `api-dev.punctb.pro`.
+4. Убедиться, что frontend ходит в `api.punkt-b.pro`, а не в `api-dev.punkt-b.pro`.
 5. Проверить авторизацию и восстановление доступа.
 
 ### Frontend smoke: terminal snippet
 ```bash
-export PUNCTB_PROD_APP_URL=https://punctb.pro
-export PUNCTB_PROD_API_URL=https://api.punctb.pro
-export PUNCTB_PROD_ANON_KEY=<prod-anon-key>
+export PUNKTB_PROD_APP_URL=https://punkt-b.pro
+export PUNKTB_PROD_API_URL=https://api.punkt-b.pro
+export PUNKTB_PROD_ANON_KEY=<prod-anon-key>
 
-curl -fsS "${PUNCTB_PROD_APP_URL%/}/" >/dev/null
-curl -fsS "${PUNCTB_PROD_APP_URL%/}/login" >/dev/null
-curl -fsS "${PUNCTB_PROD_API_URL%/}/healthz"
+curl -fsS "${PUNKTB_PROD_APP_URL%/}/" >/dev/null
+curl -fsS "${PUNKTB_PROD_APP_URL%/}/login" >/dev/null
+curl -fsS "${PUNKTB_PROD_API_URL%/}/healthz"
 curl -fsS \
-  -H "apikey: ${PUNCTB_PROD_ANON_KEY}" \
-  -H "Authorization: Bearer ${PUNCTB_PROD_ANON_KEY}" \
-  "${PUNCTB_PROD_API_URL%/}/functions/v1/main"
+  -H "apikey: ${PUNKTB_PROD_ANON_KEY}" \
+  -H "Authorization: Bearer ${PUNKTB_PROD_ANON_KEY}" \
+  "${PUNKTB_PROD_API_URL%/}/functions/v1/main"
 ```
 
 ## 6. Historical backend notes
@@ -151,7 +151,7 @@ curl -fsS \
 - У актуального backend на VDS публичный `/healthz` уже есть, но этот путь появился как часть VDS runtime canon, а не как отдельный App Platform backend artifact.
 - Для smoke сейчас можно использовать:
 ```bash
-curl -sS https://api.punctb.pro/healthz
+curl -sS https://api.punkt-b.pro/healthz
 ```
 - Для historical App Platform backend-path этого всё равно было недостаточно: нужен был не просто path, а поддерживаемый и сопровождаемый backend artifact, который больше не является каноном проекта.
 
@@ -159,7 +159,7 @@ curl -sS https://api.punctb.pro/healthz
 
 ### Актуальный production backend canon
 1. Поддерживать root `docker-compose.yml` как production artifact для backend на VDS `5.42.105.191`.
-2. Держать production checkout только в `/punctb` и не смешивать его с dev-клонами.
+2. Держать production checkout только в `/punkt-b` и не смешивать его с dev-клонами.
 3. Не возвращать backend в Timeweb App Platform как default target без отдельного owner decision.
 4. Сохранять `kong`, auth, postgrest, realtime, storage, functions в одном backend runtime-контуре на VDS.
 5. PostgreSQL держать нативно на хосте VDS, не контейнером.
@@ -174,10 +174,10 @@ curl -sS https://api.punctb.pro/healthz
 
 ### Базовые env
 ```env
-SUPABASE_PUBLIC_URL=https://api.punctb.pro
-SUPABASE_URL=https://api.punctb.pro
-SITE_URL=https://punctb.pro
-ADDITIONAL_REDIRECT_URLS=https://punctb.pro,https://punctb.pro/recovery,https://punctb.pro/reset-password,https://diag.punctb.pro
+SUPABASE_PUBLIC_URL=https://api.punkt-b.pro
+SUPABASE_URL=https://api.punkt-b.pro
+SITE_URL=https://punkt-b.pro
+ADDITIONAL_REDIRECT_URLS=https://punkt-b.pro,https://punkt-b.pro/recovery,https://punkt-b.pro/reset-password,https://diag.punkt-b.pro
 ```
 
 ### DB env
@@ -232,30 +232,30 @@ BITRIX_WEBHOOK_BASE_URL=<secret>
 ## 9. Домены
 
 ### Рекомендуемое соответствие
-- `punctb.pro` -> frontend app
-- `api.punctb.pro` -> backend public gateway (`kong`)
-- `admin.punctb.pro` -> optional studio/admin app
-- `diag.punctb.pro` -> добавить в redirect allow-list, если он остаётся в рабочем сценарии
+- `punkt-b.pro` -> frontend app
+- `api.punkt-b.pro` -> backend public gateway (`kong`)
+- `admin.punkt-b.pro` -> optional studio/admin app
+- `diag.punkt-b.pro` -> добавить в redirect allow-list, если он остаётся в рабочем сценарии
 
 ### Обязательная синхронизация доменов
-- frontend env `VITE_SUPABASE_URL` должен смотреть в `api.punctb.pro`
-- backend `SITE_URL` должен смотреть в `punctb.pro`
-- backend `SUPABASE_PUBLIC_URL` должен смотреть в `api.punctb.pro`
+- frontend env `VITE_SUPABASE_URL` должен смотреть в `api.punkt-b.pro`
+- backend `SITE_URL` должен смотреть в `punkt-b.pro`
+- backend `SUPABASE_PUBLIC_URL` должен смотреть в `api.punkt-b.pro`
 - `ADDITIONAL_REDIRECT_URLS` должен включать все recovery/reset/diag сценарии
 
 ## 10. Smoke checklist после продового cutover
 
 ### Frontend
-1. `punctb.pro` открывается по HTTPS.
+1. `punkt-b.pro` открывается по HTTPS.
 2. SPA-маршруты открываются напрямую без белого экрана.
 3. Логин и logout работают.
-4. После логина запросы идут в `api.punctb.pro`.
+4. После логина запросы идут в `api.punkt-b.pro`.
 
 ### Backend
 1. Публичный gateway отвечает на базовый smoke-запрос.
 2. `curl -H "apikey: ..."` на `/functions/v1/main` возвращает `ok: true`.
 3. Auth magic link / recovery письма приходят с правильными ссылками.
-4. Edge Functions, которые используют `SITE_URL`, больше не генерируют `dev.punctb.pro`.
+4. Edge Functions, которые используют `SITE_URL`, больше не генерируют `dev.punkt-b.pro`.
 5. Upload/download через storage проходят на новом backend.
 6. Realtime-подключение клиента работает.
 
@@ -277,5 +277,5 @@ BITRIX_WEBHOOK_BASE_URL=<secret>
 2. Storage вынесен в S3-compatible backend.
 3. Добавлен public health endpoint.
 4. Все prod env собраны без dev-fallback.
-5. Доменная схема `punctb.pro` / `api.punctb.pro` / optional `admin.punctb.pro` протестирована на технических доменах.
+5. Доменная схема `punkt-b.pro` / `api.punkt-b.pro` / optional `admin.punkt-b.pro` протестирована на технических доменах.
 6. Пройден полный smoke по login, diagnostics, conclusions, notifications и uploads.

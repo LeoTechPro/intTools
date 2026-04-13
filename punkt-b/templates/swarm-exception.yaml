@@ -1,7 +1,7 @@
 version: 1
 exception_id: exc-2026-02-13-001
 scope:
-  repo: punctb
+  repo: punkt-b
   branch: main
   change_ref: PR-or-commit-id
 reason: short business/incident reason

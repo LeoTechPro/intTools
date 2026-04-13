@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ -n "${PUNCTB_OPS_HOME:-}" ]]; then
-  ops_home="${PUNCTB_OPS_HOME}"
+if [[ -n "${PUNKTB_OPS_HOME:-}" ]]; then
+  ops_home="${PUNKTB_OPS_HOME}"
 else
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   case "$script_dir" in
@@ -18,11 +18,11 @@ else
   esac
 fi
 
-repo_root="${PUNCTB_REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
-ops_runtime_root="${PUNCTB_OPS_RUNTIME_ROOT:-$HOME/.codex/tmp/punctb}"
+repo_root="${PUNKTB_REPO_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+ops_runtime_root="${PUNKTB_OPS_RUNTIME_ROOT:-$HOME/.codex/tmp/punkt-b}"
 
-export PUNCTB_OPS_HOME="$ops_home"
-export PUNCTB_REPO_ROOT="$repo_root"
-export PUNCTB_OPS_RUNTIME_ROOT="$ops_runtime_root"
+export PUNKTB_OPS_HOME="$ops_home"
+export PUNKTB_REPO_ROOT="$repo_root"
+export PUNKTB_OPS_RUNTIME_ROOT="$ops_runtime_root"
 
 mkdir -p "$ops_runtime_root"

@@ -12,7 +12,7 @@ Usage:
 
 Rules:
 - Blocks NEW files in docs/** (status A) unless owner override is enabled.
-- Internal ops/process docs live outside the product repo in `$PUNCTB_OPS_HOME/docs/**`.
+- Internal ops/process docs live outside the product repo in `$PUNKTB_OPS_HOME/docs/**`.
 EOF
 }
 
@@ -78,9 +78,9 @@ while IFS= read -r -d '' status && IFS= read -r -d '' path; do
 
 done < <(collect_changes)
 
-if [[ "$allow_owner_override" -eq 1 && "${PUNCTB_DOCS_OWNER_APPROVED:-NO}" == "YES" ]]; then
+if [[ "$allow_owner_override" -eq 1 && "${PUNKTB_DOCS_OWNER_APPROVED:-NO}" == "YES" ]]; then
   if [[ ${#docs_new_violations[@]} -gt 0 ]]; then
-    echo "[DOCS_BOUNDARY_OVERRIDE] owner override accepted via PUNCTB_DOCS_OWNER_APPROVED=YES"
+    echo "[DOCS_BOUNDARY_OVERRIDE] owner override accepted via PUNKTB_DOCS_OWNER_APPROVED=YES"
   fi
   docs_new_violations=()
 fi
@@ -94,8 +94,8 @@ if [[ ${#docs_new_violations[@]} -gt 0 ]]; then
   for path in "${docs_new_violations[@]}"; do
     echo " - $path" >&2
   done
-  echo "For explicit owner exception set PUNCTB_DOCS_OWNER_APPROVED=YES and pass --allow-owner-override." >&2
+  echo "For explicit owner exception set PUNKTB_DOCS_OWNER_APPROVED=YES and pass --allow-owner-override." >&2
 fi
 
-echo "Internal process docs live in \$PUNCTB_OPS_HOME/docs/**, not in /int/assess/docs/**." >&2
+echo "Internal process docs live in \$PUNKTB_OPS_HOME/docs/**, not in /int/assess/docs/**." >&2
 exit 2

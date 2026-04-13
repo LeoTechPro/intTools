@@ -11,8 +11,8 @@ SRC_SSLMODE=prefer
 # Target database (write)
 DST_HOST=target-db.example
 DST_PORT=5432
-DST_DB=PunctB
-DST_USER=PunctB
+DST_DB=PunktB
+DST_USER=PunktB
 DST_PASSWORD=changeme
 # Optional TLS settings
 DST_SSLMODE=verify-full

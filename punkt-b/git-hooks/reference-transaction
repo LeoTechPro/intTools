@@ -10,8 +10,8 @@ if [[ "$state" != "prepared" ]]; then
   exit 0
 fi
 
-allow_new_branch="${PUNCTB_ALLOW_NEW_BRANCH:-NO}"
-allow_branch_name="${PUNCTB_ALLOW_BRANCH_NAME:-}"
+allow_new_branch="${PUNKTB_ALLOW_NEW_BRANCH:-NO}"
+allow_branch_name="${PUNKTB_ALLOW_BRANCH_NAME:-}"
 
 while read -r old_sha new_sha ref_name; do
   [[ -n "${ref_name:-}" ]] || continue
@@ -35,7 +35,7 @@ while read -r old_sha new_sha ref_name; do
   fi
 
   echo "[BRANCH_CREATE_BLOCKED] creating local branch '$branch_name' is forbidden without owner approval" >&2
-  echo "Use PUNCTB_ALLOW_NEW_BRANCH=YES PUNCTB_ALLOW_BRANCH_NAME=$branch_name for an explicitly approved creation." >&2
+  echo "Use PUNKTB_ALLOW_NEW_BRANCH=YES PUNKTB_ALLOW_BRANCH_NAME=$branch_name for an explicitly approved creation." >&2
   exit 1
 done
 

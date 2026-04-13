@@ -17,7 +17,7 @@ set -a
 source "${ENV_FILE}"
 set +a
 
-BASE_URL="${API_BASE_URL:-${SUPABASE_PUBLIC_URL:-https://api-dev.punctb.pro}}"
+BASE_URL="${API_BASE_URL:-${SUPABASE_PUBLIC_URL:-https://api-dev.punkt-b.pro}}"
 BASE_URL="${BASE_URL%/}"
 TOKEN="${SERVICE_ROLE_KEY:-${SUPABASE_SERVICE_ROLE_KEY:-}}"
 ATTEMPTS="${DELIVERY_WORKER_ATTEMPTS:-6}"

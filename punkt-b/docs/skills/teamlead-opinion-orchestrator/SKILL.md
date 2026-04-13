@@ -17,7 +17,7 @@ description: "Project-specific teamlead-first orchestration for independent role
   - `milestone` перед `issue:commit`
   - `finish` перед `issue:push:done`
 - После зелёного milestone коммит не откладывается “на потом”.
-- Если acceptance checklist зелёный, задача закрывается через `issue:push:done`, а issue-scoped `~/.codex/tmp/punctb` артефакты дочищаются.
+- Если acceptance checklist зелёный, задача закрывается через `issue:push:done`, а issue-scoped `~/.codex/tmp/punkt-b` артефакты дочищаются.
 
 ## Runbook
 1. Классифицируй scope через `ops/teamlead/role_opinion_matrix.py`.

@@ -197,7 +197,7 @@ def verify_table(src_conn, dst_conn, table: str, schema="public") -> Dict[str, O
                 src_sum_id=sum_id_s, dst_sum_id=sum_id_d)
 
 def main():
-    ap = argparse.ArgumentParser(description="PunctB: delta sync + verify (source->target)")
+    ap = argparse.ArgumentParser(description="PunktB: delta sync + verify (source->target)")
     ap.add_argument("--tables", help="Список таблиц через запятую (по умолчанию все из public)", default="")
     ap.add_argument("--batch-size", type=int, default=5000)
     ap.add_argument("--verify-only", action="store_true")

@@ -56,8 +56,8 @@ if [[ -z "$issue_id" ]]; then
   exit 2
 fi
 
-if [[ "${PUNCTB_MAIN_PUSH_APPROVED:-NO}" != "YES" ]]; then
-  echo "[MAIN_APPROVAL_REQUIRED] set PUNCTB_MAIN_PUSH_APPROVED=YES for release:main" >&2
+if [[ "${PUNKTB_MAIN_PUSH_APPROVED:-NO}" != "YES" ]]; then
+  echo "[MAIN_APPROVAL_REQUIRED] set PUNKTB_MAIN_PUSH_APPROVED=YES for release:main" >&2
   exit 2
 fi
 

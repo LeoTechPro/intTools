@@ -122,62 +122,62 @@ def slugify_candidate(value: str, fallback_seed: str) -> str:
 
 
 ADMINS: List[Dict] = [
-    {"email": "seed-001@punctb.test", "name": "Анна", "surname": "Романова", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Москва"},
+    {"email": "seed-001@punkt-b.test", "name": "Анна", "surname": "Романова", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Москва"},
 ]
 
 MANAGERS: List[Dict] = [
-    {"email": "seed-002@punctb.test", "name": "Екатерина", "surname": "Кирсанова", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Москва"},
-    {"email": "seed-003@punctb.test", "name": "Дмитрий", "surname": "Поляков", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Санкт-Петербург"},
-    {"email": "seed-004@punctb.test", "name": "Гузель", "surname": "Нуриева", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Казань"},
+    {"email": "seed-002@punkt-b.test", "name": "Екатерина", "surname": "Кирсанова", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Москва"},
+    {"email": "seed-003@punkt-b.test", "name": "Дмитрий", "surname": "Поляков", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Санкт-Петербург"},
+    {"email": "seed-004@punkt-b.test", "name": "Гузель", "surname": "Нуриева", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Казань"},
 ]
 
 SPECIALISTS: List[Dict] = [
-    {"email": "seed-005@punctb.test", "name": "Иван", "surname": "Иванов", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Москва", "manager_index": 0},
-    {"email": "seed-006@punctb.test", "name": "Арина", "surname": "Сутягина", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Казань", "manager_index": 1},
-    {"email": "seed-007@punctb.test", "name": "Мария", "surname": "Чаврова", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Новосибирск", "manager_index": 2},
-    {"email": "seed-008@punctb.test", "name": "Шамиль", "surname": "Абидов", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Уфа", "manager_index": 0},
-    {"email": "seed-009@punctb.test", "name": "Серафима", "surname": "Полешак", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Екатеринбург", "manager_index": 1},
-    {"email": "seed-010@punctb.test", "name": "Алина", "surname": "Можаева", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Самара", "manager_index": 2},
-    {"email": "seed-011@punctb.test", "name": "Татьяна", "surname": "Павлова", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Санкт-Петербург", "manager_index": 0},
-    {"email": "seed-012@punctb.test", "name": "Амирхан", "surname": "Бийбулатов", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Грозный", "manager_index": 1},
-    {"email": "seed-013@punctb.test", "name": "Ислам", "surname": "Еркеев", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Хабаровск", "manager_index": 2},
-    {"email": "seed-014@punctb.test", "name": "Артём", "surname": "Казюнь", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Воронеж", "manager_index": 0},
-    {"email": "seed-015@punctb.test", "name": "Михаил", "surname": "Панаитов", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Красноярск", "manager_index": 1},
-    {"email": "seed-016@punctb.test", "name": "Иван", "surname": "Дериш", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Пермь", "manager_index": 2},
+    {"email": "seed-005@punkt-b.test", "name": "Иван", "surname": "Иванов", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Москва", "manager_index": 0},
+    {"email": "seed-006@punkt-b.test", "name": "Арина", "surname": "Сутягина", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Казань", "manager_index": 1},
+    {"email": "seed-007@punkt-b.test", "name": "Мария", "surname": "Чаврова", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Новосибирск", "manager_index": 2},
+    {"email": "seed-008@punkt-b.test", "name": "Шамиль", "surname": "Абидов", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Уфа", "manager_index": 0},
+    {"email": "seed-009@punkt-b.test", "name": "Серафима", "surname": "Полешак", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Екатеринбург", "manager_index": 1},
+    {"email": "seed-010@punkt-b.test", "name": "Алина", "surname": "Можаева", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Самара", "manager_index": 2},
+    {"email": "seed-011@punkt-b.test", "name": "Татьяна", "surname": "Павлова", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Санкт-Петербург", "manager_index": 0},
+    {"email": "seed-012@punkt-b.test", "name": "Амирхан", "surname": "Бийбулатов", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Грозный", "manager_index": 1},
+    {"email": "seed-013@punkt-b.test", "name": "Ислам", "surname": "Еркеев", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Хабаровск", "manager_index": 2},
+    {"email": "seed-014@punkt-b.test", "name": "Артём", "surname": "Казюнь", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Воронеж", "manager_index": 0},
+    {"email": "seed-015@punkt-b.test", "name": "Михаил", "surname": "Панаитов", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Красноярск", "manager_index": 1},
+    {"email": "seed-016@punkt-b.test", "name": "Иван", "surname": "Дериш", "phone": "+7 900 000 00-00", "country": "Россия", "city": "Пермь", "manager_index": 2},
 ]
 
 CLIENTS: List[Dict] = [
-    {"email": "seed-017@punctb.test", "name": "Иван Иванов", "phone": "+7 900 000 00-00", "manager_index": 0, "city": "Москва", "country": "Россия"},
-    {"email": "seed-018@punctb.test", "name": "Арина Сутягина", "phone": "+7 900 000 00-00", "manager_index": 1, "city": "Казань", "country": "Россия"},
-    {"email": "seed-019@punctb.test", "name": "Мария Чаврова", "phone": "+7 900 000 00-00", "manager_index": 2, "city": "Новосибирск", "country": "Россия"},
-    {"email": "seed-020@punctb.test", "name": "Шамиль Абидов", "phone": "+7 900 000 00-00", "manager_index": 3, "city": "Уфа", "country": "Россия"},
-    {"email": "seed-021@punctb.test", "name": "Серафима Полешак", "phone": "+7 900 000 00-00", "manager_index": 4, "city": "Екатеринбург", "country": "Россия"},
-    {"email": "seed-022@punctb.test", "name": "Алина Можаева", "phone": "+7 900 000 00-00", "manager_index": 5, "city": "Самара", "country": "Россия"},
-    {"email": "seed-023@punctb.test", "name": "Татьяна Павлова", "phone": "+7 900 000 00-00", "manager_index": 6, "city": "Санкт-Петербург", "country": "Россия"},
-    {"email": "seed-024@punctb.test", "name": "Амирхан Бийбулатов", "phone": "+7 900 000 00-00", "manager_index": 7, "city": "Грозный", "country": "Россия"},
-    {"email": "seed-025@punctb.test", "name": "Ислам Еркеев", "phone": "+7 900 000 00-00", "manager_index": 8, "city": "Хабаровск", "country": "Россия"},
-    {"email": "seed-026@punctb.test", "name": "Артём Казюнь", "phone": "+7 900 000 00-00", "manager_index": 9, "city": "Воронеж", "country": "Россия"},
-    {"email": "seed-027@punctb.test", "name": "Михаил Панаитов", "phone": "+7 900 000 00-00", "manager_index": 10, "city": "Красноярск", "country": "Россия"},
-    {"email": "seed-028@punctb.test", "name": "Иван Дериш", "phone": "+7 900 000 00-00", "manager_index": 11, "city": "Пермь", "country": "Россия"},
-    {"email": "seed-029@punctb.test", "name": "Софья Олейник", "phone": "+7 900 000 00-00", "manager_index": 0, "city": "Москва", "country": "Россия"},
-    {"email": "seed-030@punctb.test", "name": "Эльмира Магомедова", "phone": "+7 900 000 00-00", "manager_index": 1, "city": "Махачкала", "country": "Россия"},
-    {"email": "seed-031@punctb.test", "name": "Елизавета Степанова", "phone": "+7 900 000 00-00", "manager_index": 2, "city": "Томск", "country": "Россия"},
-    {"email": "seed-032@punctb.test", "name": "Арсений Федотов", "phone": "+7 900 000 00-00", "manager_index": 3, "city": "Сочи", "country": "Россия"},
-    {"email": "seed-033@punctb.test", "name": "Артём Винокуров", "phone": "+7 900 000 00-00", "manager_index": 4, "city": "Белгород", "country": "Россия"},
-    {"email": "seed-034@punctb.test", "name": "Татьяна Шумская", "phone": "+7 900 000 00-00", "manager_index": 5, "city": "Ярославль", "country": "Россия"},
-    {"email": "seed-035@punctb.test", "name": "Мария Кунаева", "phone": "+7 900 000 00-00", "manager_index": 6, "city": "Омск", "country": "Россия"},
-    {"email": "seed-036@punctb.test", "name": "Сергей Титаренко", "phone": "+7 900 000 00-00", "manager_index": 7, "city": "Краснодар", "country": "Россия"},
-    {"email": "seed-037@punctb.test", "name": "Ксения Царь", "phone": "+7 900 000 00-00", "manager_index": 8, "city": "Калининград", "country": "Россия"},
-    {"email": "seed-038@punctb.test", "name": "Анна Хажипова", "phone": "+7 900 000 00-00", "manager_index": 9, "city": "Сургут", "country": "Россия"},
-    {"email": "seed-039@punctb.test", "name": "Анастасия Бахарева", "phone": "+7 900 000 00-00", "manager_index": 10, "city": "Тольятти", "country": "Россия"},
-    {"email": "seed-040@punctb.test", "name": "Кристина Иончикова", "phone": "+7 900 000 00-00", "manager_index": 11, "city": "Нижний Новгород", "country": "Россия"},
+    {"email": "seed-017@punkt-b.test", "name": "Иван Иванов", "phone": "+7 900 000 00-00", "manager_index": 0, "city": "Москва", "country": "Россия"},
+    {"email": "seed-018@punkt-b.test", "name": "Арина Сутягина", "phone": "+7 900 000 00-00", "manager_index": 1, "city": "Казань", "country": "Россия"},
+    {"email": "seed-019@punkt-b.test", "name": "Мария Чаврова", "phone": "+7 900 000 00-00", "manager_index": 2, "city": "Новосибирск", "country": "Россия"},
+    {"email": "seed-020@punkt-b.test", "name": "Шамиль Абидов", "phone": "+7 900 000 00-00", "manager_index": 3, "city": "Уфа", "country": "Россия"},
+    {"email": "seed-021@punkt-b.test", "name": "Серафима Полешак", "phone": "+7 900 000 00-00", "manager_index": 4, "city": "Екатеринбург", "country": "Россия"},
+    {"email": "seed-022@punkt-b.test", "name": "Алина Можаева", "phone": "+7 900 000 00-00", "manager_index": 5, "city": "Самара", "country": "Россия"},
+    {"email": "seed-023@punkt-b.test", "name": "Татьяна Павлова", "phone": "+7 900 000 00-00", "manager_index": 6, "city": "Санкт-Петербург", "country": "Россия"},
+    {"email": "seed-024@punkt-b.test", "name": "Амирхан Бийбулатов", "phone": "+7 900 000 00-00", "manager_index": 7, "city": "Грозный", "country": "Россия"},
+    {"email": "seed-025@punkt-b.test", "name": "Ислам Еркеев", "phone": "+7 900 000 00-00", "manager_index": 8, "city": "Хабаровск", "country": "Россия"},
+    {"email": "seed-026@punkt-b.test", "name": "Артём Казюнь", "phone": "+7 900 000 00-00", "manager_index": 9, "city": "Воронеж", "country": "Россия"},
+    {"email": "seed-027@punkt-b.test", "name": "Михаил Панаитов", "phone": "+7 900 000 00-00", "manager_index": 10, "city": "Красноярск", "country": "Россия"},
+    {"email": "seed-028@punkt-b.test", "name": "Иван Дериш", "phone": "+7 900 000 00-00", "manager_index": 11, "city": "Пермь", "country": "Россия"},
+    {"email": "seed-029@punkt-b.test", "name": "Софья Олейник", "phone": "+7 900 000 00-00", "manager_index": 0, "city": "Москва", "country": "Россия"},
+    {"email": "seed-030@punkt-b.test", "name": "Эльмира Магомедова", "phone": "+7 900 000 00-00", "manager_index": 1, "city": "Махачкала", "country": "Россия"},
+    {"email": "seed-031@punkt-b.test", "name": "Елизавета Степанова", "phone": "+7 900 000 00-00", "manager_index": 2, "city": "Томск", "country": "Россия"},
+    {"email": "seed-032@punkt-b.test", "name": "Арсений Федотов", "phone": "+7 900 000 00-00", "manager_index": 3, "city": "Сочи", "country": "Россия"},
+    {"email": "seed-033@punkt-b.test", "name": "Артём Винокуров", "phone": "+7 900 000 00-00", "manager_index": 4, "city": "Белгород", "country": "Россия"},
+    {"email": "seed-034@punkt-b.test", "name": "Татьяна Шумская", "phone": "+7 900 000 00-00", "manager_index": 5, "city": "Ярославль", "country": "Россия"},
+    {"email": "seed-035@punkt-b.test", "name": "Мария Кунаева", "phone": "+7 900 000 00-00", "manager_index": 6, "city": "Омск", "country": "Россия"},
+    {"email": "seed-036@punkt-b.test", "name": "Сергей Титаренко", "phone": "+7 900 000 00-00", "manager_index": 7, "city": "Краснодар", "country": "Россия"},
+    {"email": "seed-037@punkt-b.test", "name": "Ксения Царь", "phone": "+7 900 000 00-00", "manager_index": 8, "city": "Калининград", "country": "Россия"},
+    {"email": "seed-038@punkt-b.test", "name": "Анна Хажипова", "phone": "+7 900 000 00-00", "manager_index": 9, "city": "Сургут", "country": "Россия"},
+    {"email": "seed-039@punkt-b.test", "name": "Анастасия Бахарева", "phone": "+7 900 000 00-00", "manager_index": 10, "city": "Тольятти", "country": "Россия"},
+    {"email": "seed-040@punkt-b.test", "name": "Кристина Иончикова", "phone": "+7 900 000 00-00", "manager_index": 11, "city": "Нижний Новгород", "country": "Россия"},
 ]
 
 LEADS: List[Dict] = [
-    {"email": "seed-041@punctb.test", "name": "Алексей Погодин", "phone": "+7 900 000 00-00", "manager_index": 0, "city": "Москва", "country": "Россия", "intent": "diagnostic"},
-    {"email": "seed-042@punctb.test", "name": "Мария Журавлёва", "phone": "+7 900 000 00-00", "manager_index": 3, "city": "Екатеринбург", "country": "Россия", "intent": "diagnostic"},
-    {"email": "seed-043@punctb.test", "name": "Валерия Дроздова", "phone": "+7 900 000 00-00", "manager_index": 5, "city": "Самара", "country": "Россия", "intent": "franchise"},
-    {"email": "seed-044@punctb.test", "name": "Никита Королёв", "phone": "+7 900 000 00-00", "manager_index": 8, "city": "Хабаровск", "country": "Россия", "intent": "franchise"},
+    {"email": "seed-041@punkt-b.test", "name": "Алексей Погодин", "phone": "+7 900 000 00-00", "manager_index": 0, "city": "Москва", "country": "Россия", "intent": "diagnostic"},
+    {"email": "seed-042@punkt-b.test", "name": "Мария Журавлёва", "phone": "+7 900 000 00-00", "manager_index": 3, "city": "Екатеринбург", "country": "Россия", "intent": "diagnostic"},
+    {"email": "seed-043@punkt-b.test", "name": "Валерия Дроздова", "phone": "+7 900 000 00-00", "manager_index": 5, "city": "Самара", "country": "Россия", "intent": "franchise"},
+    {"email": "seed-044@punkt-b.test", "name": "Никита Королёв", "phone": "+7 900 000 00-00", "manager_index": 8, "city": "Хабаровск", "country": "Россия", "intent": "franchise"},
 ]
 
 
@@ -249,7 +249,7 @@ def build_sql() -> str:
     service_user_id = deterministic_uuid(SERVICE_ACCOUNT_EMAIL)
     service_app_meta = {"provider": "email", "providers": ["email"]}
     service_user_meta = {
-        "name": "PunctB Service",
+        "name": "PunktB Service",
         "surname": "Account",
         "phone": None,
     }
@@ -262,7 +262,7 @@ def build_sql() -> str:
         f"({sql_literal(str(service_user_id))}, {sql_literal(str(service_user_id))}::uuid, {json_literal({'email': SERVICE_ACCOUNT_EMAIL, 'sub': str(service_user_id), 'email_verified': True, 'phone_verified': False})}, 'email', now(), now(), now())"
     )
     service_profile_metadata = {
-        "name": "PunctB Service",
+        "name": "PunktB Service",
         "email": SERVICE_ACCOUNT_EMAIL,
     }
     service_slug = slugify_candidate(SERVICE_ACCOUNT_EMAIL, SERVICE_ACCOUNT_EMAIL)
@@ -272,7 +272,7 @@ def build_sql() -> str:
         f"'admin', "
         f"{sql_literal(SERVICE_ACCOUNT_EMAIL)}, "
         "NULL, "
-        f"{sql_literal('PunctB')}, "
+        f"{sql_literal('PunktB')}, "
         f"{sql_literal('Service')}, "
         "NULL, "
         f"{sql_literal('internal:service')}, "

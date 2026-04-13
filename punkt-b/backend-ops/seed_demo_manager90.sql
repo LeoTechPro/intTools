@@ -1,4 +1,4 @@
--- Demo dataset for specialist seed-001@punctb.test
+-- Demo dataset for specialist seed-001@punkt-b.test
 -- Creates ~10 clients with 4-5 diagnostic results each so the new React UI can be demonstrated.
 -- Usage (adjust connection string as needed):
 --   psql postgresql://supabase_admin:***@localhost:5432/intdata -f backend/scripts/seed_demo_manager90.sql
@@ -33,12 +33,12 @@ ON CONFLICT (id) DO UPDATE
 
 DO $$
 DECLARE
-  v_specialist_email constant text := 'seed-002@punctb.test';
+  v_specialist_email constant text := 'seed-002@punkt-b.test';
   v_specialist_id uuid;
   v_clients jsonb := $_clients$[
     {
       "name": "Анна Карева",
-      "email": "seed-003@punctb.test",
+      "email": "seed-003@punkt-b.test",
       "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": true,
@@ -52,7 +52,7 @@ DECLARE
     },
     {
       "name": "Борис Лоскутов",
-      "email": "seed-004@punctb.test",
+      "email": "seed-004@punkt-b.test",
       "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": true,
@@ -66,7 +66,7 @@ DECLARE
     },
     {
       "name": "Виктория Нестерова",
-      "email": "seed-005@punctb.test",
+      "email": "seed-005@punkt-b.test",
       "phone": "+7 (900) 000-00-00",
       "contact_permission": false,
       "is_phone_adult": true,
@@ -80,7 +80,7 @@ DECLARE
     },
     {
       "name": "Глеб Савинов",
-      "email": "seed-006@punctb.test",
+      "email": "seed-006@punkt-b.test",
       "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": true,
@@ -94,7 +94,7 @@ DECLARE
     },
     {
       "name": "Дарья Селиванова",
-      "email": "seed-007@punctb.test",
+      "email": "seed-007@punkt-b.test",
       "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": false,
@@ -108,7 +108,7 @@ DECLARE
     },
     {
       "name": "Егор Матвеев",
-      "email": "seed-008@punctb.test",
+      "email": "seed-008@punkt-b.test",
       "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": true,
@@ -122,7 +122,7 @@ DECLARE
     },
     {
       "name": "Жанна Лазарева",
-      "email": "seed-009@punctb.test",
+      "email": "seed-009@punkt-b.test",
       "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": true,
@@ -136,7 +136,7 @@ DECLARE
     },
     {
       "name": "Зоя Полянская",
-      "email": "seed-010@punctb.test",
+      "email": "seed-010@punkt-b.test",
       "phone": "+7 (900) 000-00-00",
       "contact_permission": false,
       "is_phone_adult": true,
@@ -150,7 +150,7 @@ DECLARE
     },
     {
       "name": "Илья Романов",
-      "email": "seed-011@punctb.test",
+      "email": "seed-011@punkt-b.test",
       "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": true,
@@ -164,7 +164,7 @@ DECLARE
     },
     {
       "name": "Кира Шевцова",
-      "email": "seed-012@punctb.test",
+      "email": "seed-012@punkt-b.test",
       "phone": "+7 (900) 000-00-00",
       "contact_permission": true,
       "is_phone_adult": false,

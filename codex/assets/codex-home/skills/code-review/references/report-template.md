@@ -1,6 +1,6 @@
 # Отчёт code review
 
-- Проект: PunctB
+- Проект: PunktB
 - Дата: YYYY-MM-DD
 - Ревьюер: Codex
 - Скоуп: <краткое описание>

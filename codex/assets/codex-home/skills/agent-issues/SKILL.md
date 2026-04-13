@@ -27,7 +27,7 @@ Work with GitHub Issues and machine-wide `lockctl` in any repo without hardcoded
 ## Workflow
 1. Locate project context from current cwd.
    - Find the project `AGENTS.md` and the machine-wide lock policy in `/home/leon/.codex/AGENTS.md`.
-   - Detect whether the project requires issue-bound locks (for punctb: yes, `issue_id` in `lockctl` is mandatory).
+   - Detect whether the project requires issue-bound locks (for punkt-b: yes, `issue_id` in `lockctl` is mandatory).
    - Example command: `sed -n '1,220p' /home/leon/.codex/AGENTS.md`
 
 2. Read project rules.

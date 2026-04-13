@@ -4,17 +4,17 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$(cd "$script_dir/../lib" && pwd)/common.sh"
 
-BASE_URL="${BASE_URL:-https://dev.punctb.pro}"
+BASE_URL="${BASE_URL:-https://dev.punkt-b.pro}"
 WORKSPACE_PASSWORD="${WORKSPACE_PASSWORD:-<SECRET>}"
 
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin.demo@punctb.test}"
-SPECIALIST_EMAIL="${SPECIALIST_EMAIL:-specialist.demo@punctb.test}"
-CLIENT_EMAIL="${CLIENT_EMAIL:-client.demo@punctb.test}"
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin.demo@punkt-b.test}"
+SPECIALIST_EMAIL="${SPECIALIST_EMAIL:-specialist.demo@punkt-b.test}"
+CLIENT_EMAIL="${CLIENT_EMAIL:-client.demo@punkt-b.test}"
 
 PUBLIC_CLIENT_FIRST_NAME="${PUBLIC_CLIENT_FIRST_NAME:-Тестовый}"
 PUBLIC_CLIENT_FAMILY_NAME="${PUBLIC_CLIENT_FAMILY_NAME:-Клиент}"
 PUBLIC_CLIENT_PHONE="${PUBLIC_CLIENT_PHONE:-+7 900 000 00 00}"
-PUBLIC_CLIENT_EMAIL="${PUBLIC_CLIENT_EMAIL:-public.demo@punctb.test}"
+PUBLIC_CLIENT_EMAIL="${PUBLIC_CLIENT_EMAIL:-public.demo@punkt-b.test}"
 
 normalize_base_url() {
   printf '%s' "${1%/}"
@@ -134,7 +134,7 @@ agent-browser open "${BASE_URL}/demo.manager90/diagnostics" --session "${spec_se
 agent-browser wait 1700 --session "${spec_session}" >/dev/null || true
 spec_diag_state="$(safe_eval "${spec_session}" '(() => {
   const text = (document.body.innerText || "").replace(/\s+/g, " ").trim();
-  const match = text.match(/https:\/\/punctb\.pro\/diag\/43-professions\?[^\s]+/i);
+  const match = text.match(/https:\/\/punkt-b\.pro\/diag\/43-professions\?[^\s]+/i);
   return {
     path: location.pathname,
     url: location.href,

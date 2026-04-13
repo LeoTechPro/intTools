@@ -1,4 +1,4 @@
-# Documentation placement (PunctB)
+# Documentation placement (PunktB)
 - Root README.md: high-level overview and links only.
 - Module READMEs (backend/README.md, web/README.md, docs/README.md): detailed instructions for that module.
 - docs/content/*.md: source for /docs; treat as user-facing documentation.

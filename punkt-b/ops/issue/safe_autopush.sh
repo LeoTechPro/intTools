@@ -5,7 +5,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$(cd "$script_dir/../lib" && pwd)/common.sh"
 
 # Safe queue-based autopush:
-# - processes explicit request files from ~/.codex/tmp/punctb/autopush/
+# - processes explicit request files from ~/.codex/tmp/punkt-b/autopush/
 # - never uses git add -A
 # - refuses to run if unrelated dirty files exist
 # - refuses push when dev cannot be synced by fast-forward
@@ -24,8 +24,8 @@ mkdir -p "$REPORT_DIR"
 
 cd "$REPO_ROOT"
 
-if [[ "${PUNCTB_GIT_APPROVED:-NO}" != "YES" ]]; then
-  echo "$LOG_PREFIX refused: set PUNCTB_GIT_APPROVED=YES (owner-approved) to allow any git operations"
+if [[ "${PUNKTB_GIT_APPROVED:-NO}" != "YES" ]]; then
+  echo "$LOG_PREFIX refused: set PUNKTB_GIT_APPROVED=YES (owner-approved) to allow any git operations"
   exit 0
 fi
 

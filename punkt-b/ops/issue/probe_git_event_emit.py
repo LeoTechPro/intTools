@@ -28,7 +28,7 @@ def _repo_root() -> str:
 
 
 def _spool_path(repo_root: str) -> str:
-    override = os.getenv("PUNCTB_PROBE_GIT_SPOOL_FILE", "").strip()
+    override = os.getenv("PUNKTB_PROBE_GIT_SPOOL_FILE", "").strip()
     if override:
         return override
     return str(Path(repo_root) / ".git" / "probe-events.jsonl")

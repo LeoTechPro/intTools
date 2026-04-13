@@ -1,12 +1,12 @@
 ---
 name: agent-browser-role-smoke
-description: "Role-based smoke testing for punctb.pro via agent-browser (client/specialist/admin)."
+description: "Role-based smoke testing for punkt-b.pro via agent-browser (client/specialist/admin)."
 ---
 
 # Agent Browser Role Smoke
 
 ## Goal
-Fast role-level smoke for `punctb.pro` via `agent-browser` with fixed checks:
+Fast role-level smoke for `punkt-b.pro` via `agent-browser` with fixed checks:
 - `admin` permissions and deny markers;
 - `specialist` permissions and deny markers;
 - `client` permissions and deny markers.
@@ -21,12 +21,12 @@ For business-priority checks (client full diag + specialist/admin key flows), us
 
 ## Inputs
 Environment variables:
-- `BASE_URL` (default: `https://punctb.pro`)
+- `BASE_URL` (default: `https://punkt-b.pro`)
 - `WORKSPACE_PASSWORD` (default for e2e smoke context)
-- `ADMIN_EMAIL` (default: `admin.demo@punctb.test`)
-- `SPECIALIST_EMAIL` (default: `specialist.demo@punctb.test`)
-- `CLIENT_EMAIL` (default: `client.demo@punctb.test`)
-- `REPORT_PATH` (optional; default in `~/.codex/tmp/punctb`)
+- `ADMIN_EMAIL` (default: `admin.demo@punkt-b.test`)
+- `SPECIALIST_EMAIL` (default: `specialist.demo@punkt-b.test`)
+- `CLIENT_EMAIL` (default: `client.demo@punkt-b.test`)
+- `REPORT_PATH` (optional; default in `~/.codex/tmp/punkt-b`)
 
 ## Run
 ```bash
@@ -35,11 +35,11 @@ bash ops/agent-browser/agent_browser_role_smoke.sh
 
 Custom accounts/base URL:
 ```bash
-BASE_URL=https://punctb.pro \
+BASE_URL=https://punkt-b.pro \
 WORKSPACE_PASSWORD='******' \
-ADMIN_EMAIL='admin.demo@punctb.test' \
-SPECIALIST_EMAIL='specialist.demo@punctb.test' \
-CLIENT_EMAIL='client.demo@punctb.test' \
+ADMIN_EMAIL='admin.demo@punkt-b.test' \
+SPECIALIST_EMAIL='specialist.demo@punkt-b.test' \
+CLIENT_EMAIL='client.demo@punkt-b.test' \
 bash ops/agent-browser/agent_browser_role_smoke.sh
 ```
 
@@ -59,7 +59,7 @@ Extra env for public new-client scenario:
 - `PUBLIC_CLIENT_FIRST_NAME` (default `Тестовый`)
 - `PUBLIC_CLIENT_FAMILY_NAME` (default `Клиент`)
 - `PUBLIC_CLIENT_PHONE` (default `+7 900 000 00 00`)
-- `PUBLIC_CLIENT_EMAIL` (default `public.demo@punctb.test`)
+- `PUBLIC_CLIENT_EMAIL` (default `public.demo@punkt-b.test`)
 
 ## Process Gate Mode
 Use the process runner to integrate this into role pipelines:
