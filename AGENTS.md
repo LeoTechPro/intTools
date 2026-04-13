@@ -76,8 +76,8 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 ## Git и завершение работы
 
 - Для любой задачи с файловыми мутациями в `/int/*` обязателен двухфазный sync-gate:
-  - `start`: `pwsh -File /int/tools/codex/bin/int_git_sync_gate.ps1 -Stage start` до первой правки.
-  - `finish`: `pwsh -File /int/tools/codex/bin/int_git_sync_gate.ps1 -Stage finish -Push` перед закрытием задачи.
+  - `start`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Windows) до первой правки.
+  - `finish`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Windows) перед закрытием задачи.
 - Запрещено начинать правки без успешного `start` и запрещено завершать задачу с локальными commit-ами `ahead>0`.
 - Автосинхронизация `git pull --ff-only` выполняется только на clean tree с корректным upstream; при любом блокере работа приостанавливается до явных инструкций владельца, в запросе владельцу нужно коротко предложить варианты дальнейших действий.
 - Любая завершённая правка в `/int/tools` считается незавершённой, пока в пределах текущей задачи не создан как минимум один локальный commit в этом repo.

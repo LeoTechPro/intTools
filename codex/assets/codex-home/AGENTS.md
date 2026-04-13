@@ -79,8 +79,8 @@ Ambiguity считается значимой только при неяснос
 - Потенциально разрушительные действия (`удаление`, `reset`, `перезапись истории`, `перезапись файлов`) выполняй только после явного подтверждения владельца.
 - Операции с удалёнными сервисами/репозиториями выполняй только по прямому запросу владельца или по явно описанному обязательному шагу утверждённого процесса.
 - Для любой задачи с мутациями в `/int/*` обязателен двухфазный sync-gate:
-  - `start`: `pwsh -File /int/tools/codex/bin/int_git_sync_gate.ps1 -Stage start`
-  - `finish`: `pwsh -File /int/tools/codex/bin/int_git_sync_gate.ps1 -Stage finish -Push`
+  - `start`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Windows)
+  - `finish`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Windows)
 - Запрещено начинать правки без успешного `start` и запрещено завершать задачу с локальными commit-ами `ahead>0`.
 - `git pull --ff-only` на чистой ветке с валидным upstream выполняй как обычный pre-work sync без отдельного разрешения владельца; если дерево грязное, upstream отсутствует или fast-forward не проходит, фиксируй это как git-блокер и эскалируй владельцу.
 - Перед любым локальным commit обязательно добавить в индекс новые файлы текущего scope и повторно выполнить `git add` для уже staged путей после каждой дополнительной правки; commit по устаревшему состоянию индекса запрещён.
