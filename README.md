@@ -246,8 +246,7 @@ npm start
 ##### Smoke
 
 ```bash
-/home/leon/.nvm/versions/node/v24.8.0/bin/node \
-  /int/tools/codex/tools/mcp-obsidian-memory/scripts/smoke-client.mjs
+node /int/tools/codex/tools/mcp-obsidian-memory/scripts/smoke-client.mjs
 ```
 
 ### `codex/tools/obsidian-desktop/`
@@ -262,6 +261,8 @@ npm start
 - `obsidian-memory.desktop` — desktop entry
 - `obsidian.json` — канонический список vault-ов
 - `install.sh` — ставит симлинки в `~/.local` и `~/.config`
+
+Этот helper остаётся owner-manual exception и не входит в automation/runtime migration для `vds.intdata.pro`.
 
 ##### Применение
 ```bash
@@ -681,9 +682,10 @@ gatesctl help verify
 
 Runtime files:
 
-- `GATESCTL_STATE_DIR=/home/leon/.codex/memories/gatesctl`
-- SQLite: `/home/leon/.codex/memories/gatesctl/gates.sqlite`
-- Event log: `/home/leon/.codex/memories/gatesctl/events.jsonl`
+- `GATESCTL_STATE_DIR` (если явно задан)
+- иначе `~/.codex/memories/gatesctl`
+- SQLite: `<state_dir>/gates.sqlite`
+- Event log: `<state_dir>/events.jsonl`
 
 ##### Common examples
 
@@ -1033,7 +1035,7 @@ Legacy in-tree runtime root decommissioned и больше не является
 - `node_modules/`, `state/`, `workspace/`, `secrets/` и live `openclaw.json` не хранятся в git;
 - `openclaw gateway install --force` остаётся базовым способом переустановки user service;
 - versioned файлы не должны содержать live token, секреты каналов или machine-specific runtime state.
-- на этой машине OpenClaw требует Node 22.12+; overlay-скрипты по умолчанию подхватывают `/home/leon/.nvm/versions/node/v24.8.0/bin`, если он установлен.
+- на этой машине OpenClaw требует Node 22.12+; overlay-скрипты по умолчанию подхватывают `$HOME/.nvm/versions/node/v24.8.0/bin`, если он установлен.
 
 Быстрые команды:
 

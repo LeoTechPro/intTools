@@ -14,7 +14,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 QUEUE_DIR="${AUTOPUSH_QUEUE_DIR:-$ops_runtime_root/autopush}"
 REPORT_DIR="$QUEUE_DIR/reports"
 LOG_PREFIX="[safe_autopush]"
-CODEX_BIN="${CODEX_BIN:-/home/leon/.local/bin/codex}"
+CODEX_BIN="${CODEX_BIN:-codex}"
 CODEX_REVIEW_SCHEMA="${CODEX_REVIEW_SCHEMA:-$ops_home/templates/codex-review.schema.json}"
 CODEX_TIMEOUT_SEC="${CODEX_TIMEOUT_SEC:-180}"
 DEFAULT_BRANCH="${DEFAULT_BRANCH:-dev}"
@@ -95,8 +95,8 @@ process_one() {
     return 0
   fi
 
-  if [[ ! -x "$CODEX_BIN" ]]; then
-    echo "$LOG_PREFIX $base blocked: codex CLI not found at $CODEX_BIN" >&2
+  if ! command -v "$CODEX_BIN" >/dev/null 2>&1; then
+    echo "$LOG_PREFIX $base blocked: codex CLI not found via CODEX_BIN=$CODEX_BIN" >&2
     mv "$req" "$QUEUE_DIR/${base}.blocked"
     return 0
   fi

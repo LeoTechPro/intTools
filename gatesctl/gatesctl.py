@@ -19,7 +19,8 @@ from typing import Any
 import yaml
 
 
-STATE_DIR = Path(os.environ.get("GATESCTL_STATE_DIR", "/home/leon/.codex/memories/gatesctl")).expanduser().resolve()
+DEFAULT_STATE_DIR = Path.home() / ".codex" / "memories" / "gatesctl"
+STATE_DIR = Path(os.environ.get("GATESCTL_STATE_DIR", str(DEFAULT_STATE_DIR))).expanduser().resolve()
 DB_PATH = STATE_DIR / "gates.sqlite"
 EVENTS_PATH = STATE_DIR / "events.jsonl"
 ISO_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
