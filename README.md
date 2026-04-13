@@ -75,6 +75,13 @@
 - `bash /int/tools/openclaw/ops/verify.sh` — проверка overlay OpenClaw;
 - `AUTH_TYPE=oauth-personal HOST=127.0.0.1 PORT=11434 npm start` из `gemini-openai-proxy/` — локальный запуск proxy.
 
+## Tailscale Private Admin Channel (v1)
+
+- Tailscale используется как приватный ops/admin канал между `local PC`, `vds.intdata.pro` и `vds.punkt-b.pro`, а не как замена публичного ingress.
+- Канонический runbook: `/int/tools/codex/docs/runbooks/tailscale-tailnet-v1.md`.
+- Для `vds.intdata.pro` сохраняется разделение host-users: `intdata` (automation/deploy), `codex` (Codex runtime), `openclaw` (OpenClaw runtime/service).
+- Для `prod` действует stricter policy: default-path только read-first и отдельный restricted SSH user; full root workflow не открывается автоматически.
+
 ## IntBrain Agent-Memory Integration
 
 - `codex/bin/mcp-intbrain.py` и `codex/bin/mcp-intbrain.sh` публикуют универсальный MCP toolset:
