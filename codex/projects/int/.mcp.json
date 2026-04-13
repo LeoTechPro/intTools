@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "firefox-default": {
+      "command": "cmd.exe",
+      "args": [
+        "/d",
+        "/s",
+        "/c",
+        "D:\\int\\tools\\codex\\bin\\mcp-firefox-default.cmd"
+      ]
+    }
+  }
+}

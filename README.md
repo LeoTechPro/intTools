@@ -37,6 +37,9 @@
 - runtime Codex живёт в `~/.codex`, а versioned overlay и bootstrap-утилиты — в `codex/`;
 - self-authored/versioned Codex wrappers и publish/tooling живут только в `codex/`, в первую очередь в `codex/bin/`; `~/.codex` не используем как source-of-truth для таких скриптов;
 - `codex/projects/` хранит tracked project overlays для runtime `~/.codex/projects/`;
+- reusable browser tooling, Firefox MCP launcher-ы и profile-aware wrapper-скрипты живут только в `codex/bin/`;
+- tracked Firefox MCP overlays для конкретных контуров живут только в `codex/projects/*/.mcp.json`;
+- canonical runtime layout dedicated Firefox MCP: `/int/.runtime/firefox-mcp/profiles/<profile>/`, `/int/.runtime/firefox-mcp/logs/<profile>/`, `/int/.runtime/firefox-mcp/run/<profile>.json`;
 - `codex/tools/mcp-obsidian-memory/` содержит локальный MCP-сервер для vault `/2brain`;
 - `codex/tools/obsidian-desktop/` хранит repo-managed launcher и desktop config для Obsidian;
 - `codex/assets/codex-home/skills/javascript/` хранит repo-managed resources, scripts и templates для JavaScript skill assets;
@@ -68,6 +71,7 @@
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
 - `pwsh -File /int/tools/scripts/codex/bootstrap_windows_toolchain.ps1 -AllowUserFallback` — idempotent bootstrap Windows CLI-toolchain (`rg`, `fd`, `yq`, `uv`, `pnpm`, `terraform`, `make`, PATH-normalization, fallback для `cmake/7z`);
 - `pwsh -File /int/tools/scripts/codex/codex_preflight.ps1` — preflight-проверка ключевых CLI с machine-readable режимом `-Json`;
+- `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
 - `bash /int/tools/openclaw/ops/verify.sh` — проверка overlay OpenClaw;
 - `AUTH_TYPE=oauth-personal HOST=127.0.0.1 PORT=11434 npm start` из `gemini-openai-proxy/` — локальный запуск proxy.
 
@@ -170,6 +174,7 @@
 - `OpenClaw` runtime живёт в `~/.openclaw`, а versioned overlay остаётся в `/int/tools/openclaw`.
 - Секретный слой OpenClaw для recovery bundle берётся из `~/.openclaw/secrets/`.
 - `sync_runtime_from_repo.sh` теперь синхронизирует не только `assets/codex-home`, но и tracked `projects/`.
+- dedicated Firefox MCP runtime использует repo-managed launcher'ы и project overlays отсюда; owner browser profile не является source-of-truth для automated browser-proof.
 
 ###### Базовая процедура восстановления
 
@@ -216,6 +221,7 @@
 - синхронизация в runtime выполняется через `/int/tools/codex/sync_runtime_from_repo.sh`;
 - в tracked overlay не храним секреты;
 - реальные env-файлы живут в `/int/.runtime/codex-secrets/`.
+- browser-proof overlays для dedicated Firefox MCP обязаны вызывать только repo-managed wrapper'ы из `/int/tools/codex/bin/**`, а не raw `npx`.
 
 ### `codex/tools/mcp-obsidian-memory/`
 

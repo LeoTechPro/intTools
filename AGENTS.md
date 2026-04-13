@@ -19,10 +19,10 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 ⚠️ Сначала прочитайте [корневой AGENTS.md](/int/AGENTS.md).
 
-## Browser Attach Inheritance
-- Для сессий, стартующих из этого репозитория, правило frontend-диагностики через attached Chrome владельца обязательно.
-- Канонический policy и fallback-ограничения задаются только в `/int/AGENTS.md` (раздел `Frontend Browser Diagnostics Policy`) и наследуются без локальной переинтерпретации.
-- Headless/isolated fallback допустим только по явному разрешению владельца.
+## Browser Runtime Inheritance
+- Для сессий, стартующих из этого репозитория, default frontend-диагностика и browser-proof выполняются через dedicated Firefox DevTools MCP runtime с persistent profiles.
+- Канонический policy, runtime layout и fallback-ограничения задаются только в `/int/AGENTS.md` (раздел `Frontend Browser Runtime Policy`) и наследуются без локальной переинтерпретации.
+- Attach к owner Chrome допустим только как documented fallback по blocker-case с явной фиксацией причины в handoff.
 # AGENTS — intTools
 
 ## Allowed scope
@@ -50,7 +50,8 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - reusable tooling хранится здесь, а не в корне `/int` и не в чужих product repos;
 - product repos подключают этот contour извне через scripts, hooks и documented runbooks;
 - self-authored/versioned Codex tooling и wrapper-скрипты должны жить в `/int/tools/codex/**`, а не в `~/.codex` / `C:\Users\intData\.codex`;
-- cross-platform publish/release tooling должно жить в нейтральном `/int/tools/delivery/**`; `codex/bin/publish_*.ps1` допустимы только как compatibility shims;
+- reusable browser tooling, Firefox MCP launcher-ы и tracked project overlays живут только в `/int/tools/codex/**`;
+- runtime layout для dedicated Firefox MCP contour документируется и поддерживается только из `/int/tools/codex/**` + `/int/.runtime/firefox-mcp/**`;
 - repo остаётся machine-wide tooling layer, а не отдельным business runtime.
 - прямые кодовые импорты между `/int/tools` и другими top-level root-контурами `/int/*` запрещены; интеграция допустима только через documented scripts/hooks/CLI entrypoints, public APIs/contracts, events или иные явно согласованные boundary contracts.
 
