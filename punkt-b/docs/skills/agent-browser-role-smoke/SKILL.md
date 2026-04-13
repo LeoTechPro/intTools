@@ -90,10 +90,10 @@ For key-scenarios mode:
 - `SCENARIOS_FAIL` + failed check ids + `REPORT_PATH=...` if at least one check failed.
 
 ## Role Guidance
-- `qa-role`: run full role-smoke before handoff, attach `REPORT_PATH` to worklog.
-- `frontend-role`: run after route/guard/deny-screen edits.
-- `backend-role`: run after RBAC/ACL changes that affect UI access shape.
-- `teamlead-role`: use as lightweight gate before requesting deeper E2E pass.
+- `acceptance-review`: run full role-smoke before handoff, attach `REPORT_PATH` to worklog.
+- `frontend-review`: run after route/guard/deny-screen edits.
+- `backend-review`: run after RBAC/ACL changes that affect UI access shape.
+- `orchestration-review`: use as lightweight gate before requesting deeper E2E pass.
 - `devops-role`: run key-scenarios after env/config changes on staging/local contour.
 
 Recommended cadence:

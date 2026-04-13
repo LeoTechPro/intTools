@@ -525,7 +525,7 @@ bash ops/gates/autoreview_gate.sh \
 ## teamlead_orchestrator.sh
 Teamlead-first orchestration для major change:
 - классифицирует scope через `ops/teamlead/role_opinion_matrix.py` и расширенный `swarm-risk-matrix.yaml`;
-- запускает независимые role-opinions (`frontend-role`, `frontend-design`, `backend-role`, `architect-role`, `dba-role`, `qa-role`, `devops-role`, `techwriter-role`) через `codex exec --ephemeral`;
+- запускает независимые role-opinions (`frontend-review`, `frontend-design`, `backend-review`, `architect-role`, `dba-role`, `acceptance-review`, `devops-role`, `techwriter-role`) через `codex exec --ephemeral`;
 - для pure process-scope (`README.md`, `package.json`, `.gitignore`, `AGENTS.md`, `GEMINI.md`, `openspec/**`) возвращает зелёный summary сразу после matrix-classification, не плодя nested role-runs поверх process-only diff;
 - в `milestone` режиме допускает bounded main-session-style fixer loop внутри scope;
 - в `finish` режиме работает read-only и используется как часть strict push-gate перед `issue:push:done`;

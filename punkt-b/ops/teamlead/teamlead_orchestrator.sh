@@ -277,9 +277,9 @@ PY
 role_prompt_text() {
   local role="$1"
   case "$role" in
-    frontend-role)
+    frontend-review)
       cat <<'EOF'
-Ты frontend-role reviewer. Проверь UI-код, маршруты, доступность, адаптив, взаимодействия, регрессии клиентского UX и риски сломанного пользовательского потока.
+Ты frontend-review reviewer. Проверь UI-код, маршруты, доступность, адаптив, взаимодействия, регрессии клиентского UX и риски сломанного пользовательского потока.
 EOF
       ;;
     frontend-design)
@@ -287,9 +287,9 @@ EOF
 Ты frontend-design reviewer. Проверь визуальную иерархию, отступы, композицию, читаемость, консистентность, состояния и заметные UX-провалы. Не уходи в бэкенд-логику.
 EOF
       ;;
-    backend-role)
+    backend-review)
       cat <<'EOF'
-Ты backend-role reviewer. Проверь runtime-логику, контракты API/RPC, авторизацию, валидацию, побочные эффекты и очевидные регрессии серверного поведения.
+Ты backend-review reviewer. Проверь runtime-логику, контракты API/RPC, авторизацию, валидацию, побочные эффекты и очевидные регрессии серверного поведения.
 EOF
       ;;
     architect-role)
@@ -307,9 +307,9 @@ EOF
 Ты devops-role reviewer. Проверь deploy/runtime implications, smoke coverage, operational risk, env/runtime assumptions и observability gaps.
 EOF
       ;;
-    qa-role)
+    acceptance-review)
       cat <<'EOF'
-Ты qa-role reviewer. Проверь полноту тестового покрытия, пропущенные регрессии и критичные пользовательские сценарии, которые текущий scope может сломать.
+Ты acceptance-review reviewer. Проверь полноту тестового покрытия, пропущенные регрессии и критичные пользовательские сценарии, которые текущий scope может сломать.
 EOF
       ;;
     techwriter-role)

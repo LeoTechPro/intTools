@@ -17,49 +17,49 @@ rules:
   - pattern: "^web/src/app/router/"
     risk: high
     checks: lint,build,unit
-    opinions: frontend-role,frontend-design,qa-role,architect-role
+    opinions: frontend-review,frontend-design,acceptance-review,architect-role
     domains: frontend,visual,routing,qa,architecture
     major_change: true
     auto_commit: true
   - pattern: "^web/.*\\.(css|scss|sass|less)$"
     risk: medium
     checks: lint,build,unit
-    opinions: frontend-role,frontend-design
+    opinions: frontend-review,frontend-design
     domains: frontend,visual
     major_change: false
     auto_commit: false
   - pattern: "^web/src/.*/(pages|ui|styles)/"
     risk: medium
     checks: lint,build,unit
-    opinions: frontend-role,frontend-design
+    opinions: frontend-review,frontend-design
     domains: frontend,visual
     major_change: false
     auto_commit: false
   - pattern: "^web/"
     risk: medium
     checks: lint,build,unit
-    opinions: frontend-role
+    opinions: frontend-review
     domains: frontend
     major_change: false
     auto_commit: false
   - pattern: "^backend/functions/"
     risk: high
     checks: lint,build,unit,integration,security
-    opinions: backend-role
+    opinions: backend-review
     domains: backend
     major_change: false
     auto_commit: false
   - pattern: "^backend/init/schema\\.sql$"
     risk: critical
     checks: lint,build,unit,integration,migration-dry-run,rollback-rationale
-    opinions: dba-role,backend-role,architect-role
+    opinions: dba-role,backend-review,architect-role
     domains: db,architecture
     major_change: true
     auto_commit: true
   - pattern: "^backend/init/migrations/"
     risk: critical
     checks: lint,build,unit,integration,migration-dry-run,rollback-rationale
-    opinions: dba-role,backend-role,architect-role
+    opinions: dba-role,backend-review,architect-role
     domains: db,architecture
     major_change: true
     auto_commit: true

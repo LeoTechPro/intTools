@@ -5,7 +5,7 @@ role_aliases:
     kind: machine
   dba-role:
     kind: human
-  teamlead-role:
+  orchestration-review:
     kind: human
   owner:
     kind: human
@@ -137,7 +137,7 @@ gate_definitions:
   teamlead-approval:
     kind: human
     role_required:
-      - teamlead-role
+      - orchestration-review
     stale_on_fingerprint_change: true
     allow_waive: false
   apply-window-approved:
@@ -179,7 +179,7 @@ gate_definitions:
   release-issue-acceptance:
     kind: human
     role_required:
-      - teamlead-role
+      - orchestration-review
     stale_on_fingerprint_change: true
     allow_waive: false
 

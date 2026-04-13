@@ -5,7 +5,7 @@
 
 ## Инварианты
 - Любая major change определяется через `path + risk matrix` из `templates/swarm-risk-matrix.yaml`.
-- Основная сессия не имитирует `frontend-role`, `frontend-design`, `backend-role`, `architect-role`, `dba-role`, `qa-role`, `devops-role`, `techwriter-role` внутри собственного reasoning.
+- Основная сессия не имитирует `frontend-review`, `frontend-design`, `backend-review`, `architect-role`, `dba-role`, `acceptance-review`, `devops-role`, `techwriter-role` внутри собственного reasoning.
 - Независимость мнений обеспечивается отдельными `codex exec --ephemeral` запусками без shared transcript.
 - Teamlead orchestrator обязателен перед green-milestone commit и в финальном finish.
 - Milestone commit делается автоматически после зелёного workstream без отдельного owner prompt.
@@ -19,9 +19,9 @@
 - Runtime artifacts: `~/.codex/tmp/punkt-b/teamlead-orchestrator/<issue>/...`
 
 ## Роли по умолчанию
-- Visual/UI change: `frontend-role` + `frontend-design`, при маршрутах/guard/entry additionally `qa-role`
-- Backend runtime/API change: `backend-role`
-- Schema/migration/RLS/ACL change: `dba-role` + `backend-role`
+- Visual/UI change: `frontend-review` + `frontend-design`, при маршрутах/guard/entry additionally `acceptance-review`
+- Backend runtime/API change: `backend-review`
+- Schema/migration/RLS/ACL change: `dba-role` + `backend-review`
 - Cross-zone или architecture/routing drift: `architect-role`
 - Process/docs change: `techwriter-role`
 - Deploy/runtime contour change: `devops-role`
