@@ -21,7 +21,7 @@ $enginePath = Join-Path $PSScriptRoot "publish_repo.ps1"
     -NoPush:$NoPush `
     -NoDeploy:$NoDeploy `
     -DeployMode "ssh-fast-forward" `
-    -DeployHost "vds.intdata.pro" `
+    -DeployHost "vds-intdata-intdata" `
     -DeployRepoPath "/int/assess" `
     -DeployFetchRef "dev" `
     -DeployPullRef "dev"

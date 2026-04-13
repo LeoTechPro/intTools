@@ -22,7 +22,7 @@
 - GitHub Project поддерживаем через `Status` и worklog в issue; отдельный workflow/секрет для синхронизации `Updation Date` не используем.
 
 ## Локи
-Локи файлов ведём через `lockctl` по глобальным правилам `/home/leon/.codex/AGENTS.md` и project-specific issue discipline этого репозитория.
+Локи файлов ведём через `lockctl` по глобальным правилам `/int/AGENTS.md` и project-specific issue discipline этого репозитория.
 
 ## Runbook
 Полное описание `lockctl`-based процесса: `docs/process/issue-commit-flow.md`.

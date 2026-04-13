@@ -166,7 +166,7 @@ official_sources:
 - Для PDF/отчётов используй pdf.
 
 ## Полезные референсы
-- `AGENTS.md`, `/home/leon/.codex/AGENTS.md`, `README.md`.
+- `AGENTS.md`, `/int/AGENTS.md`, `README.md`.
 - `backend/README.md`, `web/README.md`, `docs/release.md`.
 - OpenSpec: `openspec/AGENTS.md` (через skill `agent-issues`).
 

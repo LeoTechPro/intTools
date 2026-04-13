@@ -7,32 +7,23 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$python = Get-Command python -ErrorAction SilentlyContinue
-if (-not $python) {
-    $python = Get-Command py -ErrorAction SilentlyContinue
-}
-if (-not $python) {
-    Write-Host "publish_data FAILED" -ForegroundColor Red
-    Write-Host " - Python interpreter is required to run delivery/bin/publish_data.py"
-    exit 1
-}
+$enginePath = Join-Path $PSScriptRoot "publish_repo.ps1"
 
-$wrapperPath = Join-Path (Split-Path $PSScriptRoot -Parent) "..\\delivery\\bin\\publish_data.py"
-$resolvedWrapper = [System.IO.Path]::GetFullPath($wrapperPath)
-
-$args = @()
-if ($NoPush) {
-    $args += "--no-push"
-}
-if ($NoDeploy) {
-    $args += "--no-deploy"
-}
-
-if ($python.Name -eq "py.exe" -or $python.Name -eq "py") {
-    & $python.Path -3 $resolvedWrapper @args
-}
-else {
-    & $python.Path $resolvedWrapper @args
-}
+& $enginePath `
+    -RepoPath "D:\int\data" `
+    -RepoName "data" `
+    -SuccessLabel "publish_data" `
+    -ExpectedBranch "main" `
+    -ExpectedUpstream "origin/main" `
+    -PushRemote "origin" `
+    -PushBranch "main" `
+    -RequireClean `
+    -NoPush:$NoPush `
+    -NoDeploy:$NoDeploy `
+    -DeployMode "ssh-fast-forward" `
+    -DeployHost "vds-intdata-intdata" `
+    -DeployRepoPath "/int/data" `
+    -DeployFetchRef "main" `
+    -DeployPullRef "main"
 
 exit $LASTEXITCODE

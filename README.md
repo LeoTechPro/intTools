@@ -41,6 +41,7 @@
 - `codex/tools/obsidian-desktop/` хранит repo-managed launcher и desktop config для Obsidian;
 - `codex/assets/codex-home/skills/javascript/` хранит repo-managed resources, scripts и templates для JavaScript skill assets;
 - runtime OpenClaw живёт в `~/.openclaw`, а versioned overlay и runbooks — в `openclaw/`.
+- На `vds.intdata.pro` canonical host-user split такой: IntData automation/deploy — `intdata`, Codex remote runtime — `codex`, OpenClaw runtime/service — `openclaw`; automation под `leon` для этого хоста не является допустимым default-path.
 
 ## Markdown context policy
 
@@ -57,7 +58,10 @@
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --runtime-root /int/brain/runtime/vault` — compatibility-режим для legacy runtime-path (с deprecation warning);
 - `python /int/tools/intdb/lib/intdb.py doctor --profile intdata-dev` — проверка native PostgreSQL CLI, TCP и SQL для локально настроенного DB profile;
 - `python /int/tools/intdb/lib/intdb.py migrate status --target intdata-dev --repo /int/data` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `/int/data`;
-- `pwsh -File /int/tools/codex/bin/publish_data.ps1` — canonical publish-flow для `/int/data`: локальный `push origin/main` и последующий `git pull --ff-only` на `vds.intdata.pro:/int/data`;
+- `pwsh -File /int/tools/codex/bin/publish_data.ps1` — canonical publish-flow для `/int/data`: локальный `push origin/main` и последующий `git pull --ff-only` на `vds-intdata-intdata:/int/data` под пользователем `intdata`;
+- `ssh vds-intdata-intdata` — canonical remote shell для IntData deploy/apply/smoke на `vds.intdata.pro`;
+- `ssh vds-intdata-codex` — canonical remote shell для Codex runtime на `vds.intdata.pro`;
+- `ssh vds-intdata-openclaw` — canonical remote shell для OpenClaw runtime/service на `vds.intdata.pro`;
 - `python -m unittest codex.tests.test_publish_repo -v` — hermetic regression smoke для `publish_repo.ps1`: clean-tree guard, `-NoDeploy` publish и `partial_state` на локально подменённом `ssh` без реальной сети; на хостах без PowerShell suite корректно помечает publish-тесты как skipped вместо import-time crash;
 - `/int/tools/codex/bin/mcp-intbrain.sh` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
 - `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
