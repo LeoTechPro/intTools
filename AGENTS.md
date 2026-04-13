@@ -78,6 +78,8 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - Корневой `RELEASE.md` является единственным repo-local source-of-truth для релизлога; исторический `docs/`-путь и другие альтернативные варианты не используем.
 - Перед локальным commit агент обязан проверить, не устарел ли корневой `README.md`; если правка меняет описанные там команды, структуру, маршруты, интеграции или инструкции, обновление `README.md` входит в тот же commit.
 - Любой push в удалённую ветку `main` допустим только при `ALLOW_MAIN_PUSH=1` и только из локальной `main`.
+- Для `/int/tools` owner-approved git-задача после локального commit и при clean tree должна завершаться немедленной canonical publication в `origin/main`; локальный commit без этой публикации считается промежуточным состоянием, если владелец явно не остановил задачу до push.
+- Если canonical publication в `origin/main` завершилась non-zero, задача считается незавершённой до устранения причины и повторного успешного publish.
 - Для каждого checkout/worktree обязателен локальный bootstrap `git config core.hooksPath .githooks`; tracked `.githooks/pre-push` включает этот guardrail только после такой настройки и не ограничивает push в `dev` или другие non-main branches.
 - `git push` и прочие remote-операции остаются отдельным шагом и не выполняются автоматически без owner approval или явного требования локального процесса.
 
@@ -85,3 +87,10 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - В git допускаются только шаблоны `*.env.example` и `*.example`.
 - Любые `*.env` и `config/runtime/*.env` запрещены в индексе.
 - Runtime-секреты хранятся только вне git (локальные env/secret-store).
+
+## Spec-First Policy
+- Главный приоритет любой реализации — согласованная актуальная спека (OpenSpec / approved spec source-of-truth для контура).
+- Если спеки нет, она неполная, противоречивая или не фиксирует API/contracts/capability boundaries, сначала нужно довести спеку до согласованного состояния и только потом приступать к реализации.
+- Изменения API, RPC, schema contracts, payload shape, capability boundaries и access semantics без зафиксированной и согласованной спеки запрещены.
+- Если реализация расходится со спекой, приоритет у спеки; сначала исправляется/уточняется spec-source-of-truth, затем код.
+- Любой owner-facing triage обязан явно ответить: какая спека является source-of-truth, полна ли она и разрешает ли текущую реализацию.
