@@ -1,5 +1,14 @@
 {
   "mcpServers": {
+    "intmemory": {
+      "command": "cmd.exe",
+      "args": [
+        "/d",
+        "/s",
+        "/c",
+        "D:\\int\\tools\\codex\\bin\\mcp-intmemory.cmd"
+      ]
+    },
     "firefox-default": {
       "command": "cmd.exe",
       "args": [
