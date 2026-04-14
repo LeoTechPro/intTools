@@ -43,6 +43,25 @@ class FakeClient:
         }
 
 
+class FakeClientWithRemoteHash(FakeClient):
+    def retrieve_context(self, payload: dict) -> dict:
+        self.search_payloads.append(payload)
+        return {
+            "items": [
+                {
+                    "id": 11,
+                    "title": "Existing item",
+                    "text_content": "Already stored remotely.",
+                    "source_path": "C:/Users/intData/.codex/sessions/2026/04/14/rollout-2026-04-14T10-00-00-session.jsonl",
+                    "source_hash": "remote-hash",
+                    "chunk_kind": "summary",
+                    "tags": ["codex", "intmemory", "repo:tools", "session:test"],
+                    "rank": 1.0,
+                }
+            ]
+        }
+
+
 class IntMemoryTests(unittest.TestCase):
     def test_iter_jsonl_respects_offset(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -175,6 +194,69 @@ class IntMemoryTests(unittest.TestCase):
             result = service.search(query="sync", limit=5, repo="tools")
             self.assertEqual(result["count"], 1)
             self.assertEqual(result["items"][0]["repo"], "tools")
+
+    def test_sync_skips_when_remote_store_already_has_hash(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            codex_home = Path(tmp_dir)
+            session_path = codex_home / "sessions" / "2026" / "04" / "14" / "rollout-2026-04-14T10-00-00-session-123.jsonl"
+            _write_jsonl(
+                session_path,
+                [
+                    {"type": "session_meta", "payload": {"id": "session-123", "timestamp": "2026-04-14T10:00:00Z", "cwd": "D:\\int\\tools"}},
+                    {"type": "response_item", "payload": {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "Implement intMemory for codex sessions with IntBrain sync."}]}},
+                ],
+            )
+            config = IntMemoryConfig(
+                owner_id=1,
+                api_base_url="http://example/api/core/v1",
+                agent_id="codex",
+                agent_key="secret",
+                api_timeout_sec=5,
+                codex_home=codex_home,
+                state_path=codex_home / "memories" / "intmemory" / "state.json",
+                scope_roots=("D:\\int", "/int"),
+            )
+            service = IntMemoryService(config)
+            fake_client = FakeClientWithRemoteHash()
+            service.client = fake_client
+            original_exists = service._exists_in_remote_store
+
+            def _force_remote(owner: int, item: object) -> bool:
+                service._remote_hash_cache.add("remote-hash")
+                return True
+
+            service._exists_in_remote_store = _force_remote  # type: ignore[method-assign]
+            result = service.sync(incremental=True, dry_run=False)
+            self.assertEqual(result["items_stored"], 0)
+            self.assertGreater(result["items_skipped_dedup"], 0)
+            self.assertEqual(fake_client.stored, [])
+            service._exists_in_remote_store = original_exists  # type: ignore[method-assign]
+
+    def test_archived_sessions_are_discoverable(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            codex_home = Path(tmp_dir)
+            archived_path = codex_home / "archived_sessions" / "rollout-2026-04-14T10-00-00-session-123.jsonl"
+            _write_jsonl(
+                archived_path,
+                [
+                    {"type": "session_meta", "payload": {"id": "session-123", "timestamp": "2026-04-14T10:00:00Z", "cwd": "D:\\int\\tools"}},
+                    {"type": "response_item", "payload": {"type": "message", "role": "user", "content": [{"type": "input_text", "text": "Find archived memory session."}]}},
+                    {"type": "response_item", "payload": {"type": "message", "role": "assistant", "content": [{"type": "output_text", "text": "Archived session is still available for recall and summary generation across sessions."}]}},
+                ],
+            )
+            config = IntMemoryConfig(
+                owner_id=1,
+                api_base_url="http://example/api/core/v1",
+                agent_id="codex",
+                agent_key="secret",
+                api_timeout_sec=5,
+                codex_home=codex_home,
+                state_path=codex_home / "memories" / "intmemory" / "state.json",
+                scope_roots=("D:\\int", "/int"),
+            )
+            service = IntMemoryService(config)
+            brief = service.session_brief(session_id="session-123")
+            self.assertIsNotNone(brief)
 
 
 if __name__ == "__main__":

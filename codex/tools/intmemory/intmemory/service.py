@@ -28,6 +28,7 @@ class IntMemoryService:
         self.state.load()
         self.client = IntBrainClient(config)
         self.session_index = load_session_index(config.codex_home)
+        self._remote_hash_cache: set[str] = set()
 
     def sync(
         self,
@@ -85,6 +86,10 @@ class IntMemoryService:
             summary["items_extracted"] += len(items)
             for item in items:
                 if self.state.has_hash(item.source_hash):
+                    summary["items_skipped_dedup"] += 1
+                    continue
+                if not dry_run and self._exists_in_remote_store(owner=owner, item=item):
+                    self.state.remember_hash(item.source_hash, source_path=item.source_path, session_id=item.session_id)
                     summary["items_skipped_dedup"] += 1
                     continue
                 payload = {
@@ -186,6 +191,24 @@ class IntMemoryService:
         if repo and (brief.repo or "").lower() != repo.lower():
             return None
         return brief
+
+    def _exists_in_remote_store(self, *, owner: int, item: Any) -> bool:
+        if item.source_hash in self._remote_hash_cache:
+            return True
+        query = item.title[:512].strip() or item.text_content[:512].strip()
+        if not query:
+            return False
+        try:
+            raw = self.client.retrieve_context({"owner_id": owner, "query": query, "limit": 10})
+        except Exception:
+            return False
+        for entry in raw.get("items") or []:
+            source_hash = str(entry.get("source_hash") or "").strip()
+            if source_hash:
+                self._remote_hash_cache.add(source_hash)
+            if source_hash == item.source_hash:
+                return True
+        return False
 
 
 def _parse_since(value: str | None) -> datetime | None:

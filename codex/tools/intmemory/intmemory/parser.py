@@ -67,10 +67,16 @@ def load_session_index(codex_home: Path) -> dict[str, str]:
 
 
 def list_session_files(codex_home: Path) -> list[Path]:
-    sessions_root = codex_home / "sessions"
-    if not sessions_root.exists():
-        return []
-    return sorted((path for path in sessions_root.rglob("*.jsonl") if path.is_file()), key=lambda item: str(item))
+    roots = [codex_home / "sessions", codex_home / "archived_sessions"]
+    files: list[Path] = []
+    for root in roots:
+        if not root.exists():
+            continue
+        if root.is_file() and root.suffix == ".jsonl":
+            files.append(root)
+            continue
+        files.extend(path for path in root.rglob("*.jsonl") if path.is_file())
+    return sorted(files, key=lambda item: str(item))
 
 
 def find_session_file(codex_home: Path, session_id: str) -> Path | None:
