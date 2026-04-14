@@ -5,6 +5,7 @@ import os
 import shutil
 import subprocess
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 
@@ -93,3 +94,78 @@ class HostRuntimeEntrypointsTest(unittest.TestCase):
                         os.environ.pop(key, None)
                     else:
                         os.environ[key] = value
+
+    def test_windows_rendered_config_uses_repo_owned_cmd_launchers(self) -> None:
+        original_platform = host_bootstrap.current_platform
+        host_bootstrap.current_platform = lambda: "windows"
+        self.addCleanup(setattr, host_bootstrap, "current_platform", original_platform)
+
+        rendered = host_bootstrap.render_config_template(
+            (REPO_ROOT / "codex" / "templates" / "config.toml.tmpl").read_text(encoding="utf-8"),
+            codex_home=Path("D:/Users/test/.codex"),
+        )
+        config = tomllib.loads(rendered)
+        mcp_servers = config["mcp_servers"]
+        expected_commands = {
+            "github": "mcp-github-from-gh.cmd",
+            "postgres": "mcp-postgres-from-backend-env.cmd",
+            "obsidian_memory": "mcp-obsidian-memory.cmd",
+            "timeweb": "mcp-timeweb.cmd",
+            "timeweb_readonly": "mcp-timeweb-readonly.cmd",
+            "bitrix24": "mcp-bitrix24.cmd",
+            "lockctl": "mcp-lockctl.cmd",
+        }
+
+        for server_name, expected_command in expected_commands.items():
+            server = mcp_servers[server_name]
+            self.assertEqual(server["command"], expected_command)
+            self.assertEqual(server.get("args", []), [])
+
+        self.assertNotIn('"command = "bash"', rendered)
+        self.assertNotIn('"command = "python"', rendered)
+        self.assertNotIn(".sh", rendered)
+        self.assertNotIn("mcp-lockctl.py", rendered)
+
+    def test_windows_verify_accepts_repo_owned_cmd_launchers(self) -> None:
+        original_platform = host_verify.current_platform
+        original_home = host_verify.CODEX_HOME
+        original_int_root = host_verify.resolve_int_root
+        original_cloud_root = host_verify.default_cloud_root
+        original_runtime_root = host_verify.default_runtime_root
+        original_bootstrap_platform = host_bootstrap.current_platform
+        original_bootstrap_int_root = host_bootstrap.resolve_int_root
+        original_bootstrap_cloud_root = host_bootstrap.default_cloud_root
+
+        with tempfile.TemporaryDirectory(prefix="host_verify_") as temp_root_raw:
+            temp_root = Path(temp_root_raw)
+            codex_home = temp_root / ".codex"
+            codex_home.mkdir(parents=True, exist_ok=True)
+
+            host_bootstrap.current_platform = lambda: "windows"
+            host_bootstrap.resolve_int_root = lambda: temp_root
+            host_bootstrap.default_cloud_root = lambda: temp_root / "cloud"
+
+            rendered = host_bootstrap.render_config_template(
+                (REPO_ROOT / "codex" / "templates" / "config.toml.tmpl").read_text(encoding="utf-8"),
+                codex_home=codex_home,
+            )
+            (codex_home / "config.toml").write_text(rendered, encoding="utf-8")
+
+            host_verify.current_platform = lambda: "windows"
+            host_verify.CODEX_HOME = codex_home
+            host_verify.resolve_int_root = lambda: temp_root
+            host_verify.default_cloud_root = lambda: temp_root / "cloud"
+            host_verify.default_runtime_root = lambda: temp_root / ".runtime"
+
+            self.addCleanup(setattr, host_verify, "current_platform", original_platform)
+            self.addCleanup(setattr, host_verify, "CODEX_HOME", original_home)
+            self.addCleanup(setattr, host_verify, "resolve_int_root", original_int_root)
+            self.addCleanup(setattr, host_verify, "default_cloud_root", original_cloud_root)
+            self.addCleanup(setattr, host_verify, "default_runtime_root", original_runtime_root)
+            self.addCleanup(setattr, host_bootstrap, "current_platform", original_bootstrap_platform)
+            self.addCleanup(setattr, host_bootstrap, "resolve_int_root", original_bootstrap_int_root)
+            self.addCleanup(setattr, host_bootstrap, "default_cloud_root", original_bootstrap_cloud_root)
+
+            issues: list[str] = []
+            host_verify.verify_config(issues)
+            self.assertEqual(issues, [])

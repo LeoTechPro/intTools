@@ -120,20 +120,20 @@ def render_config_template(template_text: str, *, codex_home: Path) -> str:
     if current_platform() == "windows":
         replacements.update(
             {
-                "__MCP_GITHUB_COMMAND__": "bash",
-                "__MCP_GITHUB_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-github-from-gh.sh"]',
-                "__MCP_POSTGRES_COMMAND__": "bash",
-                "__MCP_POSTGRES_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-postgres-from-backend-env.sh"]',
-                "__MCP_OBSIDIAN_COMMAND__": "bash",
-                "__MCP_OBSIDIAN_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-obsidian-memory.sh"]',
-                "__MCP_TIMEWEB_COMMAND__": "bash",
-                "__MCP_TIMEWEB_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-timeweb.sh"]',
-                "__MCP_TIMEWEB_RO_COMMAND__": "bash",
-                "__MCP_TIMEWEB_RO_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-timeweb-readonly.sh"]',
-                "__MCP_BITRIX24_COMMAND__": "bash",
-                "__MCP_BITRIX24_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-bitrix24.sh"]',
-                "__LOCKCTL_COMMAND__": "python",
-                "__LOCKCTL_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-lockctl.py"]',
+                "__MCP_GITHUB_COMMAND__": "mcp-github-from-gh.cmd",
+                "__MCP_GITHUB_ARGS__": "",
+                "__MCP_POSTGRES_COMMAND__": "mcp-postgres-from-backend-env.cmd",
+                "__MCP_POSTGRES_ARGS__": "",
+                "__MCP_OBSIDIAN_COMMAND__": "mcp-obsidian-memory.cmd",
+                "__MCP_OBSIDIAN_ARGS__": "",
+                "__MCP_TIMEWEB_COMMAND__": "mcp-timeweb.cmd",
+                "__MCP_TIMEWEB_ARGS__": "",
+                "__MCP_TIMEWEB_RO_COMMAND__": "mcp-timeweb-readonly.cmd",
+                "__MCP_TIMEWEB_RO_ARGS__": "",
+                "__MCP_BITRIX24_COMMAND__": "mcp-bitrix24.cmd",
+                "__MCP_BITRIX24_ARGS__": "",
+                "__LOCKCTL_COMMAND__": "mcp-lockctl.cmd",
+                "__LOCKCTL_ARGS__": "",
             }
         )
     else:

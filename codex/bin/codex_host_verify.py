@@ -121,13 +121,13 @@ def verify_config(issues: list[str]) -> None:
 
     if current_platform() == "windows":
         expected_servers = {
-            "github": ("bash", [f"{tools_root}/codex/bin/mcp-github-from-gh.sh"]),
-            "postgres": ("bash", [f"{tools_root}/codex/bin/mcp-postgres-from-backend-env.sh"]),
-            "obsidian_memory": ("bash", [f"{tools_root}/codex/bin/mcp-obsidian-memory.sh"]),
-            "timeweb": ("bash", [f"{tools_root}/codex/bin/mcp-timeweb.sh"]),
-            "timeweb_readonly": ("bash", [f"{tools_root}/codex/bin/mcp-timeweb-readonly.sh"]),
-            "bitrix24": ("bash", [f"{tools_root}/codex/bin/mcp-bitrix24.sh"]),
-            "lockctl": ("python", [f"{tools_root}/codex/bin/mcp-lockctl.py"]),
+            "github": ("mcp-github-from-gh.cmd", []),
+            "postgres": ("mcp-postgres-from-backend-env.cmd", []),
+            "obsidian_memory": ("mcp-obsidian-memory.cmd", []),
+            "timeweb": ("mcp-timeweb.cmd", []),
+            "timeweb_readonly": ("mcp-timeweb-readonly.cmd", []),
+            "bitrix24": ("mcp-bitrix24.cmd", []),
+            "lockctl": ("mcp-lockctl.cmd", []),
         }
     else:
         expected_servers = {
