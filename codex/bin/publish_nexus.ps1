@@ -7,18 +7,11 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$enginePath = Join-Path $PSScriptRoot "publish_repo.ps1"
+$enginePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\..\delivery\bin\publish_nexus.ps1"))
+if (-not (Test-Path -LiteralPath $enginePath)) {
+    throw "publish_nexus engine adapter not found: $enginePath"
+}
 
-& $enginePath `
-    -RepoPath "D:\int\nexus" `
-    -RepoName "nexus" `
-    -SuccessLabel "publish_nexus" `
-    -ExpectedBranch "dev" `
-    -ExpectedUpstream "origin/dev" `
-    -PushRemote "origin" `
-    -PushBranch "dev" `
-    -RequireClean `
-    -NoPush:$NoPush `
-    -NoDeploy:$NoDeploy
+& $enginePath -NoPush:$NoPush -NoDeploy:$NoDeploy
 
 exit $LASTEXITCODE

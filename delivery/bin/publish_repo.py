@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import subprocess
@@ -100,22 +101,6 @@ def run_checked(args: list[str], *, cwd: Path | None = None, capture: bool = Fal
     return ""
 
 
-def resolve_ssh_executable() -> str:
-    if os.name == "nt":
-        for candidate in ("ssh.cmd", "ssh.bat", "ssh.exe", "ssh"):
-            resolved = shutil.which(candidate)
-            if resolved:
-                return resolved
-    return shutil.which("ssh") or "ssh"
-
-
-def get_int_ssh_mode() -> str:
-    mode = os.getenv("INT_SSH_MODE", "auto").strip().lower()
-    if mode in ("auto", "tailnet", "public"):
-        return mode
-    return "auto"
-
-
 def get_int_ssh_probe_timeout_sec() -> int:
     raw = os.getenv("INT_SSH_PROBE_TIMEOUT_SEC", "4").strip()
     try:
@@ -125,79 +110,13 @@ def get_int_ssh_probe_timeout_sec() -> int:
     return max(1, min(30, value))
 
 
-def resolve_int_ssh_target(requested_host: str) -> dict[str, object]:
-    logical_map = {
-        "vds-intdata-intdata": "dev-intdata",
-        "vds-intdata-codex": "dev-codex",
-        "vds-intdata-openclaw": "dev-openclaw",
-        "prod": "prod-leon",
-        "vds.punkt-b.pro": "prod-leon",
-        "dev-intdata": "dev-intdata",
-        "dev-codex": "dev-codex",
-        "dev-openclaw": "dev-openclaw",
-        "prod-leon": "prod-leon",
-    }
-    logical = logical_map.get(requested_host.strip())
-    if logical is None:
-        return {
-            "destination": requested_host,
-            "transport": "legacy",
-            "fallback_used": False,
-        }
-
-    suffix = os.getenv("INT_SSH_TAILNET_SUFFIX", "tailf0f164.ts.net").strip() or "tailf0f164.ts.net"
-    specs = {
-        "dev-intdata": {
-            "user": "intdata",
-            "public_host": (os.getenv("INT_SSH_DEV_PUBLIC_HOST", "vds.intdata.pro") or "vds.intdata.pro").strip(),
-            "tail_node": (os.getenv("INT_SSH_DEV_TAILNET_NODE", "vds-intdata-pro") or "vds-intdata-pro").strip(),
-            "tail_override": (os.getenv("INT_SSH_DEV_TAILNET_HOST", "") or "").strip(),
-        },
-        "dev-codex": {
-            "user": "codex",
-            "public_host": (os.getenv("INT_SSH_DEV_PUBLIC_HOST", "vds.intdata.pro") or "vds.intdata.pro").strip(),
-            "tail_node": (os.getenv("INT_SSH_DEV_TAILNET_NODE", "vds-intdata-pro") or "vds-intdata-pro").strip(),
-            "tail_override": (os.getenv("INT_SSH_DEV_TAILNET_HOST", "") or "").strip(),
-        },
-        "dev-openclaw": {
-            "user": "openclaw",
-            "public_host": (os.getenv("INT_SSH_DEV_PUBLIC_HOST", "vds.intdata.pro") or "vds.intdata.pro").strip(),
-            "tail_node": (os.getenv("INT_SSH_DEV_TAILNET_NODE", "vds-intdata-pro") or "vds-intdata-pro").strip(),
-            "tail_override": (os.getenv("INT_SSH_DEV_TAILNET_HOST", "") or "").strip(),
-        },
-        "prod-leon": {
-            "user": "leon",
-            "public_host": (os.getenv("INT_SSH_PROD_PUBLIC_HOST", "vds.punkt-b.pro") or "vds.punkt-b.pro").strip(),
-            "tail_node": (os.getenv("INT_SSH_PROD_TAILNET_NODE", "vds-punkt-b-pro") or "vds-punkt-b-pro").strip(),
-            "tail_override": (os.getenv("INT_SSH_PROD_TAILNET_HOST", "") or "").strip(),
-        },
-    }
-    spec = specs[logical]
-    user = str(spec["user"])
-    public_host = str(spec["public_host"])
-    tail_host = str(spec["tail_override"]) or f"{spec['tail_node']}.{suffix}"
-    public_dest = f"{user}@{public_host}"
-    tail_dest = f"{user}@{tail_host}"
-
-    mode = get_int_ssh_mode()
-    if mode == "public":
-        return {"destination": public_dest, "transport": "public", "fallback_used": False}
-    if mode == "tailnet":
-        return {"destination": tail_dest, "transport": "tailnet", "fallback_used": False}
-
-    if run_ssh_probe(tail_dest, get_int_ssh_probe_timeout_sec()):
-        return {"destination": tail_dest, "transport": "tailnet", "fallback_used": False}
-    return {"destination": public_dest, "transport": "public", "fallback_used": True}
-
-
-def run_ssh_probe(host: str, timeout_sec: int) -> bool:
-    completed = subprocess.run(
-        [resolve_ssh_executable(), "-o", "BatchMode=yes", "-o", f"ConnectTimeout={timeout_sec}", host, "true"],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    return completed.returncode == 0
+def resolve_ssh_executable() -> str:
+    if os.name == "nt":
+        for candidate in ("ssh.cmd", "ssh.bat", "ssh.exe", "ssh"):
+            resolved = shutil.which(candidate)
+            if resolved:
+                return resolved
+    return shutil.which("ssh") or "ssh"
 
 
 def run_ssh_checked(host: str, command: str, *, timeout_sec: int | None = None) -> None:
@@ -233,6 +152,39 @@ def get_git_dir(repo: Path) -> Path:
     git_dir = git_capture(repo, "rev-parse", "--git-dir")
     git_path = Path(git_dir)
     return git_path if git_path.is_absolute() else repo / git_path
+
+
+def resolve_ssh_engine() -> Path:
+    engine = Path(__file__).resolve().parents[2] / "codex" / "bin" / "int_ssh_resolve.py"
+    if not engine.exists():
+        raise RuntimeError(f"ssh resolver engine not found: {engine}")
+    return engine
+
+
+def resolve_int_ssh_target(requested_host: str) -> dict[str, object]:
+    completed = subprocess.run(
+        [
+            sys.executable,
+            str(resolve_ssh_engine()),
+            "--requested-host",
+            requested_host,
+            "--mode",
+            os.getenv("INT_SSH_MODE", "auto"),
+            "--probe-timeout-sec",
+            str(get_int_ssh_probe_timeout_sec()),
+            "--json",
+        ],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        detail = "\n".join(part for part in [completed.stdout.strip(), completed.stderr.strip()] if part).strip()
+        raise RuntimeError(f"ssh resolver failed: {detail or requested_host}")
+    try:
+        return json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"ssh resolver returned invalid JSON for {requested_host}") from exc
 
 
 def build_parser() -> argparse.ArgumentParser:

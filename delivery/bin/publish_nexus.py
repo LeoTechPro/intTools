@@ -12,4 +12,4 @@ from _publish_entrypoint import run_publish_engine
 
 
 if __name__ == "__main__":
-    raise SystemExit(run_publish_engine("publish_data", sys.argv[1:], Path(__file__).name))
+    raise SystemExit(run_publish_engine("publish_nexus", sys.argv[1:], Path(__file__).name))

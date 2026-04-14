@@ -1,83 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
-ROOT_DIR="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
-CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-CODEX_RUNTIME_ROOT="${CODEX_RUNTIME_ROOT:-/int/.runtime}"
-CODEX_SECRETS_ROOT="${CODEX_SECRETS_ROOT:-$CODEX_RUNTIME_ROOT/codex-secrets}"
-TEMPLATE_PATH="${TEMPLATE_PATH:-$ROOT_DIR/templates/config.toml.tmpl}"
-
-usage() {
-  cat <<'EOF'
-Usage:
-  codex-host-bootstrap [--skip-tools] [--skip-openclaw] [--skip-cloud] [--skip-cron] [--verify-only]
-EOF
-}
-
-skip_tools=0
-skip_openclaw=0
-skip_cloud=0
-skip_cron=0
-verify_only=0
-
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --skip-tools) skip_tools=1 ;;
-    --skip-openclaw) skip_openclaw=1 ;;
-    --skip-cloud) skip_cloud=1 ;;
-    --skip-cron) skip_cron=1 ;;
-    --verify-only) verify_only=1 ;;
-    -h|--help) usage; exit 0 ;;
-    *)
-      echo "unknown argument: $1" >&2
-      usage >&2
-      exit 1
-      ;;
-  esac
-  shift
-done
-
-mkdir -p "$CODEX_HOME" "$CODEX_SECRETS_ROOT"
-
-"$ROOT_DIR/sync_runtime_from_repo.sh"
-
-python3 - <<'PY' "$TEMPLATE_PATH" "$CODEX_HOME/config.toml" "$CODEX_HOME"
-from pathlib import Path
-import sys
-
-template_path = Path(sys.argv[1])
-output_path = Path(sys.argv[2])
-codex_home = sys.argv[3]
-text = template_path.read_text(encoding="utf-8").replace("__CODEX_HOME__", codex_home)
-output_path.write_text(text, encoding="utf-8")
-PY
-
-if (( verify_only == 0 )); then
-  if (( skip_tools == 0 )); then
-    "$ROOT_DIR/tools/install_tools.sh"
-  fi
-
-  if (( skip_openclaw == 0 )); then
-    /int/tools/openclaw/ops/install.sh
-  fi
-
-  if (( skip_cloud == 0 )); then
-    "$ROOT_DIR/install_cloud_access.sh"
-  fi
-
-  if (( skip_cron == 0 )); then
-    "$ROOT_DIR/install_orphan_cleaner_cron.sh"
-  fi
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PYTHON_BIN="${PYTHON_BIN:-python3}"
+if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
+  PYTHON_BIN="python"
 fi
 
-"$ROOT_DIR/bin/codex-host-verify"
-
-cat <<EOF
-codex host bootstrap: ok
-- codex home: $CODEX_HOME
-- secrets root: $CODEX_SECRETS_ROOT
-
-If auth.json is absent, run:
-  codex login
-EOF
+exec "$PYTHON_BIN" "$SCRIPT_DIR/codex_host_bootstrap.py" --binding-origin "codex/bin/codex-host-bootstrap" "$@"

@@ -7,23 +7,11 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
-$enginePath = Join-Path $PSScriptRoot "publish_repo.ps1"
+$enginePath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\..\delivery\bin\publish_data.ps1"))
+if (-not (Test-Path -LiteralPath $enginePath)) {
+    throw "publish_data engine adapter not found: $enginePath"
+}
 
-& $enginePath `
-    -RepoPath "D:\int\data" `
-    -RepoName "data" `
-    -SuccessLabel "publish_data" `
-    -ExpectedBranch "main" `
-    -ExpectedUpstream "origin/main" `
-    -PushRemote "origin" `
-    -PushBranch "main" `
-    -RequireClean `
-    -NoPush:$NoPush `
-    -NoDeploy:$NoDeploy `
-    -DeployMode "ssh-fast-forward" `
-    -DeployHost "vds-intdata-intdata" `
-    -DeployRepoPath "/int/data" `
-    -DeployFetchRef "main" `
-    -DeployPullRef "main"
+& $enginePath -NoPush:$NoPush -NoDeploy:$NoDeploy
 
 exit $LASTEXITCODE
