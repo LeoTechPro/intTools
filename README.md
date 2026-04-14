@@ -81,6 +81,9 @@
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
 - `pwsh -File /int/tools/scripts/codex/bootstrap_windows_toolchain.ps1 -AllowUserFallback` — idempotent bootstrap Windows CLI-toolchain (`rg`, `fd`, `yq`, `uv`, `pnpm`, `terraform`, `make`, PATH-normalization, fallback для `cmake/7z`);
 - `pwsh -File /int/tools/scripts/codex/codex_preflight.ps1` — preflight-проверка ключевых CLI с machine-readable режимом `-Json`;
+- `/int/tools/codex/bin/openspec` — tracked Linux entrypoint для локального OpenSpec CLI;
+- `pwsh -File D:\int\tools\codex\bin\openspec.ps1` — tracked Windows PowerShell entrypoint для локального OpenSpec CLI;
+- `D:\int\tools\codex\bin\openspec.cmd` — tracked Windows CMD entrypoint для локального OpenSpec CLI;
 - `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Windows) — обязательный start-gate для top-level repo в `/int/*` (clean-tree + `pull --ff-only`);
 - `python /int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Windows) — обязательный finish-gate (clean-tree + push всех `ahead>0` репозиториев);
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
