@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import stat
@@ -12,6 +13,8 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "delivery" / "bin" / "publish_repo.py"
+POWERSHELL_ADAPTER = REPO_ROOT / "codex" / "bin" / "publish_repo.ps1"
+SSH_RESOLVER = REPO_ROOT / "codex" / "bin" / "int_ssh_resolve.py"
 
 
 def run_checked(args: list[str], cwd: Path) -> str:
@@ -263,6 +266,81 @@ class PublishRepoScriptTest(unittest.TestCase):
 
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
         self.assertIn("transport=public, fallback=public", completed.stdout)
+
+    def test_shared_ssh_resolver_returns_canonical_metadata_shape(self) -> None:
+        fake_root = Path(tempfile.mkdtemp(prefix="ssh_resolver_test_"))
+        self.addCleanup(remove_tree_force, fake_root)
+        fake_bin = fake_root / "fake-bin"
+        make_fake_ssh_probe_fail_deploy_ok(fake_bin)
+        env = os.environ.copy()
+        env["PATH"] = str(fake_bin) + os.pathsep + env.get("PATH", "")
+
+        completed = subprocess.run(
+            [
+                shutil.which("python3") or shutil.which("python") or "python3",
+                str(SSH_RESOLVER),
+                "--requested-host",
+                "vds-intdata-intdata",
+                "--mode",
+                "auto",
+                "--json",
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+            env=env,
+            timeout=20,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+        payload = json.loads(completed.stdout)
+        self.assertEqual(payload["logical_host"], "dev-intdata")
+        self.assertEqual(payload["transport"], "public")
+        self.assertFalse(payload["probe_succeeded"])
+        self.assertTrue(payload["fallback_used"])
+        self.assertIn("destination", payload)
+        self.assertIn("tailnet_host", payload)
+        self.assertIn("public_host", payload)
+        self.assertIn("ssh_args", payload)
+
+    @unittest.skipUnless(shutil.which("pwsh"), "pwsh is required for adapter verification")
+    def test_powershell_adapter_passes_through_to_python_engine(self) -> None:
+        remote, local, _ = self._bootstrap_remote_and_local()
+        local_head = self._make_local_commit(local, "adapter\n", "adapter")
+
+        completed = subprocess.run(
+            [
+                "pwsh",
+                "-File",
+                str(POWERSHELL_ADAPTER),
+                "-RepoPath",
+                str(local),
+                "-RepoName",
+                "smoke",
+                "-SuccessLabel",
+                "smoke_adapter",
+                "-ExpectedBranch",
+                "main",
+                "-ExpectedUpstream",
+                "origin/main",
+                "-PushRemote",
+                "origin",
+                "-PushBranch",
+                "main",
+                "-RequireClean",
+                "-NoDeploy",
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=20,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+        self.assertIn("smoke_adapter OK", completed.stdout)
+        self.assertIn("pushed origin/main", completed.stdout)
+        remote_head = git(remote, "rev-parse", "refs/heads/main", capture=True)
+        self.assertEqual(remote_head, local_head)
 
 
 if __name__ == "__main__":

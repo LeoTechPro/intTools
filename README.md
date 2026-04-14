@@ -71,11 +71,12 @@
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --runtime-root /int/brain/runtime/vault` — compatibility-режим для legacy runtime-path (с deprecation warning);
 - `python /int/tools/intdb/lib/intdb.py doctor --profile intdata-dev` — проверка native PostgreSQL CLI, TCP и SQL для локально настроенного DB profile;
 - `python /int/tools/intdb/lib/intdb.py migrate status --target intdata-dev --repo /int/data` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `/int/data`;
-- `pwsh -File /int/tools/codex/bin/publish_data.ps1` — canonical publish-flow для `/int/data`: локальный `push origin/main` и последующий `git pull --ff-only` на `vds-intdata-intdata:/int/data` под пользователем `intdata`;
+- `python /int/tools/delivery/bin/publish_repo.py --repo-path /int/data --repo-name data --success-label publish_data --expected-branch main --expected-upstream origin/main --push-remote origin --push-branch main --require-clean --deploy-mode ssh-fast-forward --deploy-host vds-intdata-intdata --deploy-repo-path /int/data --deploy-fetch-ref main --deploy-pull-ref main` — canonical publish engine для `/int/data`;
+- `pwsh -File /int/tools/codex/bin/publish_data.ps1` — compatibility wrapper поверх canonical publish engine для `/int/data`;
 - `ssh vds-intdata-intdata` — canonical remote shell для IntData deploy/apply/smoke на `vds.intdata.pro`;
 - `ssh vds-intdata-codex` — canonical remote shell для Codex runtime на `vds.intdata.pro`;
 - `ssh vds-intdata-openclaw` — canonical remote shell для OpenClaw runtime/service на `vds.intdata.pro`;
-- `python -m unittest codex.tests.test_publish_repo -v` — hermetic regression smoke для `publish_repo.ps1`: clean-tree guard, `-NoDeploy` publish и `partial_state` на локально подменённом `ssh` без реальной сети; на хостах без PowerShell suite корректно помечает publish-тесты как skipped вместо import-time crash;
+- `python -m unittest discover -s delivery/tests -p test_publish_repo.py -v` — hermetic regression smoke для canonical publish engine и PowerShell compatibility adapter: clean-tree guard, `-NoDeploy` publish, shared SSH resolver и `partial_state` на локально подменённом `ssh` без реальной сети;
 - `/int/tools/codex/bin/mcp-intbrain.sh` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
 - `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
@@ -84,8 +85,9 @@
 - `/int/tools/codex/bin/openspec` — tracked Linux entrypoint для локального OpenSpec CLI;
 - `pwsh -File D:\int\tools\codex\bin\openspec.ps1` — tracked Windows PowerShell entrypoint для локального OpenSpec CLI;
 - `D:\int\tools\codex\bin\openspec.cmd` — tracked Windows CMD entrypoint для локального OpenSpec CLI;
-- `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Windows) — обязательный start-gate для top-level repo в `/int/*` (clean-tree + `pull --ff-only`);
-- `python /int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Windows) — обязательный finish-gate (clean-tree + push всех `ahead>0` репозиториев);
+- `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Windows) — обязательный start-gate для текущего checkout в `/int/*` (`clean check -> fetch -> pull --ff-only` только если `behind>0`);
+- `python /int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Windows) — обязательный finish-gate для текущего checkout (`clean check -> fetch -> verify -> push -> post-push fetch`, без auto-merge/rebase);
+- `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start --all-repos --root-path /int` — явный legacy-style scan всех top-level repo, когда нужен массовый проход вместо default current-repo режима;
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
 - `bash /int/tools/openclaw/ops/verify.sh` — проверка overlay OpenClaw;
 - `AUTH_TYPE=oauth-personal HOST=127.0.0.1 PORT=11434 npm start` из `gemini-openai-proxy/` — локальный запуск proxy.
@@ -100,6 +102,7 @@
 ### Tailnet-First SSH Transport (repo-managed)
 
 - Канонический transport-слой для publish/deploy находится в:
+  - `/int/tools/codex/bin/int_ssh_resolve.py`
   - `/int/tools/codex/bin/int_ssh_resolve.ps1`
   - `/int/tools/codex/bin/int_ssh_host.sh`
   - `/int/tools/codex/config/int_ssh_config`
@@ -196,7 +199,7 @@
 - `cloud_access.sh` — ленивый доступ к `gdrive`/`yadisk` через `rclone mount` и единый runtime `RCLONE_CONFIG=/int/.runtime/cloud-access/rclone.conf`
 - `install_cloud_access.sh` — развёртывание runtime-каталогов `/int/.runtime/cloud-access`, mountpoints `/int/cloud/*` и user-level symlink units
 - `bin/` — MCP entrypoints и прочие Codex-facing launcher'ы
-- `bin/publish_*.ps1` — versioned repo-specific publish wrappers для контуров `/int/*`; machine-local `~/.codex/scripts` не является source-of-truth для них. Для `/int/data` canonical owner-facing entrypoint — именно `publish_data.ps1`, а не raw `git push`.
+- `bin/publish_*.ps1` — compatibility wrappers для контуров `/int/*`; canonical publish engine живёт в `/int/tools/delivery/bin/publish_repo.py`, а `codex/bin/*.ps1` не являются source-of-truth для publish-логики.
 - `tools/` — repo-managed helper trees (`mcp-obsidian-memory`, `obsidian-desktop`, `openspec`)
 - `assets/codex-home/` — versioned `AGENTS.md`, `rules/`, `prompts/`, `skills/`, `version.json` для синхронизации в `~/.codex`
 - `projects/` — tracked project-specific overlay-файлы для `~/.codex/projects/`

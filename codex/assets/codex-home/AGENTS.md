@@ -79,10 +79,10 @@ Ambiguity считается значимой только при неяснос
 - Потенциально разрушительные действия (`удаление`, `reset`, `перезапись истории`, `перезапись файлов`) выполняй только после явного подтверждения владельца.
 - Операции с удалёнными сервисами/репозиториями выполняй только по прямому запросу владельца или по явно описанному обязательному шагу утверждённого процесса.
 - Для любой задачи с мутациями в `/int/*` обязателен двухфазный sync-gate:
-  - `start`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Windows)
-  - `finish`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Windows)
+  - `start`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Windows); по умолчанию gate работает только с текущим checkout.
+  - `finish`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Windows); finish gate делает `fetch -> verify -> push -> post-push fetch`, без auto-merge/rebase.
 - Запрещено начинать правки без успешного `start` и запрещено завершать задачу с локальными commit-ами `ahead>0`.
-- `git pull --ff-only` на чистой ветке с валидным upstream выполняй как обычный pre-work sync без отдельного разрешения владельца; если дерево грязное, upstream отсутствует или fast-forward не проходит, фиксируй это как git-блокер и эскалируй владельцу.
+- `git pull --ff-only` на clean tree с валидным upstream выполняй только в `start`; для старого массового scan всех top-level repo используй явный `--all-repos`. Если дерево грязное, upstream отсутствует или fast-forward не проходит, фиксируй это как git-блокер и эскалируй владельцу.
 - Перед любым локальным commit обязательно добавить в индекс новые файлы текущего scope и повторно выполнить `git add` для уже staged путей после каждой дополнительной правки; commit по устаревшему состоянию индекса запрещён.
 - В `FINISH` `git push` выполняй только по явному разрешению владельца или по обязательному явному шагу процесса (например, `issue:push:done`).
 - Для этого приватного репозитория `.codex` хранение `env`/секретов в git разрешено явным решением владельца; ограничение относится к публикации секретов во внешние публичные контуры.

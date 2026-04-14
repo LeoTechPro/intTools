@@ -19,17 +19,32 @@ def resolve_root_path(explicit_root: str | None) -> Path:
     return Path.cwd().resolve()
 
 
-def discover_repos(root: Path, explicit_repos: list[str]) -> list[Path]:
+def resolve_current_repo() -> Path:
+    completed = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0 or not completed.stdout.strip():
+        raise RuntimeError("current working directory is not inside a git repository")
+    return Path(completed.stdout.strip()).resolve()
+
+
+def discover_repos(root: Path, explicit_repos: list[str], all_repos: bool) -> list[Path]:
     if explicit_repos:
         return [Path(item).expanduser().resolve() for item in explicit_repos]
 
-    repos: list[Path] = []
-    for child in root.iterdir():
-        if not child.is_dir():
-            continue
-        if (child / ".git").exists():
-            repos.append(child.resolve())
-    return repos
+    if all_repos:
+        repos: list[Path] = []
+        for child in root.iterdir():
+            if not child.is_dir():
+                continue
+            if (child / ".git").exists():
+                repos.append(child.resolve())
+        return repos
+
+    return [resolve_current_repo()]
 
 
 def run_git(repo: Path, *args: str) -> tuple[int, str]:
@@ -50,11 +65,41 @@ def parse_ahead_behind(raw: str) -> tuple[int, int]:
     return int(parts[0]), int(parts[1])
 
 
+def parse_upstream(upstream: str) -> tuple[str, str]:
+    parts = upstream.split("/", 1)
+    if len(parts) != 2 or not parts[0] or not parts[1]:
+        raise ValueError(f"unexpected upstream format: '{upstream}'")
+    return parts[0], parts[1]
+
+
+def get_git_dir(repo: Path) -> Path:
+    code, git_dir = run_git(repo, "rev-parse", "--git-dir")
+    if code != 0 or not git_dir.strip():
+        raise RuntimeError(f"cannot resolve git dir: {git_dir}")
+    git_path = Path(git_dir.strip())
+    return git_path if git_path.is_absolute() else (repo / git_path).resolve()
+
+
+def ensure_no_in_progress_ops(repo: Path) -> None:
+    git_dir = get_git_dir(repo)
+    for marker in ("MERGE_HEAD", "REBASE_HEAD", "CHERRY_PICK_HEAD", "rebase-apply", "rebase-merge"):
+        if (git_dir / marker).exists():
+            raise RuntimeError(f"merge/rebase operation in progress ({marker})")
+
+
+def refresh_ahead_behind(repo: Path, upstream: str) -> tuple[int, int]:
+    code, counts_out = run_git(repo, "rev-list", "--left-right", "--count", f"{upstream}...HEAD")
+    if code != 0:
+        raise RuntimeError(f"cannot evaluate ahead/behind: {counts_out}")
+    return parse_ahead_behind(counts_out)
+
+
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Two-phase git sync gate for /int top-level repositories")
+    parser = argparse.ArgumentParser(description="Two-phase git sync gate for /int repositories")
     parser.add_argument("--stage", choices=("start", "finish"), default="start")
     parser.add_argument("--root-path", default="")
     parser.add_argument("--repos", nargs="*", default=[])
+    parser.add_argument("--all-repos", action="store_true")
     parser.add_argument("--push", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--json", action="store_true")
@@ -80,8 +125,12 @@ def render_table(rows: list[dict[str, object]]) -> str:
 def main() -> int:
     args = build_parser().parse_args()
 
+    if args.root_path and not args.all_repos and not args.repos:
+        print("--root-path is only supported together with --all-repos or explicit --repos.", file=sys.stderr)
+        return 2
+
     root = resolve_root_path(args.root_path or None)
-    repos = discover_repos(root, args.repos)
+    repos = discover_repos(root, args.repos, args.all_repos)
     if not repos:
         print(f"No git repositories found for gate under '{root}'.", file=sys.stderr)
         return 2
@@ -94,6 +143,8 @@ def main() -> int:
             "stage": args.stage,
             "branch": "",
             "upstream": "",
+            "upstream_remote": "",
+            "upstream_branch": "",
             "clean": False,
             "ahead": 0,
             "behind": 0,
@@ -101,7 +152,6 @@ def main() -> int:
             "actions": [],
             "error": "",
         }
-
         actions: list[str] = []
 
         try:
@@ -120,7 +170,10 @@ def main() -> int:
             if code != 0 or not upstream_out.strip():
                 raise RuntimeError("upstream is not configured")
             upstream = upstream_out.strip()
+            upstream_remote, upstream_branch = parse_upstream(upstream)
             entry["upstream"] = upstream
+            entry["upstream_remote"] = upstream_remote
+            entry["upstream_branch"] = upstream_branch
 
             code, status_out = run_git(repo, "status", "--porcelain", "--untracked-files=all")
             if code != 0:
@@ -128,62 +181,73 @@ def main() -> int:
             is_clean = not status_out.strip()
             entry["clean"] = is_clean
 
-            code, counts_out = run_git(repo, "rev-list", "--left-right", "--count", f"{upstream}...{branch}")
-            if code != 0:
-                raise RuntimeError(f"cannot evaluate ahead/behind: {counts_out}")
-            behind, ahead = parse_ahead_behind(counts_out)
+            if not is_clean:
+                if args.stage == "start":
+                    raise RuntimeError("working tree is not clean (start gate requires clean tree before fetch/pull)")
+                raise RuntimeError("working tree is not clean (finish gate requires commit/stage discipline before push)")
+
+            ensure_no_in_progress_ops(repo)
+
+            if args.dry_run:
+                actions.append(f"dry-run: would run git fetch --prune {upstream_remote}")
+            else:
+                code, fetch_out = run_git(repo, "fetch", "--prune", upstream_remote)
+                if code != 0:
+                    raise RuntimeError(f"git fetch --prune {upstream_remote} failed: {fetch_out}")
+                actions.append(f"git fetch --prune {upstream_remote}")
+
+            behind, ahead = refresh_ahead_behind(repo, upstream)
             entry["behind"] = behind
             entry["ahead"] = ahead
 
             if args.stage == "start":
-                if not is_clean:
-                    raise RuntimeError("working tree is not clean (start gate requires clean tree before pull)")
                 if ahead > 0:
                     raise RuntimeError(f"unpushed commits detected (ahead={ahead}); push previous work before new session")
 
-                if args.dry_run:
-                    actions.append("dry-run: would run git pull --ff-only")
-                else:
-                    code, pull_out = run_git(repo, "pull", "--ff-only")
-                    if code != 0:
-                        raise RuntimeError(f"git pull --ff-only failed: {pull_out}")
-                    actions.append("git pull --ff-only")
-
-                    code, post_counts = run_git(repo, "rev-list", "--left-right", "--count", f"{upstream}...{branch}")
-                    if code == 0:
-                        behind, ahead = parse_ahead_behind(post_counts)
+                if behind > 0:
+                    if args.dry_run:
+                        actions.append(f"dry-run: would run git pull --ff-only {upstream_remote} {upstream_branch}")
+                    else:
+                        code, pull_out = run_git(repo, "pull", "--ff-only", upstream_remote, upstream_branch)
+                        if code != 0:
+                            raise RuntimeError(f"git pull --ff-only {upstream_remote} {upstream_branch} failed: {pull_out}")
+                        actions.append(f"git pull --ff-only {upstream_remote} {upstream_branch}")
+                        behind, ahead = refresh_ahead_behind(repo, upstream)
                         entry["behind"] = behind
                         entry["ahead"] = ahead
-                    if entry["behind"] or entry["ahead"]:
-                        raise RuntimeError(
-                            f"repository is not synchronized after pull (behind={entry['behind']}, ahead={entry['ahead']})"
-                        )
+
+                if not args.dry_run and (behind > 0 or ahead > 0):
+                    raise RuntimeError(
+                        f"repository is not synchronized after start gate (behind={entry['behind']}, ahead={entry['ahead']})"
+                    )
+                if behind == 0 and ahead == 0:
+                    actions.append("repository already synchronized")
             else:
-                if not is_clean:
-                    raise RuntimeError("working tree is not clean (finish gate requires commit/stage discipline before push)")
                 if behind > 0:
-                    raise RuntimeError(f"branch is behind upstream (behind={behind}); run start gate/rebase before finish")
+                    raise RuntimeError(f"branch is behind upstream (behind={behind}); resolve remote changes before finish")
 
                 if ahead > 0:
                     if not args.push:
                         raise RuntimeError(f"unpushed commits detected (ahead={ahead}); rerun finish gate with --push")
-
                     if args.dry_run:
-                        actions.append("dry-run: would run git push")
+                        actions.append(f"dry-run: would run git push {upstream_remote} {branch}:{upstream_branch}")
                     else:
-                        code, push_out = run_git(repo, "push")
+                        code, push_out = run_git(repo, "push", upstream_remote, f"{branch}:{upstream_branch}")
                         if code != 0:
-                            raise RuntimeError(f"git push failed: {push_out}")
-                        actions.append("git push")
+                            raise RuntimeError(f"git push {upstream_remote} {branch}:{upstream_branch} failed: {push_out}")
+                        actions.append(f"git push {upstream_remote} {branch}:{upstream_branch}")
 
-                        code, post_counts = run_git(repo, "rev-list", "--left-right", "--count", f"{upstream}...{branch}")
-                        if code == 0:
-                            behind, ahead = parse_ahead_behind(post_counts)
-                            entry["behind"] = behind
-                            entry["ahead"] = ahead
-                        if entry["behind"] or entry["ahead"]:
+                        code, fetch_out = run_git(repo, "fetch", "--prune", upstream_remote)
+                        if code != 0:
+                            raise RuntimeError(f"post-push git fetch --prune {upstream_remote} failed: {fetch_out}")
+                        actions.append(f"git fetch --prune {upstream_remote} (post-push)")
+
+                        behind, ahead = refresh_ahead_behind(repo, upstream)
+                        entry["behind"] = behind
+                        entry["ahead"] = ahead
+                        if behind > 0 or ahead > 0:
                             raise RuntimeError(
-                                f"repository is not synchronized after push (behind={entry['behind']}, ahead={entry['ahead']})"
+                                f"repository is not synchronized after push verification (behind={entry['behind']}, ahead={entry['ahead']})"
                             )
                 else:
                     actions.append("no local commits to push")

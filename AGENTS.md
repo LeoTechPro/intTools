@@ -84,10 +84,11 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 ## Git и завершение работы
 
 - Для любой задачи с файловыми мутациями в `/int/*` обязателен двухфазный sync-gate:
-  - `start`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Windows) до первой правки.
-  - `finish`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Windows) перед закрытием задачи.
+  - `start`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Windows) до первой правки; по умолчанию gate работает только с текущим checkout.
+  - `finish`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Windows) перед закрытием задачи; gate делает `fetch -> verify -> push -> post-push fetch`, но не делает auto-merge/rebase.
 - Запрещено начинать правки без успешного `start` и запрещено завершать задачу с локальными commit-ами `ahead>0`.
-- Автосинхронизация `git pull --ff-only` выполняется только на clean tree с корректным upstream; при любом блокере работа приостанавливается до явных инструкций владельца, в запросе владельцу нужно коротко предложить варианты дальнейших действий.
+- Для старого массового scan всех top-level repo требуется явный `--all-repos`; `--root-path` без `--all-repos` не используется.
+- Автосинхронизация `git pull --ff-only` выполняется только на clean tree с корректным upstream и только на `start`; при любом блокере работа приостанавливается до явных инструкций владельца, в запросе владельцу нужно коротко предложить варианты дальнейших действий.
 - Любая завершённая правка в `/int/tools` считается незавершённой, пока в пределах текущей задачи не создан как минимум один локальный commit в этом repo.
 - Перед каждым локальным commit обязательно добавить в индекс новые файлы текущего scope и повторно выполнить `git add` для уже staged путей после каждой дополнительной правки; commit по устаревшему состоянию индекса запрещён.
 - Перед каждым локальным commit обновление `RELEASE.md` не требуется; по умолчанию source-of-truth изменений — git history (commit subjects/body + diff).

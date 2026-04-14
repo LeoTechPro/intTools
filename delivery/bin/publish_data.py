@@ -40,7 +40,7 @@ def main() -> int:
         "--deploy-mode",
         "ssh-fast-forward",
         "--deploy-host",
-        "vds.intdata.pro",
+        "vds-intdata-intdata",
         "--deploy-repo-path",
         "/int/data",
         "--deploy-fetch-ref",
