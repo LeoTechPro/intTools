@@ -73,6 +73,14 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - `AGENTS.md` хранит только process/rules/gates/commit-policy этого repo.
 - `RELEASE.md` ведётся опционально: обновляется только по прямому запросу владельца или в задаче на подготовку релиз-коммуникации.
 
+## Tooling Mutation Governance
+
+- Любая tracked-мутация repo-owned tooling в `/int/tools/**` обязана начинаться с согласованного OpenSpec package в `openspec/changes/<change-id>/`.
+- До первой tracked-правки должны существовать как минимум `proposal.md`, `tasks.md` и релевантный `spec.md` delta в `openspec/changes/<change-id>/specs/**`; `design.md` обязателен, если change меняет resolver/runtime architecture, capability boundaries или enforcement model.
+- Execution допускается только против active agreed change; если `change-id`, spec source-of-truth или acceptance scope не определены, работа останавливается и эскалируется владельцу.
+- Это требование распространяется на wrapper-скрипты, publish/deploy flows, hooks/gates, MCP launcher-ы, Codex/OpenClaw overlays, prompts/rules/skills, repo policy docs и любой другой tracked tooling/process asset, который меняет поведение или governance контура `/int/tools`.
+- Host-local git maintenance (`.git/**`), runtime state вне git, lock receipts и untracked temp-артефакты не считаются repo-owned tooling mutations и не образуют самостоятельный OpenSpec scope.
+
 ## Git и завершение работы
 
 - Для любой задачи с файловыми мутациями в `/int/*` обязателен двухфазный sync-gate:
@@ -99,6 +107,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 ## Spec-First Policy
 - Главный приоритет любой реализации — согласованная актуальная спека (OpenSpec / approved spec source-of-truth для контура).
+- Для `/int/tools` OpenSpec обязателен не только для API/schema/capability work, но и для любых tracked tooling/process mutations: без active agreed `openspec/changes/<change-id>/` реализация запрещена.
 - Если спеки нет, она неполная, противоречивая или не фиксирует API/contracts/capability boundaries, сначала нужно довести спеку до согласованного состояния и только потом приступать к реализации.
 - Изменения API, RPC, schema contracts, payload shape, capability boundaries и access semantics без зафиксированной и согласованной спеки запрещены.
 - Если реализация расходится со спекой, приоритет у спеки; сначала исправляется/уточняется spec-source-of-truth, затем код.

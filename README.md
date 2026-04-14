@@ -32,6 +32,16 @@
 - `ngt-memory` больше не ведётся как gitlink внутри `/int/tools`.
 - Для изучения подходов agent-memory используем upstream-репозиторий `https://github.com/ngt-memory/ngt-memory` как внешний reference.
 
+## OpenSpec governance
+
+- Для любых tracked-мутаций repo-owned tooling в `/int/tools/**` канонический process source-of-truth живёт в `openspec/specs/process/spec.md`.
+- Перед первой правкой обязателен owner-approved change package в `openspec/changes/<change-id>/`:
+  - `proposal.md`
+  - `tasks.md`
+  - релевантный `spec.md` delta в `specs/**`
+  - `design.md`, если меняется архитектура enforcement/runtime/resolver.
+- `AGENTS.md`, `README.md` и managed governance docs в этом repo должны обновляться только вместе с соответствующим OpenSpec change, а не отдельно от него.
+
 ## Codex и OpenClaw
 
 - runtime Codex живёт в `~/.codex`, а versioned overlay и bootstrap-утилиты — в `codex/`;
@@ -1088,15 +1098,15 @@ bash /int/tools/openclaw/ops/verify.sh
 
 #### OpenSpec Changes
 
-Active proposals хранятся в подкаталогах `openspec/changes/*`.
-Bootstrap начинается пустым: новые `change-id` создаются только когда repo-local policy и явное одобрение владельца разрешают `SPEC-MUTATION`.
+Active owner-approved change packages хранятся в подкаталогах `openspec/changes/*`.
+Для tracked tooling/process mutations execution без active change package запрещён.
 
 ### `openspec/specs/`
 
 #### OpenSpec Specifications
 
-Текущие capability specs этого репозитория хранятся в подкаталогах `openspec/specs/*`.
-Bootstrap начинается пустым: по умолчанию расширяем существующие capability specs и не создаём дубли без явного одобрения владельца.
+Текущие capability/process specs этого репозитория хранятся в подкаталогах `openspec/specs/*`.
+Для tooling-governance канонический spec живёт в `openspec/specs/process/spec.md`; по умолчанию расширяем существующие capability specs и не создаём дубли без явного одобрения владельца.
 
 ### `probe/`
 
