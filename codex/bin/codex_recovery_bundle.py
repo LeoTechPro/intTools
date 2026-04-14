@@ -58,6 +58,22 @@ def run_checked(command: list[str]) -> None:
         raise RuntimeError(f"command failed: {' '.join(command)}")
 
 
+def resolve_openssl() -> str:
+    resolved = shutil.which("openssl")
+    if resolved:
+        return resolved
+    if os.name == "nt":
+        candidates = [
+            Path(os.environ.get("ProgramFiles", "")) / "Git/usr/bin/openssl.exe",
+            Path(os.environ.get("ProgramFiles", "")) / "OpenSSL-Win64/bin/openssl.exe",
+            Path(os.environ.get("ProgramFiles(x86)", "")) / "OpenSSL-Win32/bin/openssl.exe",
+        ]
+        for candidate in candidates:
+            if candidate.exists():
+                return str(candidate)
+    raise RuntimeError("openssl executable was not found in PATH")
+
+
 def export_bundle(bundle_path: Path) -> None:
     runtime_root = Path(os.environ.get("CODEX_RUNTIME_ROOT", "/int/.runtime")).expanduser()
     secrets_root = Path(os.environ.get("CODEX_SECRETS_ROOT", runtime_root / "codex-secrets")).expanduser()
@@ -95,9 +111,10 @@ def export_bundle(bundle_path: Path) -> None:
             archive.add(temp_dir / "home", arcname="home")
             archive.add(manifest_path, arcname="manifest.json")
 
+        openssl = resolve_openssl()
         run_checked(
             [
-                "openssl",
+                openssl,
                 "enc",
                 "-aes-256-cbc",
                 "-pbkdf2",
@@ -122,9 +139,10 @@ def import_bundle(bundle_path: Path) -> None:
     with tempfile.TemporaryDirectory() as temp_dir_raw:
         temp_dir = Path(temp_dir_raw)
         archive_path = temp_dir / "recovery.tgz"
+        openssl = resolve_openssl()
         run_checked(
             [
-                "openssl",
+                openssl,
                 "enc",
                 "-d",
                 "-aes-256-cbc",

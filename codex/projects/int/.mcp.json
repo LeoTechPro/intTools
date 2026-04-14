@@ -10,18 +10,7 @@
       ]
     },
     "firefox-default": {
-      "command": "python",
-      "args": [
-        "D:\\int\\tools\\codex\\bin\\firefox_mcp_launcher.py",
-        "--capability",
-        "firefox-default",
-        "--binding-origin",
-        "codex/bin/firefox_mcp_launcher.py",
-        "--profile-key",
-        "firefox-default",
-        "--start-url",
-        "http://127.0.0.1:8080/"
-      ]
+      "command": "mcp-firefox-default"
     }
   }
 }
