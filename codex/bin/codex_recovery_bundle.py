@@ -30,6 +30,37 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def resolve_int_root() -> Path:
+    explicit = os.environ.get("INT_ROOT", "").strip()
+    if explicit:
+        return Path(explicit).expanduser().resolve()
+
+    repo_root = Path(__file__).resolve().parents[2]
+    for parent in repo_root.resolve().parents:
+        if parent.name.lower() == "int":
+            return parent.resolve()
+
+    candidates = (Path("D:/int"), Path("/int")) if os.name == "nt" else (Path("/int"), Path("D:/int"))
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate.resolve()
+    return candidates[0].resolve()
+
+
+def default_runtime_root() -> Path:
+    explicit = os.environ.get("CODEX_RUNTIME_ROOT", "").strip()
+    if explicit:
+        return Path(explicit).expanduser().resolve()
+    return (resolve_int_root() / ".runtime").resolve()
+
+
+def default_cloud_root() -> Path:
+    explicit = os.environ.get("CLOUD_ACCESS_ROOT", "").strip()
+    if explicit:
+        return Path(explicit).expanduser().resolve()
+    return (default_runtime_root() / "cloud-access").resolve()
+
+
 def ensure_passphrase() -> str:
     value = os.environ.get(PASS_ENV_VAR, "")
     if value:
@@ -75,9 +106,9 @@ def resolve_openssl() -> str:
 
 
 def export_bundle(bundle_path: Path) -> None:
-    runtime_root = Path(os.environ.get("CODEX_RUNTIME_ROOT", "/int/.runtime")).expanduser()
+    runtime_root = default_runtime_root()
     secrets_root = Path(os.environ.get("CODEX_SECRETS_ROOT", runtime_root / "codex-secrets")).expanduser()
-    cloud_access_root = Path(os.environ.get("CLOUD_ACCESS_ROOT", runtime_root / "cloud-access")).expanduser()
+    cloud_access_root = default_cloud_root()
     openclaw_secrets_root = Path(os.environ.get("OPENCLAW_SECRETS_ROOT", Path.home() / ".openclaw" / "secrets")).expanduser()
 
     with tempfile.TemporaryDirectory() as temp_dir_raw:
@@ -131,9 +162,9 @@ def export_bundle(bundle_path: Path) -> None:
 
 
 def import_bundle(bundle_path: Path) -> None:
-    runtime_root = Path(os.environ.get("CODEX_RUNTIME_ROOT", "/int/.runtime")).expanduser()
+    runtime_root = default_runtime_root()
     secrets_root = Path(os.environ.get("CODEX_SECRETS_ROOT", runtime_root / "codex-secrets")).expanduser()
-    cloud_access_root = Path(os.environ.get("CLOUD_ACCESS_ROOT", runtime_root / "cloud-access")).expanduser()
+    cloud_access_root = default_cloud_root()
     openclaw_secrets_root = Path(os.environ.get("OPENCLAW_SECRETS_ROOT", Path.home() / ".openclaw" / "secrets")).expanduser()
 
     with tempfile.TemporaryDirectory() as temp_dir_raw:

@@ -41,27 +41,35 @@
     "session_index.jsonl.bak*"
   ],
   "required_repo_paths": [
-    "/int/tools/codex/assets/codex-home/AGENTS.md",
-    "/int/tools/codex/templates/config.toml.tmpl",
-    "/int/tools/codex/bin/codex-host-bootstrap",
-    "/int/tools/codex/bin/codex-host-verify",
-    "/int/tools/codex/bin/codex-recovery-bundle",
-    "/int/tools/codex/bin/mcp-github-from-gh.sh",
-    "/int/tools/codex/bin/mcp-postgres-from-backend-env.sh",
-    "/int/tools/codex/bin/mcp-obsidian-memory.sh",
-    "/int/tools/codex/bin/mcp-timeweb.sh",
-    "/int/tools/codex/bin/mcp-timeweb-readonly.sh",
-    "/int/tools/codex/bin/mcp-bitrix24.sh",
-    "/int/tools/codex/bin/mcp-lockctl.sh",
-    "/int/tools/codex/bin/mcp-lockctl.py",
-    "/int/tools/openclaw/.mcp.json",
-    "/int/tools/openclaw/ops/install.sh",
-    "/int/tools/openclaw/ops/verify.sh"
+    "codex/assets/codex-home/AGENTS.md",
+    "codex/templates/config.toml.tmpl",
+    "codex/bin/codex-host-bootstrap",
+    "codex/bin/codex-host-bootstrap.cmd",
+    "codex/bin/codex-host-bootstrap.ps1",
+    "codex/bin/codex-host-verify",
+    "codex/bin/codex-host-verify.cmd",
+    "codex/bin/codex-host-verify.ps1",
+    "codex/bin/codex-recovery-bundle",
+    "codex/bin/codex-recovery-bundle.cmd",
+    "codex/bin/codex-recovery-bundle.ps1",
+    "codex/bin/mcp-github-from-gh.sh",
+    "codex/bin/mcp-postgres-from-backend-env.sh",
+    "codex/bin/mcp-obsidian-memory.sh",
+    "codex/bin/mcp-timeweb.sh",
+    "codex/bin/mcp-timeweb-readonly.sh",
+    "codex/bin/mcp-bitrix24.sh",
+    "codex/bin/mcp-lockctl.sh",
+    "codex/bin/mcp-lockctl.py",
+    "openclaw/.mcp.json",
+    "openclaw/ops/install.sh",
+    "openclaw/ops/verify.sh"
   ],
   "required_runtime_dirs": [
-    "/int/.runtime/codex-secrets",
-    "/int/.runtime/cloud-access",
-    "/int/cloud/gdrive",
-    "/int/cloud/yadisk"
+    "codex-secrets",
+    "cloud-access"
+  ],
+  "required_cloud_dirs": [
+    "gdrive",
+    "yadisk"
   ]
 }

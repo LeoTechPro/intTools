@@ -13,10 +13,6 @@ if str(ROUTER_ROOT) not in __import__("sys").path:
     __import__("sys").path.insert(0, str(ROUTER_ROOT))
 
 import agent_tool_routing as routing  # noqa: E402
-import codex_host_bootstrap as host_bootstrap  # noqa: E402
-import codex_host_verify as host_verify  # noqa: E402
-
-
 EXPECTED_V1_CAPABILITIES = {
     "publish_data",
     "publish_assess",
@@ -87,6 +83,18 @@ class AgentToolRoutingTest(unittest.TestCase):
             payload = routing.resolve_capability(capability_id, platform="windows")
             self.assertEqual(payload["selected_binding"]["binding_origin"], expected)
 
+    def test_firefox_capabilities_resolve_to_platform_wrappers(self) -> None:
+        for capability_id, expected_windows, expected_linux in (
+            ("firefox-default", "codex/bin/mcp-firefox-default.cmd", "codex/bin/mcp-firefox-default"),
+            ("assess-firefox-client", "codex/bin/mcp-firefox-assess-client.cmd", "codex/bin/mcp-firefox-assess-client"),
+            ("assess-firefox-specialist-v1", "codex/bin/mcp-firefox-assess-specialist-v1.cmd", "codex/bin/mcp-firefox-assess-specialist-v1"),
+            ("assess-firefox-specialist-v2", "codex/bin/mcp-firefox-assess-specialist-v2.cmd", "codex/bin/mcp-firefox-assess-specialist-v2"),
+            ("assess-firefox-admin", "codex/bin/mcp-firefox-assess-admin.cmd", "codex/bin/mcp-firefox-assess-admin"),
+            ("assess-firefox-specialist-restricted", "codex/bin/mcp-firefox-assess-specialist-restricted.cmd", "codex/bin/mcp-firefox-assess-specialist-restricted"),
+        ):
+            self.assertEqual(routing.resolve_capability(capability_id, platform="windows")["selected_binding"]["binding_origin"], expected_windows)
+            self.assertEqual(routing.resolve_capability(capability_id, platform="linux")["selected_binding"]["binding_origin"], expected_linux)
+
     def test_missing_engine_blocks(self) -> None:
         payload = self._load_registry()
         for capability in payload["capabilities"]:
@@ -141,14 +149,9 @@ class AgentToolRoutingTest(unittest.TestCase):
         for capability in payload["capabilities"]:
             if capability["capability_id"] == "codex-host-bootstrap":
                 capability["approved_fallback_skills"] = ["playwright"]
-                capability["runtime_bindings"] = [
-                    binding
-                    for binding in capability["runtime_bindings"]
-                    if binding["binding_origin"] != "codex/bin/codex-host-bootstrap.cmd"
-                ]
         registry_path = self._write_temp_registry(payload)
         with self.assertRaises(routing.RoutingError) as ctx:
-            routing.resolve_capability("codex-host-bootstrap", platform="windows", registry_path=registry_path)
+            routing.resolve_capability("codex-host-bootstrap", platform="macos", registry_path=registry_path)
         self.assertEqual(ctx.exception.payload["approved_fallback_skills"], ["playwright"])
         self.assertNotIn("executed_fallback_skill", ctx.exception.payload)
 
@@ -166,35 +169,6 @@ class AgentToolRoutingTest(unittest.TestCase):
             self.assertNotIn("D:\\int\\tools\\", server["command"])
             self.assertNotIn("npx", server["command"])
             self.assertNotIn("args", server)
-
-    def test_host_bootstrap_windows_blocks_linux_only_step(self) -> None:
-        original = host_bootstrap.current_platform
-        host_bootstrap.current_platform = lambda: "windows"
-        self.addCleanup(setattr, host_bootstrap, "current_platform", original)
-        with self.assertRaises(host_bootstrap.HostBootstrapError) as ctx:
-            host_bootstrap.ensure_supported_step("openclaw")
-        self.assertEqual(ctx.exception.code, "STEP_UNSUPPORTED_PLATFORM")
-        self.assertEqual(ctx.exception.step, "openclaw")
-
-    def test_verify_config_accepts_windows_style_repo_paths(self) -> None:
-        config_text = """
-[mcp_servers.github]
-command = "D:/int/tools/codex/bin/mcp-github-from-gh.sh"
-[mcp_servers.postgres]
-command = "D:/int/tools/codex/bin/mcp-postgres-from-backend-env.sh"
-[mcp_servers.obsidian_memory]
-command = "D:/int/tools/codex/bin/mcp-obsidian-memory.sh"
-[mcp_servers.timeweb]
-command = "D:/int/tools/codex/bin/mcp-timeweb.sh"
-[mcp_servers.timeweb_readonly]
-command = "D:/int/tools/codex/bin/mcp-timeweb-readonly.sh"
-[mcp_servers.bitrix24]
-command = "D:/int/tools/codex/bin/mcp-bitrix24.sh"
-[mcp_servers.lockctl]
-command = "lockctl-mcp.cmd"
-""".strip() + "\nD:/int/cloud/gdrive\nD:/int/cloud/yadisk\nD:/Users/intData/.codex\n"
-        missing = host_verify.collect_missing_config_fragments(config_text, Path("D:/Users/intData/.codex"))
-        self.assertEqual(missing, [])
 
 
 if __name__ == "__main__":

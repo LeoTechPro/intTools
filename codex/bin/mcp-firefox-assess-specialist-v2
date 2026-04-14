@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 exec "$SCRIPT_DIR/mcp-firefox-devtools.sh" --capability assess-firefox-specialist-v2 --binding-origin codex/bin/mcp-firefox-assess-specialist-v2 --profile-key assess-specialist-v2 --start-url http://127.0.0.1:8080/v2/ "$@"

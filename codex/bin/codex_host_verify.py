@@ -5,6 +5,7 @@ import fnmatch
 import json
 import os
 import sys
+import tomllib
 from pathlib import Path
 
 if str(Path(__file__).resolve().parent) not in sys.path:
@@ -31,47 +32,34 @@ def current_platform() -> str:
     return "linux"
 
 
-def normalize_text(value: str) -> str:
-    return value.replace("\\", "/")
+def resolve_int_root() -> Path:
+    explicit = os.environ.get("INT_ROOT", "").strip()
+    if explicit:
+        return Path(explicit).expanduser().resolve()
 
+    for parent in REPO_ROOT.resolve().parents:
+        if parent.name.lower() == "int":
+            return parent.resolve()
 
-def tools_root_candidates() -> list[Path]:
-    candidates = [REPO_ROOT]
-    for raw in (os.environ.get("INT_TOOLS_ROOT", ""), "/int/tools", "D:/int/tools"):
-        if raw:
-            candidates.append(Path(raw).expanduser())
-    seen: set[str] = set()
-    ordered: list[Path] = []
+    candidates = (Path("D:/int"), Path("/int")) if current_platform() == "windows" else (Path("/int"), Path("D:/int"))
     for candidate in candidates:
-        key = normalize_text(str(candidate.resolve() if candidate.exists() else candidate))
-        if key not in seen:
-            seen.add(key)
-            ordered.append(candidate)
-    return ordered
+        if candidate.exists():
+            return candidate.resolve()
+    return candidates[0].resolve()
 
 
-def int_root_candidates() -> list[Path]:
-    explicit_runtime = os.environ.get("CODEX_RUNTIME_ROOT", "").strip()
-    candidates = [Path("/int"), Path("D:/int")]
-    if explicit_runtime:
-        candidates.insert(0, Path(explicit_runtime).expanduser().parent)
-    return candidates
+def default_runtime_root() -> Path:
+    explicit = os.environ.get("CODEX_RUNTIME_ROOT", "").strip()
+    if explicit:
+        return Path(explicit).expanduser().resolve()
+    return (resolve_int_root() / ".runtime").resolve()
 
 
-def remap_canonical_path(path_str: str) -> Path:
-    normalized = normalize_text(path_str)
-    if normalized.startswith("/int/tools/") or normalized.startswith("D:/int/tools/"):
-        rel = normalized.split("/int/tools/", 1)[1] if "/int/tools/" in normalized else normalized.split("D:/int/tools/", 1)[1]
-        return (REPO_ROOT / rel.replace("/", os.sep)).resolve()
-    if normalized.startswith("/int/.runtime/") or normalized.startswith("D:/int/.runtime/"):
-        rel = normalized.split("/int/.runtime/", 1)[1] if "/int/.runtime/" in normalized else normalized.split("D:/int/.runtime/", 1)[1]
-        runtime_root = Path(os.environ.get("CODEX_RUNTIME_ROOT", "D:/int/.runtime" if current_platform() == "windows" else "/int/.runtime"))
-        return (runtime_root.expanduser() / rel.replace("/", os.sep)).resolve()
-    if normalized.startswith("/int/cloud/") or normalized.startswith("D:/int/cloud/"):
-        rel = normalized.split("/int/cloud/", 1)[1] if "/int/cloud/" in normalized else normalized.split("D:/int/cloud/", 1)[1]
-        int_root = Path("D:/int" if current_platform() == "windows" else "/int")
-        return (int_root / "cloud" / rel.replace("/", os.sep)).resolve()
-    return Path(path_str).expanduser().resolve()
+def default_cloud_root() -> Path:
+    explicit = os.environ.get("CLOUD_ROOT", "").strip()
+    if explicit:
+        return Path(explicit).expanduser().resolve()
+    return (resolve_int_root() / "cloud").resolve()
 
 
 def top_level_entries(path: Path) -> set[str]:
@@ -82,37 +70,6 @@ def top_level_entries(path: Path) -> set[str]:
 
 def matches_any(name: str, patterns: list[str]) -> bool:
     return any(fnmatch.fnmatch(name, pattern) for pattern in patterns)
-
-
-def collect_missing_config_fragments(config_text: str, codex_home: Path = CODEX_HOME) -> list[str]:
-    normalized = normalize_text(config_text)
-    missing: list[str] = []
-
-    repo_rel_paths = [
-        "codex/bin/mcp-github-from-gh.sh",
-        "codex/bin/mcp-postgres-from-backend-env.sh",
-        "codex/bin/mcp-obsidian-memory.sh",
-        "codex/bin/mcp-timeweb.sh",
-        "codex/bin/mcp-timeweb-readonly.sh",
-        "codex/bin/mcp-bitrix24.sh",
-    ]
-
-    required_candidates: dict[str, list[str]] = {}
-    for rel in repo_rel_paths:
-        required_candidates[rel] = [normalize_text(str(root / rel.replace("/", os.sep))) for root in tools_root_candidates()]
-
-    required_candidates["/int/cloud/gdrive"] = [normalize_text(str(root / "cloud" / "gdrive")) for root in int_root_candidates()]
-    required_candidates["/int/cloud/yadisk"] = [normalize_text(str(root / "cloud" / "yadisk")) for root in int_root_candidates()]
-    required_candidates[str(codex_home)] = [normalize_text(str(codex_home))]
-
-    for label, candidates in required_candidates.items():
-        if not any(candidate in normalized for candidate in candidates):
-            missing.append(label)
-
-    if all(fragment not in normalized for fragment in ("lockctl-mcp", "lockctl-mcp.cmd", "lockctl-mcp.sh")):
-        missing.append("lockctl MCP command fragment: lockctl-mcp or lockctl-mcp.cmd")
-
-    return missing
 
 
 def compare_project_overlays(issues: list[str]) -> None:
@@ -143,9 +100,56 @@ def verify_config(issues: list[str]) -> None:
     if not config_path.exists():
         issues.append(f"missing config file: {config_path}")
         return
-    config_text = config_path.read_text(encoding="utf-8")
-    for fragment in collect_missing_config_fragments(config_text, CODEX_HOME):
-        issues.append(f"config.toml missing fragment: {fragment}")
+    config_data = tomllib.loads(config_path.read_text(encoding="utf-8"))
+    mcp_servers = config_data.get("mcp_servers", {})
+    tools_root = REPO_ROOT.resolve().as_posix()
+    cloud_root = default_cloud_root().as_posix()
+
+    if config_data.get("default_cwd") != resolve_int_root().as_posix():
+        issues.append(f"config.toml default_cwd mismatch: {config_data.get('default_cwd')!r}")
+
+    filesystem_args = mcp_servers.get("filesystem", {}).get("args", [])
+    if CODEX_HOME.as_posix() not in filesystem_args:
+        issues.append(f"filesystem MCP args missing CODEX_HOME path: {CODEX_HOME.as_posix()}")
+
+    for server_name, expected_path in {
+        "gdrive_fs": f"{cloud_root}/gdrive",
+        "yadisk_fs": f"{cloud_root}/yadisk",
+    }.items():
+        if expected_path not in mcp_servers.get(server_name, {}).get("args", []):
+            issues.append(f"{server_name} args missing expected path: {expected_path}")
+
+    if current_platform() == "windows":
+        expected_servers = {
+            "github": ("bash", [f"{tools_root}/codex/bin/mcp-github-from-gh.sh"]),
+            "postgres": ("bash", [f"{tools_root}/codex/bin/mcp-postgres-from-backend-env.sh"]),
+            "obsidian_memory": ("bash", [f"{tools_root}/codex/bin/mcp-obsidian-memory.sh"]),
+            "timeweb": ("bash", [f"{tools_root}/codex/bin/mcp-timeweb.sh"]),
+            "timeweb_readonly": ("bash", [f"{tools_root}/codex/bin/mcp-timeweb-readonly.sh"]),
+            "bitrix24": ("bash", [f"{tools_root}/codex/bin/mcp-bitrix24.sh"]),
+            "lockctl": ("python", [f"{tools_root}/codex/bin/mcp-lockctl.py"]),
+        }
+    else:
+        expected_servers = {
+            "github": (f"{tools_root}/codex/bin/mcp-github-from-gh.sh", []),
+            "postgres": (f"{tools_root}/codex/bin/mcp-postgres-from-backend-env.sh", []),
+            "obsidian_memory": (f"{tools_root}/codex/bin/mcp-obsidian-memory.sh", []),
+            "timeweb": (f"{tools_root}/codex/bin/mcp-timeweb.sh", []),
+            "timeweb_readonly": (f"{tools_root}/codex/bin/mcp-timeweb-readonly.sh", []),
+            "bitrix24": (f"{tools_root}/codex/bin/mcp-bitrix24.sh", []),
+            "lockctl": (f"{tools_root}/codex/bin/mcp-lockctl.sh", []),
+        }
+
+    for server_name, (expected_command, expected_args) in expected_servers.items():
+        server = mcp_servers.get(server_name, {})
+        if server.get("command") != expected_command:
+            issues.append(
+                f"config.toml {server_name} command mismatch: {server.get('command')!r} != {expected_command!r}"
+            )
+        if server.get("args", []) != expected_args:
+            issues.append(
+                f"config.toml {server_name} args mismatch: {server.get('args', [])!r} != {expected_args!r}"
+            )
 
 
 def main() -> int:
@@ -170,12 +174,19 @@ def main() -> int:
             issues.append(f"unexpected top-level path in {CODEX_HOME}: {name}")
 
     for path_str in policy["required_repo_paths"]:
-        if not remap_canonical_path(path_str).exists():
-            issues.append(f"missing repo path: {path_str}")
+        resolved = (REPO_ROOT / path_str).resolve()
+        if not resolved.exists():
+            issues.append(f"missing repo path: {resolved}")
 
     for path_str in policy["required_runtime_dirs"]:
-        if not remap_canonical_path(path_str).exists():
-            issues.append(f"missing runtime path: {path_str}")
+        resolved = (default_runtime_root() / path_str).resolve()
+        if not resolved.exists():
+            issues.append(f"missing runtime path: {resolved}")
+
+    for path_str in policy.get("required_cloud_dirs", []):
+        resolved = (default_cloud_root() / path_str).resolve()
+        if not resolved.exists():
+            issues.append(f"missing cloud path: {resolved}")
 
     verify_config(issues)
     compare_project_overlays(issues)

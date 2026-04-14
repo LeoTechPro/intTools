@@ -248,9 +248,10 @@
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/codex_host_bootstrap.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
+        {"binding_origin": "codex/bin/codex_host_bootstrap.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux"], "adapter_targets_engine": null, "parity_required": true},
         {"binding_origin": "codex/bin/codex-host-bootstrap.cmd", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/codex_host_bootstrap.py", "parity_required": true},
-        {"binding_origin": "codex/bin/codex-host-bootstrap", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "codex/bin/codex_host_bootstrap.py", "parity_required": true}
+        {"binding_origin": "codex/bin/codex-host-bootstrap.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/codex_host_bootstrap.py", "parity_required": true},
+        {"binding_origin": "codex/bin/codex-host-bootstrap", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux"], "adapter_targets_engine": "codex/bin/codex_host_bootstrap.py", "parity_required": true}
       ]
     },
     {
@@ -260,9 +261,10 @@
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/codex_host_verify.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
+        {"binding_origin": "codex/bin/codex_host_verify.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux"], "adapter_targets_engine": null, "parity_required": true},
         {"binding_origin": "codex/bin/codex-host-verify.cmd", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/codex_host_verify.py", "parity_required": true},
-        {"binding_origin": "codex/bin/codex-host-verify", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "codex/bin/codex_host_verify.py", "parity_required": true}
+        {"binding_origin": "codex/bin/codex-host-verify.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/codex_host_verify.py", "parity_required": true},
+        {"binding_origin": "codex/bin/codex-host-verify", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux"], "adapter_targets_engine": "codex/bin/codex_host_verify.py", "parity_required": true}
       ]
     },
     {
@@ -272,9 +274,10 @@
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/codex_recovery_bundle.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
+        {"binding_origin": "codex/bin/codex_recovery_bundle.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux"], "adapter_targets_engine": null, "parity_required": true},
         {"binding_origin": "codex/bin/codex-recovery-bundle.cmd", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/codex_recovery_bundle.py", "parity_required": true},
-        {"binding_origin": "codex/bin/codex-recovery-bundle", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "codex/bin/codex_recovery_bundle.py", "parity_required": true}
+        {"binding_origin": "codex/bin/codex-recovery-bundle.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/codex_recovery_bundle.py", "parity_required": true},
+        {"binding_origin": "codex/bin/codex-recovery-bundle", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux"], "adapter_targets_engine": "codex/bin/codex_recovery_bundle.py", "parity_required": true}
       ]
     }
   ]
