@@ -15,6 +15,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "delivery" / "bin" / "publish_repo.py"
 POWERSHELL_ADAPTER = REPO_ROOT / "codex" / "bin" / "publish_repo.ps1"
 SSH_RESOLVER = REPO_ROOT / "codex" / "bin" / "int_ssh_resolve.py"
+PUBLISH_DATA_SHIM = REPO_ROOT / "codex" / "bin" / "publish_data.ps1"
+DELIVERY_PUBLISH_DATA = REPO_ROOT / "delivery" / "bin" / "publish_data.ps1"
+DELIVERY_PUBLISH_ASSESS = REPO_ROOT / "delivery" / "bin" / "publish_assess.ps1"
 
 
 def run_checked(args: list[str], cwd: Path) -> str:
@@ -302,6 +305,13 @@ class PublishRepoScriptTest(unittest.TestCase):
         self.assertIn("tailnet_host", payload)
         self.assertIn("public_host", payload)
         self.assertIn("ssh_args", payload)
+
+    def test_codex_publish_shims_delegate_to_delivery_wrappers(self) -> None:
+        shim_text = PUBLISH_DATA_SHIM.read_text(encoding="utf-8")
+        self.assertIn("..\\..\\delivery\\bin\\publish_data.ps1", shim_text)
+        self.assertNotIn("-RepoPath", shim_text)
+        self.assertTrue(DELIVERY_PUBLISH_DATA.exists())
+        self.assertTrue(DELIVERY_PUBLISH_ASSESS.exists())
 
     @unittest.skipUnless(shutil.which("pwsh"), "pwsh is required for adapter verification")
     def test_powershell_adapter_passes_through_to_python_engine(self) -> None:

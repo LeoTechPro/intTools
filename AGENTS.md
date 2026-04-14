@@ -81,6 +81,20 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - Это требование распространяется на wrapper-скрипты, publish/deploy flows, hooks/gates, MCP launcher-ы, Codex/OpenClaw overlays, prompts/rules/skills, repo policy docs и любой другой tracked tooling/process asset, который меняет поведение или governance контура `/int/tools`.
 - Host-local git maintenance (`.git/**`), runtime state вне git, lock receipts и untracked temp-артефакты не считаются repo-owned tooling mutations и не образуют самостоятельный OpenSpec scope.
 
+## High-Risk Routing V1
+
+- Machine-readable registry для repo-owned high-risk capabilities: `codex/config/agent-tool-routing.v1.json`.
+- Канонический resolver/validator CLI: `codex/bin/agent_tool_routing.py`.
+- Contract V1: `logical intent -> canonical engine -> thin adapter`.
+- Blocked path обязателен при `missing engine`, `missing adapter`, `unsupported platform`, `adapter drift`, `unknown intent` и `ambiguous intent`.
+- Verified skills для high-risk capabilities не могут подменять blocked repo-owned path автоматически; они допустимы только как explicit approved fallback metadata.
+- Canonical engine roots:
+  - publish/deploy family: `delivery/bin`
+  - SSH / Firefox / host launchers: `codex/bin`
+  - sync gate: `scripts/codex/int_git_sync_gate.py`
+  - lockctl CLI/MCP: `lockctl/lockctl_core.py`, `codex/bin/mcp-lockctl.py`
+  - intdb: `intdb/lib/intdb.py`
+
 ## Git и завершение работы
 
 - Для любой задачи с файловыми мутациями в `/int/*` обязателен двухфазный sync-gate:

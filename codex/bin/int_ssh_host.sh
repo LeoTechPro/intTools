@@ -44,27 +44,14 @@ if [[ -z "$logical" ]]; then
 fi
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-engine="${script_dir}/int_ssh_resolve.py"
-
-if [[ ! -f "$engine" ]]; then
-  echo "int_ssh_host.sh: resolver engine not found: $engine" >&2
-  exit 2
+python_bin="${PYTHON_BIN:-python3}"
+if ! command -v "$python_bin" >/dev/null 2>&1; then
+  python_bin="python"
 fi
 
-python_bin="${PYTHON_BIN:-}"
-if [[ -z "$python_bin" ]]; then
-  if command -v python3 >/dev/null 2>&1; then
-    python_bin="python3"
-  elif command -v python >/dev/null 2>&1; then
-    python_bin="python"
-  else
-    echo "int_ssh_host.sh: python runtime is required" >&2
-    exit 2
-  fi
-fi
-
-payload="$("$python_bin" "$engine" --requested-host "$logical" --mode "$mode" --json)"
-destination="$("$python_bin" -c 'import json,sys; print(json.loads(sys.stdin.read())["destination"])' <<<"$payload")"
-
-echo "$destination"
-echo "$payload" >&2
+exec "$python_bin" "$script_dir/int_ssh_resolve.py" \
+  --requested-host "$logical" \
+  --mode "$mode" \
+  --capability int_ssh_host \
+  --binding-origin "codex/bin/int_ssh_host.sh" \
+  --destination-only

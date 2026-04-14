@@ -7,4 +7,5 @@ if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
   PYTHON_BIN="python"
 fi
 
-exec "$PYTHON_BIN" "$SCRIPT_DIR/codex_recovery_bundle.py" --binding-origin "codex/bin/codex-recovery-bundle" "$@"
+export PYTHONUTF8=1
+exec "$PYTHON_BIN" "$SCRIPT_DIR/lib/intdb.py" "$@"

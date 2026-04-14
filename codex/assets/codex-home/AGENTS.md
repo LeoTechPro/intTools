@@ -87,6 +87,13 @@ Ambiguity считается значимой только при неяснос
 - В `FINISH` `git push` выполняй только по явному разрешению владельца или по обязательному явному шагу процесса (например, `issue:push:done`).
 - Для этого приватного репозитория `.codex` хранение `env`/секретов в git разрешено явным решением владельца; ограничение относится к публикации секретов во внешние публичные контуры.
 
+## High-Risk Repo-Owned Tooling
+- Для repo-owned high-risk tooling в `/int/tools` machine-readable registry живёт в `/int/tools/codex/config/agent-tool-routing.v1.json`.
+- Resolver CLI `/int/tools/codex/bin/agent_tool_routing.py` обязан возвращать только `resolved` или `blocked` для runtime binding resolution.
+- Blocked repo-owned capability не может неявно переключаться на verified skill; fallback допустим только если он явно перечислен как approved metadata в registry.
+- Для publish family canonical engine root = `/int/tools/delivery/bin`; `codex/bin/publish_*.ps1` остаются только compatibility adapters.
+- Для Firefox/SSH/host launcher family canonical engine root = `/int/tools/codex/bin`; shell/cmd/PowerShell wrappers не являются source-of-truth.
+
 ## Postgres по умолчанию
 - Подключение по умолчанию: локальный сокет `sudo -u postgres psql -d <POSTGRES_DB>`.
 - `<POSTGRES_DB>` берётся из `.env` проекта (сначала рабочий `.env`, fallback на `.env.example`).

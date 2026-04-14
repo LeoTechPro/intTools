@@ -1,48 +1,73 @@
 {
   "mcpServers": {
     "assess-firefox-client": {
-      "command": "cmd.exe",
+      "command": "python",
       "args": [
-        "/d",
-        "/s",
-        "/c",
-        "D:\\int\\tools\\codex\\bin\\mcp-firefox-assess-client.cmd"
+        "D:\\int\\tools\\codex\\bin\\firefox_mcp_launcher.py",
+        "--capability",
+        "assess-firefox-client",
+        "--binding-origin",
+        "codex/bin/firefox_mcp_launcher.py",
+        "--profile-key",
+        "assess-client-diagnostics",
+        "--start-url",
+        "http://127.0.0.1:8081/"
       ]
     },
     "assess-firefox-specialist-v1": {
-      "command": "cmd.exe",
+      "command": "python",
       "args": [
-        "/d",
-        "/s",
-        "/c",
-        "D:\\int\\tools\\codex\\bin\\mcp-firefox-assess-specialist-v1.cmd"
+        "D:\\int\\tools\\codex\\bin\\firefox_mcp_launcher.py",
+        "--capability",
+        "assess-firefox-specialist-v1",
+        "--binding-origin",
+        "codex/bin/firefox_mcp_launcher.py",
+        "--profile-key",
+        "assess-specialist-v1",
+        "--start-url",
+        "http://127.0.0.1:8080/"
       ]
     },
     "assess-firefox-specialist-v2": {
-      "command": "cmd.exe",
+      "command": "python",
       "args": [
-        "/d",
-        "/s",
-        "/c",
-        "D:\\int\\tools\\codex\\bin\\mcp-firefox-assess-specialist-v2.cmd"
+        "D:\\int\\tools\\codex\\bin\\firefox_mcp_launcher.py",
+        "--capability",
+        "assess-firefox-specialist-v2",
+        "--binding-origin",
+        "codex/bin/firefox_mcp_launcher.py",
+        "--profile-key",
+        "assess-specialist-v2",
+        "--start-url",
+        "http://127.0.0.1:8080/v2/"
       ]
     },
     "assess-firefox-admin": {
-      "command": "cmd.exe",
+      "command": "python",
       "args": [
-        "/d",
-        "/s",
-        "/c",
-        "D:\\int\\tools\\codex\\bin\\mcp-firefox-assess-admin.cmd"
+        "D:\\int\\tools\\codex\\bin\\firefox_mcp_launcher.py",
+        "--capability",
+        "assess-firefox-admin",
+        "--binding-origin",
+        "codex/bin/firefox_mcp_launcher.py",
+        "--profile-key",
+        "assess-specialist-admin",
+        "--start-url",
+        "http://127.0.0.1:8080/v2/"
       ]
     },
     "assess-firefox-specialist-restricted": {
-      "command": "cmd.exe",
+      "command": "python",
       "args": [
-        "/d",
-        "/s",
-        "/c",
-        "D:\\int\\tools\\codex\\bin\\mcp-firefox-assess-specialist-restricted.cmd"
+        "D:\\int\\tools\\codex\\bin\\firefox_mcp_launcher.py",
+        "--capability",
+        "assess-firefox-specialist-restricted",
+        "--binding-origin",
+        "codex/bin/firefox_mcp_launcher.py",
+        "--profile-key",
+        "assess-specialist-restricted",
+        "--start-url",
+        "http://127.0.0.1:8080/v2/"
       ]
     }
   }

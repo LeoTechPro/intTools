@@ -10,6 +10,11 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+if str(Path(__file__).resolve().parent) not in sys.path:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from agent_tool_routing import assert_binding  # noqa: E402
+
 
 VALID_MODES = {"auto", "tailnet", "public"}
 
@@ -212,12 +217,17 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--requested-host", required=True)
     parser.add_argument("--mode", default="")
     parser.add_argument("--probe-timeout-sec", type=int, default=0)
+    parser.add_argument("--capability", default="int_ssh_resolve")
+    parser.add_argument("--binding-origin", default="")
+    parser.add_argument("--destination-only", action="store_true")
     parser.add_argument("--json", action="store_true")
     return parser
 
 
 def main() -> int:
     args = build_parser().parse_args()
+    binding_origin = args.binding_origin or "codex/bin/int_ssh_resolve.py"
+    assert_binding(args.capability, binding_origin)
     payload = resolve_target(
         args.requested_host,
         mode=args.mode or None,
@@ -225,6 +235,8 @@ def main() -> int:
     )
     if args.json:
         print(json.dumps(payload, ensure_ascii=False))
+    elif args.destination_only:
+        print(payload["destination"])
     else:
         print(payload["destination"])
         print(json.dumps(payload, ensure_ascii=False), file=sys.stderr)

@@ -66,7 +66,13 @@ function Resolve-IntSshTarget {
 
     $python = Get-IntSshPythonPath
     $engine = Get-IntSshResolverEnginePath
-    $cliArgs = @($engine, "--requested-host", $RequestedHost, "--json")
+    $cliArgs = @(
+        $engine,
+        "--requested-host", $RequestedHost,
+        "--capability", "int_ssh_resolve",
+        "--binding-origin", "codex/bin/int_ssh_resolve.ps1",
+        "--json"
+    )
 
     if (-not [string]::IsNullOrWhiteSpace($Mode)) {
         $cliArgs += @("--mode", $Mode)

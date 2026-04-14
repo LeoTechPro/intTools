@@ -119,6 +119,7 @@
 - Не запрещай verified skills в целом.
 - Разреши их для read/search/docs и прочих non-high-risk сценариев.
 - Для high-risk intent skill tool допустим только как явно описанный approved fallback в registry.
+- Если repo-owned high-risk path blocked и approved fallback не описан, результат обязан остаться `blocked`; автоматический переход на skill path запрещён.
 
 ## Non-goals первой волны
 
