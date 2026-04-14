@@ -300,6 +300,16 @@ class IntDbTests(unittest.TestCase):
                 value = intdb._supabase_status_db_url(["supabase"], workspace)
         self.assertEqual(value, "postgresql://postgres:postgres@127.0.0.1:54322/postgres")
 
+    def test_db_env_from_url_returns_full_postgres_env(self) -> None:
+        env = intdb._db_env_from_url("postgresql://postgres:secret@127.0.0.1:54322/postgres")
+        self.assertEqual(env["POSTGRES_HOST"], "127.0.0.1")
+        self.assertEqual(env["POSTGRES_PORT"], "54322")
+        self.assertEqual(env["POSTGRES_DB"], "postgres")
+        self.assertEqual(env["POSTGRES_USER"], "postgres")
+        self.assertEqual(env["POSTGRES_PASSWORD"], "secret")
+        self.assertEqual(env["PGPASSWORD"], "secret")
+        self.assertEqual(env["LOCAL_TEST_DATABASE_URL"], "postgresql://postgres:secret@127.0.0.1:54322/postgres")
+
     def test_local_test_parser_requires_confirmation(self) -> None:
         parser = intdb._build_parser()
         with self.assertRaises(SystemExit):
@@ -313,6 +323,38 @@ class IntDbTests(unittest.TestCase):
             ]
         )
         self.assertEqual(args.local_test_command, "run")
+
+    def test_local_test_run_passes_full_postgres_env_to_migration_script(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            repo_root = root / "data"
+            (repo_root / "init").mkdir(parents=True, exist_ok=True)
+            args = intdb.argparse.Namespace(
+                repo=str(repo_root),
+                workdir=str(root / "workspace"),
+                smoke_file=None,
+                no_seed=True,
+                keep_running=True,
+                confirm_owner_control=intdb.OWNER_CONTROL_ACK,
+            )
+            captured_calls: list[dict[str, object]] = []
+            with mock.patch.object(intdb, "_require_docker", return_value="docker"):
+                with mock.patch.object(intdb, "_resolve_supabase_command", return_value=["supabase"]):
+                    with mock.patch.object(intdb, "_supabase_status_db_url", return_value="postgresql://postgres:secret@127.0.0.1:54322/postgres"):
+                        with mock.patch.object(intdb, "_require_bash", return_value=r"C:\Program Files\Git\bin\bash.exe"):
+                            with mock.patch.object(intdb, "_run_checked", side_effect=lambda argv, **kwargs: captured_calls.append({"argv": argv, "kwargs": kwargs}) or intdb.subprocess.CompletedProcess(argv, 0, "", "")):
+                                exit_code = intdb._cmd_local_test_run(args)
+        self.assertEqual(exit_code, 0)
+        self.assertEqual(captured_calls[0]["argv"], ["supabase", "init"])
+        self.assertEqual(captured_calls[1]["argv"], ["supabase", "start"])
+        migration_call = captured_calls[2]
+        self.assertEqual(migration_call["argv"][0], r"C:\Program Files\Git\bin\bash.exe")
+        self.assertEqual(migration_call["kwargs"]["extra_env"]["POSTGRES_HOST"], "127.0.0.1")
+        self.assertEqual(migration_call["kwargs"]["extra_env"]["POSTGRES_PORT"], "54322")
+        self.assertEqual(migration_call["kwargs"]["extra_env"]["POSTGRES_DB"], "postgres")
+        self.assertEqual(migration_call["kwargs"]["extra_env"]["POSTGRES_USER"], "postgres")
+        self.assertEqual(migration_call["kwargs"]["extra_env"]["POSTGRES_PASSWORD"], "secret")
+        self.assertEqual(migration_call["kwargs"]["extra_env"]["PGPASSWORD"], "secret")
 
     def test_prepend_path_entry_moves_pg_bin_to_front(self) -> None:
         result = intdb._prepend_path_entry(

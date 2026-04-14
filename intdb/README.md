@@ -85,7 +85,7 @@ python /int/tools/intdb/bin/pg-dev-migrate.py --path /path/to/change.sql --write
 Canonical disposable workflow для `/int/data` smoke/bootstrap с нуля:
 
 ```bash
-python D:\int\tools\intdb\intdb.ps1 local-test run --confirm-owner-control I_ACKNOWLEDGE_LOCAL_ONLY
+pwsh -File D:\int\tools\intdb\intdb.ps1 local-test run --confirm-owner-control I_ACKNOWLEDGE_LOCAL_ONLY
 ```
 
 Основные свойства:

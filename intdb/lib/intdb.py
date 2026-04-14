@@ -773,8 +773,21 @@ def _supabase_status_db_url(supabase_cmd: Sequence[str], workspace: Path) -> str
 
 def _db_env_from_url(db_url: str) -> dict[str, str]:
     parts = urlsplit(db_url)
+    username = parts.username
+    password = parts.password
+    host = parts.hostname
+    database = parts.path.lstrip("/")
+    if not username or password is None or not host or not database:
+        raise IntDbError("DB URL из local Supabase runtime неполный; не удалось подготовить env.")
+    port = str(parts.port or 5432)
     driverless = urlunsplit(("postgresql", parts.netloc, parts.path, "", ""))
     return {
+        "POSTGRES_HOST": host,
+        "POSTGRES_PORT": port,
+        "POSTGRES_DB": database,
+        "POSTGRES_USER": username,
+        "POSTGRES_PASSWORD": password,
+        "PGPASSWORD": password,
         "LOCAL_TEST_DATABASE_URL": driverless,
         "TEST_DATABASE_URL": driverless,
     }
