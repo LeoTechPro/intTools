@@ -114,6 +114,9 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - Если canonical publication в `origin/main` завершилась non-zero, задача считается незавершённой до устранения причины и повторного успешного publish.
 - Для каждого checkout/worktree обязателен локальный bootstrap `git config core.hooksPath .githooks`; tracked `.githooks/pre-push` включает этот guardrail только после такой настройки и не ограничивает push в `dev` или другие non-main branches.
 - `git push` и прочие remote-операции остаются отдельным шагом и не выполняются автоматически без owner approval или явного требования локального процесса.
+- Локальный `git add`/`git commit` по умолчанию остаётся дисциплиной согласованного scope: агент коммитит свои/согласованные правки, если владелец явно не указал включить больше.
+- Если владелец явно командует `push/publish/выкатывай/публикуй`, агент обязан либо выполнить canonical publication по уже подготовленному publication-state, либо остановиться и спросить, что делать дальше при блокере/неоднозначности.
+- При explicit owner-команде на publication запрещено по собственной инициативе дофильтровывать уже подготовленное publication-state: stash'ить, откатывать, скрывать или откладывать чужие/неатрибутированные изменения перед push/deploy.
 
 ## Env Policy (Strict)
 - В git допускаются только шаблоны `*.env.example` и `*.example`.

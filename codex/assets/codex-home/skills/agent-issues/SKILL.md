@@ -53,7 +53,7 @@ Work with GitHub Issues and machine-wide `lockctl` in any repo without hardcoded
    - Add/refresh/remove machine-wide locks for existing GitHub Issues; do not store context outside `lockctl`/issue flow.
    - Store locks only on file paths (directories are forbidden).
    - Если `lockctl status` не возвращает активного lease, это значит, что lock truth отсутствует и перед commit-flow нужен новый `lockctl acquire`.
-   - Если в рабочем дереве есть «неожиданные изменения», не относящиеся к текущей задаче, это не блокер: не откатывай/не stash’и/не трогай их без прямого запроса владельца. По умолчанию просто не включай их в свою задачу и зафиксируй наблюдение в GitHub Issues handoff/worklog.
+- Если в рабочем дереве есть «неожиданные изменения», не относящиеся к текущей задаче, это не блокер: не откатывай/не stash’и/не трогай их без прямого запроса владельца. По умолчанию зафиксируй наблюдение в GitHub Issues handoff/worklog. Локальный commit делай по своему/согласованному scope, но если владелец явно велит `push/publish/выкатывай`, не дофильтровывай уже подготовленное publication-state по своему усмотрению — либо публикуй его, либо остановись и спроси, что делать.
    - Если использовался spawn-agent, trace metadata фиксируется в GitHub Issue comments/worklog, а не в YAML-ledger.
    - Если lease истёк, это блокирующее состояние для commit-flow: ставь новый `lockctl acquire` по своей задаче.
    - При наличии чужого активного lease на нужном файле не перехватывай его вручную; действуй по process rules проекта.
@@ -77,7 +77,7 @@ Work with GitHub Issues and machine-wide `lockctl` in any repo without hardcoded
 
 11. Session close (when ending work).
    - Use references/session-close-checklist.md.
-   - Если владелец сказал «Завершайся», трактуй это как явную команду на полный цикл завершения: прогнать релевантные ревью/quality gates, обновить документацию, закрыть GitHub Issue где acceptance выполнен, отметить выполненные пункты чеклистов в OpenSpec (tasks/spec), выполнить `git add`/`git commit` только своих релевантных правок (чужие изменения не включать, не откатывать и не скрывать), использовать осмысленное сообщение коммита на русском языке, затем снять локи и очистить `.agents/tmp` (по правилам проекта). Миграции/деплой допускаются только в локальном контуре и строго по проектным гейтам (например, DBA-gate для миграций).
+- Если владелец сказал «Завершайся», трактуй это как явную команду на полный цикл завершения: прогнать релевантные ревью/quality gates, обновить документацию, закрыть GitHub Issue где acceptance выполнен, отметить выполненные пункты чеклистов в OpenSpec (tasks/spec), выполнить `git add`/`git commit` по согласованному scope, использовать осмысленное сообщение коммита на русском языке, затем снять локи и очистить `.agents/tmp` (по правилам проекта). Если в этой же задаче владелец явно велит `push/publish/выкатывай`, запрещено самостоятельно дофильтровывать уже подготовленное publication-state: либо публикуй его как есть, либо остановись и запроси инструкции. Миграции/деплой допускаются только в локальном контуре и строго по проектным гейтам (например, DBA-gate для миграций).
 
 12. Sync instructions if required.
    - If you change `AGENTS.md`, sync `GEMINI.md` per project rules.

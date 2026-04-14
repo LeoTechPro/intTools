@@ -28,6 +28,20 @@ The system MUST keep repo governance docs synchronized with the canonical OpenSp
 - **THEN** the relevant `openspec/specs/**` and `openspec/changes/**` content is updated together with repo governance docs such as `AGENTS.md` and `README.md`
 - **AND** those docs do not become an unsynchronized second source-of-truth
 
+### Requirement: Owner-directed publication MUST NOT be filtered by agent judgment
+The system MUST treat an explicit owner command to `push/publish/выкатывай/публикуй` as a directive to publish the already prepared publication-state as-is, unless a blocker or ambiguity is reported back to the owner first.
+
+#### Scenario: Explicit publication command is received
+- **WHEN** the owner explicitly orders `push`, `publish`, `выкатывай`, or `публикуй`
+- **THEN** the agent may still prepare a local commit according to the agreed implementation scope unless the owner instructed otherwise
+- **AND** the agent publishes the already prepared publication-state through the canonical flow for that repo or stops and asks the owner for instructions if a blocker or ambiguity exists
+- **AND** the agent does not autonomously shrink the publication scope to "only its own" or "only relevant" changes
+
+#### Scenario: Foreign or unattributed changes are present during publication
+- **WHEN** explicit owner-directed publication is requested and the prepared publication-state contains foreign, unattributed, or previously existing changes
+- **THEN** the agent MUST NOT exclude, stash, revert, hide, or defer those changes from the publication-state on its own authority merely because it considers them not its own
+- **AND** any need to exclude part of the state is escalated back to the owner as an explicit decision
+
 ### Requirement: Existing process capability is extended by default
 The system MUST extend existing tooling governance capability specs by default and MUST NOT create parallel capability directories for the same process scope without explicit owner approval.
 
