@@ -1,49 +1,19 @@
 {
   "mcpServers": {
     "assess-firefox-client": {
-      "command": "cmd.exe",
-      "args": [
-        "/d",
-        "/s",
-        "/c",
-        "D:\\int\\tools\\codex\\bin\\mcp-firefox-assess-client.cmd"
-      ]
+      "command": "mcp-firefox-assess-client"
     },
     "assess-firefox-specialist-v1": {
-      "command": "cmd.exe",
-      "args": [
-        "/d",
-        "/s",
-        "/c",
-        "D:\\int\\tools\\codex\\bin\\mcp-firefox-assess-specialist-v1.cmd"
-      ]
+      "command": "mcp-firefox-assess-specialist-v1"
     },
     "assess-firefox-specialist-v2": {
-      "command": "cmd.exe",
-      "args": [
-        "/d",
-        "/s",
-        "/c",
-        "D:\\int\\tools\\codex\\bin\\mcp-firefox-assess-specialist-v2.cmd"
-      ]
+      "command": "mcp-firefox-assess-specialist-v2"
     },
     "assess-firefox-admin": {
-      "command": "cmd.exe",
-      "args": [
-        "/d",
-        "/s",
-        "/c",
-        "D:\\int\\tools\\codex\\bin\\mcp-firefox-assess-admin.cmd"
-      ]
+      "command": "mcp-firefox-assess-admin"
     },
     "assess-firefox-specialist-restricted": {
-      "command": "cmd.exe",
-      "args": [
-        "/d",
-        "/s",
-        "/c",
-        "D:\\int\\tools\\codex\\bin\\mcp-firefox-assess-specialist-restricted.cmd"
-      ]
+      "command": "mcp-firefox-assess-specialist-restricted"
     }
   }
 }

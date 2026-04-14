@@ -2,7 +2,7 @@ model = "gpt-5.4"
 sandbox_mode = "danger-full-access"
 dangerously_bypass_approvals_and_sandbox = true
 model_reasoning_effort = "high"
-default_cwd = "/int"
+default_cwd = "__INT_ROOT__"
 personality = "pragmatic"
 web_search = "live"
 suppress_unstable_features_warning = true
@@ -13,22 +13,22 @@ multi_agent = false
 steer = true
 
 
-[projects."/home/leon/"]
+[projects."__HOME_ROOT__"]
 trust_level = "trusted"
 
-[projects."/int/data"]
+[projects."__INT_ROOT__/data"]
 trust_level = "trusted"
 
-[projects."/int"]
+[projects."__INT_ROOT__"]
 trust_level = "trusted"
 
-[projects."/int/leonid"]
+[projects."__INT_ROOT__/leonid"]
 trust_level = "trusted"
 
-[projects."/int/assess"]
+[projects."__INT_ROOT__/assess"]
 trust_level = "trusted"
 
-[projects."/home/leon"]
+[projects."__HOME_ROOT__"]
 trust_level = "trusted"
 
 [profiles.safe]
@@ -50,22 +50,24 @@ hide_rate_limit_model_nudge = true
 "gpt-5.1-codex-mini" = "gpt-5.2-codex"
 
 [mcp_servers.github]
-command = "/int/tools/codex/bin/mcp-github-from-gh.sh"
+command = "__MCP_GITHUB_COMMAND__"
+__MCP_GITHUB_ARGS__
 
 [mcp_servers.filesystem]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "/int", "/2brain", "__CODEX_HOME__"]
+args = ["-y", "@modelcontextprotocol/server-filesystem", "__INT_ROOT__", "__BRAIN_ROOT__", "__CODEX_HOME__"]
 
 [mcp_servers.gdrive_fs]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "/int/cloud/gdrive"]
+args = ["-y", "@modelcontextprotocol/server-filesystem", "__CLOUD_ROOT__/gdrive"]
 
 [mcp_servers.yadisk_fs]
 command = "npx"
-args = ["-y", "@modelcontextprotocol/server-filesystem", "/int/cloud/yadisk"]
+args = ["-y", "@modelcontextprotocol/server-filesystem", "__CLOUD_ROOT__/yadisk"]
 
 [mcp_servers.postgres]
-command = "/int/tools/codex/bin/mcp-postgres-from-backend-env.sh"
+command = "__MCP_POSTGRES_COMMAND__"
+__MCP_POSTGRES_ARGS__
 
 [mcp_servers.playwright]
 command = "npx"
@@ -75,16 +77,21 @@ args = ["@playwright/mcp@latest"]
 url = "https://mcp.figma.com/mcp"
 
 [mcp_servers.obsidian_memory]
-command = "/int/tools/codex/bin/mcp-obsidian-memory.sh"
+command = "__MCP_OBSIDIAN_COMMAND__"
+__MCP_OBSIDIAN_ARGS__
 
 [mcp_servers.timeweb]
-command = "/int/tools/codex/bin/mcp-timeweb.sh"
+command = "__MCP_TIMEWEB_COMMAND__"
+__MCP_TIMEWEB_ARGS__
 
 [mcp_servers.timeweb_readonly]
-command = "/int/tools/codex/bin/mcp-timeweb-readonly.sh"
+command = "__MCP_TIMEWEB_RO_COMMAND__"
+__MCP_TIMEWEB_RO_ARGS__
 
 [mcp_servers.bitrix24]
-command = "/int/tools/codex/bin/mcp-bitrix24.sh"
+command = "__MCP_BITRIX24_COMMAND__"
+__MCP_BITRIX24_ARGS__
 
 [mcp_servers.lockctl]
-command = "lockctl-mcp.cmd"
+command = "__LOCKCTL_COMMAND__"
+__LOCKCTL_ARGS__
