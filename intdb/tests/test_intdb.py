@@ -269,6 +269,51 @@ class IntDbTests(unittest.TestCase):
                     with mock.patch.object(intdb.shutil, "which", return_value=r"C:\Windows\System32\bash.exe"):
                         self.assertEqual(intdb._require_bash(), str(git_bash))
 
+    def test_assert_owner_control_token_requires_exact_ack(self) -> None:
+        with self.assertRaises(intdb.IntDbError):
+            intdb._assert_owner_control_token(None)
+        with self.assertRaises(intdb.IntDbError):
+            intdb._assert_owner_control_token("wrong")
+        intdb._assert_owner_control_token(intdb.OWNER_CONTROL_ACK)
+
+    def test_resolve_supabase_command_uses_supabase_binary_first(self) -> None:
+        with mock.patch.object(intdb.shutil, "which", side_effect=[r"C:\supabase.exe", r"C:\npx.cmd"]):
+            self.assertEqual(intdb._resolve_supabase_command(), [r"C:\supabase.exe"])
+
+    def test_resolve_supabase_command_falls_back_to_npx(self) -> None:
+        with mock.patch.object(intdb.shutil, "which", side_effect=[None, r"C:\npx.cmd"]):
+            self.assertEqual(intdb._resolve_supabase_command(), [r"C:\npx.cmd", "supabase"])
+
+    def test_supabase_status_db_url_extracts_value(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            workspace = Path(tmpdir)
+            with mock.patch.object(
+                intdb,
+                "_run_checked_capture",
+                return_value=intdb.subprocess.CompletedProcess(
+                    ["supabase", "status"],
+                    0,
+                    "API URL: http://127.0.0.1:54321\nDB URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres\n",
+                    "",
+                ),
+            ):
+                value = intdb._supabase_status_db_url(["supabase"], workspace)
+        self.assertEqual(value, "postgresql://postgres:postgres@127.0.0.1:54322/postgres")
+
+    def test_local_test_parser_requires_confirmation(self) -> None:
+        parser = intdb._build_parser()
+        with self.assertRaises(SystemExit):
+            parser.parse_args(["local-test", "run"])
+        args = parser.parse_args(
+            [
+                "local-test",
+                "run",
+                "--confirm-owner-control",
+                intdb.OWNER_CONTROL_ACK,
+            ]
+        )
+        self.assertEqual(args.local_test_command, "run")
+
     def test_prepend_path_entry_moves_pg_bin_to_front(self) -> None:
         result = intdb._prepend_path_entry(
             r"C:\Windows\System32;C:\Program Files\PostgreSQL\17\bin;C:\Tools",

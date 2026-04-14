@@ -9,11 +9,11 @@ python /int/tools/intdb/bin/pg-dev-migrate.py --path <sql-file> --write --confir
 - использовать `db_migrator_dev`.
 - `intdata` не дропать и не пересоздавать.
 
-## TEST (`punkt_b_test`)
+## TEST (local disposable Supabase runtime)
 
 ```bash
-python /int/tools/intdb/bin/pg-test-bootstrap.py --path <sql-file> --write --confirm-target punkt_b_test
+pwsh -File /int/tools/intdb/intdb.ps1 local-test run --confirm-owner-control I_ACKNOWLEDGE_LOCAL_ONLY --smoke-file tests/sql/<file>.sql
 ```
 
-- `punkt_b_test` disposable.
-- bootstrap/reset допустимы только в test-контуре.
+- remote `punkt_b_test`/`intdata_test` retired и больше не используются.
+- bootstrap/reset допустимы только в локальном owner-gated runtime на owner PC.

@@ -12,6 +12,8 @@
 - `copy` — выгрузить query в CSV и залить в target table;
 - `migrate status` — сравнить `migration_manifest.lock` из `/int/data` с remote `public.schema_migrations`;
 - `migrate data` — применить incremental или bootstrap migration flow `/int/data`.
+- `local-test run` — поднять temporary local Supabase runtime под owner-контролем, применить `/int/data` migrations + `init/seed.sql` и опционально прогнать SQL smoke.
+- `local-test stop` — остановить temporary local Supabase runtime без backup.
 
 ## Layout
 
@@ -62,7 +64,7 @@ CLI обращается к такому профилю как `intdata-dev`.
 - `pg-dev-migrate.py` -> `intdata-dev-migrator` (`db_migrator_dev`)
 - `pg-prod-admin.py` -> `punktb-prod-admin` (`db_admin_prod`, breakglass)
 - `pg-dev-admin.py` -> `intdata-dev-admin` (`db_admin_dev`, breakglass)
-- `pg-test-bootstrap.py` -> `punktb-test-bootstrap` (disposable `punkt_b_test`)
+- `pg-test-bootstrap.py` -> retired stop-signal; remote disposable test contour больше не поддерживается
 
 Запуск одинаковый на Windows и Linux:
 
@@ -76,13 +78,33 @@ python /int/tools/intdb/bin/pg-dev-migrate.py --path /path/to/change.sql --write
 - Supabase system roles (`authenticator`, `anon`, `authenticated`, `service_role`, `supabase_*`) в этой модели считаются immutable.
 - Wrappers должны использовать только custom роли.
 - Raw `psql` с ad-hoc DSN для agent workflow запрещен process-policy.
+- `vds.intdata.pro` больше не используется как disposable test contour для `/int/data`; live remote contour остаётся только `intdata`.
+
+## Local disposable Supabase runner
+
+Canonical disposable workflow для `/int/data` smoke/bootstrap с нуля:
+
+```bash
+python D:\int\tools\intdb\intdb.ps1 local-test run --confirm-owner-control I_ACKNOWLEDGE_LOCAL_ONLY
+```
+
+Основные свойства:
+
+- нужен Docker;
+- нужен Supabase CLI (`supabase`) или fallback через `npx supabase`;
+- workspace создаётся в ignored `intdb/.tmp/local-supabase/<stamp>`;
+- после `supabase start` tool применяет `/int/data/init/010_supabase_migrate.sh apply`, затем `init/seed.sql`;
+- SQL smoke можно передать через `--smoke-file`;
+- по умолчанию runtime останавливается сам; для ручной диагностики используйте `--keep-running` и затем `local-test stop`.
 
 ## Safety
 
 - Все mutating-команды требуют явный `--approve-target`.
 - Для профилей класса `prod` обязателен `--force-prod-write`.
 - `sql` и `file` по умолчанию запускаются в `default_transaction_read_only=on`.
+- `local-test run` требует `--confirm-owner-control I_ACKNOWLEDGE_LOCAL_ONLY` и не имеет unattended default path.
 - Типовые runtime-ошибки `psql/pg_dump/pg_restore`, `bash` и TCP-доступа переводятся в обычные `intdb:` сообщения без Python traceback.
+- Типовые runtime-ошибки `docker` и `supabase` для local runner тоже переводятся в обычные `intdb:` сообщения.
 - Секреты профиля передаются внешним PostgreSQL CLI через окружение процесса и не вшиваются в argv.
 - Для `migrate data --mode incremental` `intdb` сам добавляет найденный PostgreSQL `bin` в `PATH` дочернего `bash`, если глобальный `PATH` на машине ещё не обновлён.
 - Временные dump/CSV-файлы складываются в `.tmp/`.

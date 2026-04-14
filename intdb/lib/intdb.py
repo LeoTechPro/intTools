@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -12,6 +13,7 @@ import socket
 import subprocess
 import sys
 from typing import Sequence
+from urllib.parse import urlsplit, urlunsplit
 
 
 TOOL_ROOT = Path(__file__).resolve().parents[1]
@@ -23,6 +25,9 @@ WINDOWS_GIT_BASH_PATHS = (
     Path(r"C:\Program Files\Git\bin\bash.exe"),
     Path(r"C:\Program Files\Git\usr\bin\bash.exe"),
 )
+OWNER_CONTROL_ACK = "I_ACKNOWLEDGE_LOCAL_ONLY"
+LOCAL_TEST_DIRNAME = "local-supabase"
+SUPABASE_DB_URL_PATTERN = re.compile(r"DB URL:\s*(?P<value>\S+)")
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -260,6 +265,23 @@ def _require_bash() -> str:
     return resolved
 
 
+def _require_docker() -> str:
+    resolved = shutil.which("docker")
+    if not resolved:
+        raise IntDbError("docker не найден. Для local-test runner нужен установленный Docker Desktop/Engine.")
+    return resolved
+
+
+def _resolve_supabase_command() -> list[str]:
+    resolved = shutil.which("supabase")
+    if resolved:
+        return [resolved]
+    npx = shutil.which("npx")
+    if npx:
+        return [npx, "supabase"]
+    raise IntDbError("Supabase CLI не найден. Установите `supabase` или используйте `npx supabase`.")
+
+
 def _run_process(
     argv: Sequence[str],
     *,
@@ -309,6 +331,15 @@ def _run_checked(
             detail = result.stdout.strip()
         raise IntDbError(f"Внешняя команда завершилась с кодом {result.returncode}: {detail}")
     return result
+
+
+def _run_checked_capture(
+    argv: Sequence[str],
+    *,
+    env_map: dict[str, str] | None = None,
+    cwd: Path | None = None,
+) -> subprocess.CompletedProcess[str]:
+    return _run_checked(argv, extra_env=env_map, cwd=cwd, capture_output=True)
 
 
 def _psql_base_args(profile: Profile) -> list[str]:
@@ -719,6 +750,165 @@ def _cmd_migrate_data(args: argparse.Namespace) -> int:
     return 0
 
 
+def _assert_owner_control_token(token: str | None) -> None:
+    if token != OWNER_CONTROL_ACK:
+        raise IntDbError(
+            f"Local disposable runner requires --confirm-owner-control {OWNER_CONTROL_ACK}."
+        )
+
+
+def _local_test_workspace_path(workdir: str | None) -> Path:
+    if workdir:
+        return Path(workdir).resolve()
+    return _tool_tmp_dir(LOCAL_TEST_DIRNAME)
+
+
+def _supabase_status_db_url(supabase_cmd: Sequence[str], workspace: Path) -> str:
+    result = _run_checked_capture([*supabase_cmd, "status"], cwd=workspace)
+    match = SUPABASE_DB_URL_PATTERN.search(result.stdout)
+    if not match:
+        raise IntDbError("Не удалось извлечь DB URL из `supabase status`.")
+    return match.group("value")
+
+
+def _db_env_from_url(db_url: str) -> dict[str, str]:
+    parts = urlsplit(db_url)
+    driverless = urlunsplit(("postgresql", parts.netloc, parts.path, "", ""))
+    return {
+        "LOCAL_TEST_DATABASE_URL": driverless,
+        "TEST_DATABASE_URL": driverless,
+    }
+
+
+def _run_repo_seed(repo_root: Path, db_url: str) -> None:
+    parsed = urlsplit(db_url)
+    username = parsed.username
+    password = parsed.password
+    host = parsed.hostname
+    database = parsed.path.lstrip("/")
+    if not username or password is None or not host or not database:
+        raise IntDbError("DB URL из local Supabase runtime неполный; не удалось подготовить env для seed.")
+    port = str(parsed.port or 5432)
+    env = {
+        "PGPASSWORD": password,
+        "POSTGRES_HOST": host,
+        "POSTGRES_PORT": port,
+        "POSTGRES_DB": database,
+        "POSTGRES_USER": username,
+        "POSTGRES_PASSWORD": password,
+    }
+    psql_base = [
+        _require_pg_command("psql"),
+        "--host",
+        host,
+        "--port",
+        port,
+        "--username",
+        username,
+        "--dbname",
+        database,
+        "--no-password",
+        "-v",
+        "ON_ERROR_STOP=1",
+    ]
+    _run_checked(
+        psql_base + ["-f", str(repo_root / "init" / "seed.sql")],
+        extra_env=env,
+        cwd=repo_root,
+    )
+
+
+def _run_local_smoke(repo_root: Path, db_url: str, smoke_files: Sequence[str]) -> None:
+    if not smoke_files:
+        return
+
+    parsed = urlsplit(db_url)
+    username = parsed.username
+    password = parsed.password
+    host = parsed.hostname
+    database = parsed.path.lstrip("/")
+    if not username or password is None or not host or not database:
+        raise IntDbError("DB URL из local Supabase runtime неполный; smoke не могут быть запущены.")
+    port = str(parsed.port or 5432)
+    psql_base = [
+        _require_pg_command("psql"),
+        "--host",
+        host,
+        "--port",
+        port,
+        "--username",
+        username,
+        "--dbname",
+        database,
+        "--no-password",
+        "-v",
+        "ON_ERROR_STOP=1",
+    ]
+    env = {"PGPASSWORD": password}
+    for smoke_file in smoke_files:
+        smoke_path = Path(smoke_file)
+        if not smoke_path.is_absolute():
+            smoke_path = (repo_root / smoke_path).resolve()
+        if not smoke_path.exists():
+            raise IntDbError(f"Smoke SQL file not found: {smoke_path}")
+        _run_checked(psql_base + ["-f", str(smoke_path)], extra_env=env, cwd=repo_root)
+
+
+def _cmd_local_test_run(args: argparse.Namespace) -> int:
+    _assert_owner_control_token(args.confirm_owner_control)
+    _require_docker()
+    repo_root = _resolve_data_repo(args.repo)
+    workspace = _local_test_workspace_path(args.workdir)
+    workspace.mkdir(parents=True, exist_ok=True)
+    supabase_cmd = _resolve_supabase_command()
+    try:
+        _run_checked([*supabase_cmd, "init"], cwd=workspace)
+        _run_checked([*supabase_cmd, "start"], cwd=workspace)
+        db_url = _supabase_status_db_url(supabase_cmd, workspace)
+        temp_env = dict(os.environ)
+        temp_env.update(_db_env_from_url(db_url))
+        _run_checked(
+            [
+                _require_bash(),
+                str(repo_root / "init" / "010_supabase_migrate.sh"),
+                "apply",
+            ],
+            extra_env=temp_env,
+            cwd=repo_root,
+        )
+        if not args.no_seed:
+            _run_repo_seed(repo_root, db_url)
+        _run_local_smoke(repo_root, db_url, args.smoke_file or [])
+        print(
+            json.dumps(
+                {
+                    "workspace": str(workspace),
+                    "db_url": db_url,
+                    "kept_running": bool(args.keep_running),
+                },
+                ensure_ascii=False,
+            )
+        )
+        return 0
+    finally:
+        if not args.keep_running:
+            try:
+                _run_checked([*supabase_cmd, "stop", "--no-backup"], cwd=workspace)
+            except Exception:
+                pass
+
+
+def _cmd_local_test_stop(args: argparse.Namespace) -> int:
+    _assert_owner_control_token(args.confirm_owner_control)
+    workspace = _local_test_workspace_path(args.workdir)
+    if not workspace.exists():
+        raise IntDbError(f"Workspace not found: {workspace}")
+    supabase_cmd = _resolve_supabase_command()
+    _run_checked([*supabase_cmd, "stop", "--no-backup"], cwd=workspace)
+    print(str(workspace))
+    return 0
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="intdb",
@@ -803,6 +993,32 @@ def _build_parser() -> argparse.ArgumentParser:
     migrate_data.add_argument("--approve-target", required=True)
     migrate_data.add_argument("--force-prod-write", action="store_true")
     migrate_data.set_defaults(handler=_cmd_migrate_data)
+
+    local_test = subparsers.add_parser(
+        "local-test",
+        help="Owner-gated local disposable Supabase workflow for `/int/data` bootstrap and smoke.",
+    )
+    local_test_subparsers = local_test.add_subparsers(dest="local_test_command", required=True)
+
+    local_test_run = local_test_subparsers.add_parser(
+        "run",
+        help="Поднять local Supabase runtime, применить migrations/seed и опционально smoke.",
+    )
+    local_test_run.add_argument("--repo")
+    local_test_run.add_argument("--workdir")
+    local_test_run.add_argument("--smoke-file", action="append")
+    local_test_run.add_argument("--no-seed", action="store_true")
+    local_test_run.add_argument("--keep-running", action="store_true")
+    local_test_run.add_argument("--confirm-owner-control", required=True)
+    local_test_run.set_defaults(handler=_cmd_local_test_run)
+
+    local_test_stop = local_test_subparsers.add_parser(
+        "stop",
+        help="Остановить local Supabase runtime из указанного workspace без backup.",
+    )
+    local_test_stop.add_argument("--workdir", required=True)
+    local_test_stop.add_argument("--confirm-owner-control", required=True)
+    local_test_stop.set_defaults(handler=_cmd_local_test_stop)
 
     return parser
 

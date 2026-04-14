@@ -6,7 +6,8 @@
 - те же имена БД в DR instance:
   - `punkt_b_prod`
   - `punkt_b_legacy_prod`
-- `intdata` и `punkt_b_test` остаются в основном dev instance
+- `intdata` остаётся в основном dev instance
+- disposable test contour для `/int/data` вынесен в локальный owner-gated Supabase runtime и не держится на `vds.intdata.pro`
 
 ## Принципы
 

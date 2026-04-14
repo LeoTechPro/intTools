@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
-from _entrypoint_common import EntryPointConfig, main
+from __future__ import annotations
+
+import sys
 
 
 if __name__ == "__main__":
-    raise SystemExit(
-        main(
-            EntryPointConfig(
-                profile="punktb-test-bootstrap",
-                role="intdata_test_bootstrap",
-                database="punkt_b_test",
-                environment="test",
-            ),
-            "test-bootstrap",
-        )
+    print(
+        "Remote disposable test DB contour for /int/data is retired. "
+        "Use `intdb local-test run --confirm-owner-control I_ACKNOWLEDGE_LOCAL_ONLY` instead.",
+        file=sys.stderr,
     )
+    raise SystemExit(2)

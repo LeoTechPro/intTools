@@ -20,7 +20,7 @@
 - `/int/tools/intdb/bin/pg-dev-migrate.py`
 - `/int/tools/intdb/bin/pg-prod-admin.py`
 - `/int/tools/intdb/bin/pg-dev-admin.py`
-- `/int/tools/intdb/bin/pg-test-bootstrap.py`
+- `intdb local-test run --confirm-owner-control I_ACKNOWLEDGE_LOCAL_ONLY` (owner-gated local disposable runner for `/int/data`)
 
 ## Forbidden
 
