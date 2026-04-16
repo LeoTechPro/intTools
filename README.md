@@ -55,7 +55,7 @@
 - `codex/tools/obsidian-desktop/` хранит repo-managed launcher и desktop config для Obsidian;
 - `codex/assets/codex-home/skills/javascript/` хранит repo-managed resources, scripts и templates для JavaScript skill assets;
 - runtime OpenClaw живёт в `~/.openclaw`, а versioned overlay и runbooks — в `openclaw/`.
-- На `vds.intdata.pro` canonical host-user split такой: IntData automation/deploy — `intdata`, Codex remote runtime — `codex`, OpenClaw runtime/service — `openclaw`; automation под `leon` для этого хоста не является допустимым default-path.
+- На `vds.intdata.pro` canonical host-user split такой: IntData automation/deploy — `intdata`, Codex remote runtime — `agents`, OpenClaw runtime/service — `agents`; automation под `leon` для этого хоста не является допустимым default-path.
 
 ## Markdown context policy
 
@@ -76,8 +76,8 @@
 - `pwsh -File /int/tools/codex/bin/publish_data.ps1` — compatibility wrapper поверх canonical publish engine для `/int/data`;
 - В owner-facing командах `push/publish/выкатывай/публикуй` агент не вправе сам сокращать уже подготовленный состав publication: локальный commit по своему/scope допустим как обычно, но перед самой публикацией выборочно скрывать/откладывать "чужие" правки из publication-state запрещено.
 - `ssh vds-intdata-intdata` — canonical remote shell для IntData deploy/apply/smoke на `vds.intdata.pro`;
-- `ssh vds-intdata-codex` — canonical remote shell для Codex runtime на `vds.intdata.pro`;
-- `ssh vds-intdata-openclaw` — canonical remote shell для OpenClaw runtime/service на `vds.intdata.pro`;
+- `ssh vds-intdata-agents` — canonical remote shell для Codex runtime на `vds.intdata.pro`;
+- `ssh vds-intdata-agents` — canonical remote shell для OpenClaw runtime/service на `vds.intdata.pro`;
 - `python -m unittest discover -s delivery/tests -p test_publish_repo.py -v` — hermetic regression smoke для canonical publish engine и PowerShell compatibility adapter: clean-tree guard, `-NoDeploy` publish, shared SSH resolver и `partial_state` на локально подменённом `ssh` без реальной сети;
 - `/int/tools/codex/bin/mcp-intbrain.sh` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
 - `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
@@ -100,7 +100,7 @@
 
 - Tailscale используется как приватный ops/admin канал между `local PC`, `vds.intdata.pro` и `vds.punkt-b.pro`, а не как замена публичного ingress.
 - Канонический runbook: `/int/tools/codex/docs/runbooks/tailscale-tailnet-v1.md`.
-- Для `vds.intdata.pro` сохраняется разделение host-users: `intdata` (automation/deploy), `codex` (Codex runtime), `openclaw` (OpenClaw runtime/service).
+- Для `vds.intdata.pro` сохраняется разделение host-users: `intdata` (automation/deploy), `agents` (Codex/OpenClaw runtime/service).
 - Для `prod` действует stricter policy: default-path только read-first и отдельный restricted SSH user; full root workflow не открывается автоматически.
 
 ### Tailnet-First SSH Transport (repo-managed)
@@ -1137,3 +1137,4 @@ Active owner-approved change packages хранятся в подкаталога
 - `collect_audit.sh` — сбор audit snapshot по текущему checkout `/int/probe`
 - `docs/critical_assets.txt` — список must-survive assets и внешних runtime-path
 - `docs/machine-audit-2026-03-02.md` — исторический audit snapshot, перенесённый из `probe`
+

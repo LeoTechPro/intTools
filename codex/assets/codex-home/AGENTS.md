@@ -59,7 +59,7 @@ Ambiguity считается значимой только при неяснос
 - `~/.codex` / `C:\Users\intData\.codex` используются только для native runtime-state, обязательных runtime instructions и тех home-level файлов, которые сам Codex требует именно там.
 - Не использовать `~/.codex/scripts` как source-of-truth для самописных publish/helper scripts, если эти файлы можно держать в versioned `/int/tools/codex`.
 - Machine-wide policy source-of-truth находится в `/int/AGENTS.md`.
-- На `vds.intdata.pro` canonical remote users разделены так: IntData automation/deploy работает под `intdata`, Codex remote work — под `codex`, OpenClaw runtime/service — под `openclaw`.
+- На `vds.intdata.pro` canonical remote users разделены так: IntData automation/deploy работает под `intdata`, Codex remote work — под `agents`, OpenClaw runtime/service — под `agents`.
 - Автоматизированные действия под `leon` на `vds.intdata.pro` запрещены без прямого письменного разрешения владельца.
 
 ## Machine-wide lock policy
@@ -119,4 +119,5 @@ Ambiguity считается значимой только при неяснос
 - Legacy bridge `/home/leon/.codex/tools/telegram_bridge` удалён и больше не используется.
 - Доступ `exec/write/process` разрешён только владельцу (по allowlist в OpenClaw-конфиге).
 - Мониторинг и алерты идут через `/int/probe/bridge/probe_bridge.py` в `@AgentIntDataBot`.
-- На `vds.intdata.pro` этот runtime должен жить под пользователем `openclaw`, а не под `leon`.
+- На `vds.intdata.pro` этот runtime должен жить под пользователем `agents`, а не под `leon`.
+

@@ -56,8 +56,8 @@ def get_config_path() -> Path | None:
 def resolve_logical_host(requested_host: str) -> str | None:
     mapping = {
         "vds-intdata-intdata": "dev-intdata",
-        "vds-intdata-codex": "dev-codex",
-        "vds-intdata-openclaw": "dev-openclaw",
+        "vds-intdata-agents": "dev-codex",
+        "vds-intdata-agents": "dev-openclaw",
         "prod": "prod-leon",
         "vds.punkt-b.pro": "prod-leon",
         "dev-intdata": "dev-intdata",
@@ -245,3 +245,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

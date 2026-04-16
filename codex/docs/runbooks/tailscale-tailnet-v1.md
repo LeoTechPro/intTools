@@ -117,8 +117,8 @@ Post-change checks must confirm:
 
 Operator entrypoints in current workspace:
 
-- `ssh vds-intdata-codex`
-- `ssh vds-intdata-openclaw`
+- `ssh vds-intdata-agents`
+- `ssh vds-intdata-agents`
 
 ## Process Matrix (tailnet-first vs public)
 
@@ -188,3 +188,4 @@ $ts = "$env:ProgramFiles\Tailscale\tailscale.exe"
 ```
 
 Do not remove app/config unless explicit owner command requests full uninstall.
+
