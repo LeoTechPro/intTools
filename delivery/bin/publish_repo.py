@@ -119,11 +119,15 @@ def resolve_ssh_executable() -> str:
     return shutil.which("ssh") or "ssh"
 
 
-def run_ssh_checked(host: str, command: str, *, timeout_sec: int | None = None) -> None:
+def run_ssh_checked(host: str, command: str, *, ssh_args: list[str] | None = None, timeout_sec: int | None = None) -> None:
     args = [resolve_ssh_executable()]
-    if timeout_sec is not None:
-        args.extend(["-o", f"ConnectTimeout={timeout_sec}"])
-    args.extend([host, command])
+    if ssh_args:
+        args.extend(ssh_args)
+    else:
+        if timeout_sec is not None:
+            args.extend(["-o", f"ConnectTimeout={timeout_sec}"])
+        args.append(host)
+    args.append(command)
     completed = subprocess.run(
         args,
         text=True,
@@ -283,7 +287,9 @@ def main() -> int:
                     f"git pull --ff-only origin {args.deploy_pull_ref}"
                 )
                 destination = str(ssh_target["destination"])
-                run_ssh_checked(destination, ssh_command, timeout_sec=get_int_ssh_probe_timeout_sec())
+                raw_ssh_args = ssh_target.get("ssh_args", [])
+                ssh_args = [str(arg) for arg in raw_ssh_args] if isinstance(raw_ssh_args, list) else []
+                run_ssh_checked(destination, ssh_command, ssh_args=ssh_args, timeout_sec=get_int_ssh_probe_timeout_sec())
                 transport = str(ssh_target["transport"])
                 fallback_suffix = ", fallback=public" if bool(ssh_target["fallback_used"]) else ""
                 actions.append(

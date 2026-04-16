@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import shutil
@@ -9,6 +10,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -18,6 +20,15 @@ SSH_RESOLVER = REPO_ROOT / "codex" / "bin" / "int_ssh_resolve.py"
 PUBLISH_DATA_SHIM = REPO_ROOT / "codex" / "bin" / "publish_data.ps1"
 DELIVERY_PUBLISH_DATA = REPO_ROOT / "delivery" / "bin" / "publish_data.ps1"
 DELIVERY_PUBLISH_ASSESS = REPO_ROOT / "delivery" / "bin" / "publish_assess.ps1"
+
+
+def load_publish_repo_module():
+    spec = importlib.util.spec_from_file_location("publish_repo_under_test", SCRIPT_PATH)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load publish_repo module from {SCRIPT_PATH}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def run_checked(args: list[str], cwd: Path) -> str:
@@ -269,6 +280,38 @@ class PublishRepoScriptTest(unittest.TestCase):
 
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
         self.assertIn("transport=public, fallback=public", completed.stdout)
+
+    def test_run_ssh_checked_uses_resolved_ssh_args(self) -> None:
+        module = load_publish_repo_module()
+        captured: dict[str, object] = {}
+
+        class DummyCompleted:
+            returncode = 0
+            stdout = ""
+            stderr = ""
+
+        def fake_run(args, **kwargs):  # type: ignore[no-untyped-def]
+            captured["args"] = list(args)
+            captured["kwargs"] = kwargs
+            return DummyCompleted()
+
+        with mock.patch.object(module, "resolve_ssh_executable", return_value="ssh"):
+            with mock.patch.object(module.subprocess, "run", side_effect=fake_run):
+                module.run_ssh_checked(
+                    "ignored-host",
+                    "git pull --ff-only origin main",
+                    ssh_args=["-F", "C:/int/tools/codex/config/int_ssh_config", "int-dev-intdata-public"],
+                    timeout_sec=7,
+                )
+
+        self.assertEqual(
+            captured["args"],
+            ["ssh", "-F", "C:/int/tools/codex/config/int_ssh_config", "int-dev-intdata-public", "git pull --ff-only origin main"],
+        )
+        self.assertEqual(captured["kwargs"]["capture_output"], True)
+        self.assertEqual(captured["kwargs"]["text"], True)
+        self.assertNotIn("ignored-host", captured["args"])
+        self.assertNotIn("-o", captured["args"])
 
     def test_shared_ssh_resolver_returns_canonical_metadata_shape(self) -> None:
         fake_root = Path(tempfile.mkdtemp(prefix="ssh_resolver_test_"))
