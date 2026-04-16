@@ -67,6 +67,13 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - Источник истины по активным локам — только `lockctl`; project-local заметки не подменяют runtime truth.
 - После завершения правки лок обязательно снимается через `lockctl release-path` или `lockctl release-issue`.
 
+## Multica issue and commit gate
+- Multica Issues are the mandatory task-control-plane for agent work in this repo; GitHub Issues, `gh issue`, and `gh project` are not used for agent task coordination and are not fallback.
+- Before non-trivial implementation, commit, push, deploy, or publication, the agent must identify a reachable Multica issue id in `INT-*` format for the current task.
+- Missing Multica issue id, inaccessible Multica, or an issue id that cannot be verified is a blocker: stop, report the blocker to the owner, and continue without Multica only after explicit owner approval for that exception.
+- Every local commit message must contain the current Multica task id in `INT-*` format in the subject or body. A commit without `INT-*` is forbidden.
+- Push/publication/deploy is forbidden if any commit being published for the current scope lacks a Multica `INT-*` id; fix the commit metadata through the safest owner-approved path before publication.
+- Agent locks and close-out notes must reference the Multica `INT-*` id; generic issue ids without the Multica prefix are not sufficient for agent work.
 ## Docs split
 
 - `README.md` хранит только документацию и инструкции по репозиторию.
