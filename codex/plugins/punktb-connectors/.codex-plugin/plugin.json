@@ -1,0 +1,17 @@
+{
+  "name": "punktb-connectors",
+  "version": "1.0.0",
+  "description": "PunktB connector MCP launch surface for Bizon365, Salebot, Timeweb and Bitrix24.",
+  "author": {"name": "IntData", "email": "owner@intdata.pro"},
+  "license": "Proprietary",
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "PunktB Connectors",
+    "shortDescription": "Bizon365, Salebot, Timeweb, Bitrix24",
+    "longDescription": "Guarded MCP launch wrapper for PunktB-specific connector surfaces. Requires external runtime secrets.",
+    "developerName": "IntData",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"]
+  }
+}

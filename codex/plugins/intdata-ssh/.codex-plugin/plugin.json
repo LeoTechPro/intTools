@@ -1,0 +1,17 @@
+{
+  "name": "intdata-ssh",
+  "version": "1.0.0",
+  "description": "IntData SSH transport resolver diagnostics.",
+  "author": {"name": "IntData", "email": "owner@intdata.pro"},
+  "license": "Proprietary",
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "IntData SSH",
+    "shortDescription": "SSH transport resolution",
+    "longDescription": "MCP tools for resolving IntData SSH transport paths without arbitrary shell execution.",
+    "developerName": "IntData",
+    "category": "Productivity",
+    "capabilities": ["Read"]
+  }
+}

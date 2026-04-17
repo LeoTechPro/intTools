@@ -1,0 +1,17 @@
+{
+  "name": "intdata-delivery",
+  "version": "1.0.0",
+  "description": "IntData sync-gate and publication tooling.",
+  "author": {"name": "IntData", "email": "owner@intdata.pro"},
+  "license": "Proprietary",
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "IntData Delivery",
+    "shortDescription": "Sync gates and publish flows",
+    "longDescription": "Guarded MCP access to IntData sync-gate and canonical publication wrappers.",
+    "developerName": "IntData",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"]
+  }
+}

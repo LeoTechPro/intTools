@@ -1,0 +1,17 @@
+{
+  "name": "openspec",
+  "version": "1.0.0",
+  "description": "OpenSpec governance and lifecycle tools for /int/tools.",
+  "author": {"name": "IntData", "email": "owner@intdata.pro"},
+  "license": "Proprietary",
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "OpenSpec",
+    "shortDescription": "Spec lifecycle and validation",
+    "longDescription": "OpenSpec CLI wrapper for listing, showing, validating, and explicitly mutating approved spec lifecycle packages.",
+    "developerName": "IntData",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"]
+  }
+}

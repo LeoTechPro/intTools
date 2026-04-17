@@ -1,0 +1,17 @@
+{
+  "name": "intdata-host",
+  "version": "1.0.0",
+  "description": "IntData Codex host bootstrap, verification and recovery tooling.",
+  "author": {"name": "IntData", "email": "owner@intdata.pro"},
+  "license": "Proprietary",
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "IntData Host",
+    "shortDescription": "Host verify, preflight and recovery",
+    "longDescription": "Guarded MCP tools for Codex host verification, preflight, bootstrap and recovery bundles.",
+    "developerName": "IntData",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"]
+  }
+}

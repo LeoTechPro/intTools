@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "intdata-routing": {
+      "command": "cmd.exe",
+      "args": ["/d", "/s", "/c", "D:\\int\\tools\\codex\\bin\\mcp-intdata-routing.cmd"]
+    }
+  }
+}

@@ -27,6 +27,138 @@
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity"
+    },
+    {
+      "name": "multica",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/multica"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "openspec",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/openspec"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "intdata-routing",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/intdata-routing"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "intdata-delivery",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/intdata-delivery"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "intdb",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/intdb"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "gatesctl",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/gatesctl"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "intdata-browser",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/intdata-browser"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "intdata-host",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/intdata-host"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "intdata-ssh",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/intdata-ssh"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "intdata-vault",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/intdata-vault"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
+      "name": "punktb-connectors",
+      "source": {
+        "source": "local",
+        "path": "./codex/plugins/punktb-connectors"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
     }
   ]
 }

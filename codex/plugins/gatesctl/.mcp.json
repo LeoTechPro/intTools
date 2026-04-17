@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "gatesctl": {
+      "command": "cmd.exe",
+      "args": ["/d", "/s", "/c", "D:\\int\\tools\\codex\\bin\\mcp-gatesctl.cmd"]
+    }
+  }
+}

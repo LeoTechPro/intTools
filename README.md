@@ -93,6 +93,10 @@
 - `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start --all-repos --root-path /int` — явный legacy-style scan всех top-level repo, когда нужен массовый проход вместо default current-repo режима;
 - `python /int/tools/codex/bin/agent_tool_routing.py validate --strict --json` — validate registry и blocker-rules для V1 high-risk tooling;
 - `python /int/tools/codex/bin/agent_tool_routing.py resolve --intent publish:data --platform windows --json` — machine-readable resolution `logical intent -> canonical engine -> thin adapter`;
+- `D:\int\tools\codex\bin\mcp-openspec.cmd` — MCP wrapper для OpenSpec CLI с guarded lifecycle mutations;
+- `D:\int\tools\codex\bin\mcp-multica.cmd` — MCP wrapper для Multica CLI с guarded write/control commands;
+- `D:\int\tools\codex\bin\mcp-intdata-routing.cmd` — MCP wrapper для routing registry validate/resolve;
+- `D:\int\tools\codex\bin\mcp-intdata-delivery.cmd` — MCP wrapper для sync-gate и publish wrappers;
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
 - `bash /int/tools/openclaw/ops/verify.sh` — проверка overlay OpenClaw;
 - `AUTH_TYPE=oauth-personal HOST=127.0.0.1 PORT=11434 npm start` из `gemini-openai-proxy/` — локальный запуск proxy.
@@ -153,6 +157,15 @@
 - Для `intbrain_import_vault_pm` дополнительно нужен `INTBRAIN_CORE_ADMIN_TOKEN`; без него MCP возвращает `config_error` до HTTP-вызова.
 - После обновления `mcp-intbrain.py` требуется перезапуск Codex/OpenClaw (или MCP runtime), чтобы refresh `tools/list` подтянул новый PM toolset.
 - OpenClaw и Codex используют один и тот же generic контракт; agent-specific UX остаётся только в overlay-скриптах `/int/tools/*`.
+
+## IntData Tools Codex Plugins
+
+- Marketplace source-of-truth: `.agents/plugins/marketplace.json`.
+- Packaged plugins live in `codex/plugins/<plugin>/` and use `INSTALLED_BY_DEFAULT` + `ON_INSTALL`.
+- Core plugins: `lockctl`, `intbrain`, `multica`, `openspec`, `intdata-routing`, `intdata-delivery`, `intdb`, `gatesctl`, `intdata-browser`, `intdata-host`, `intdata-ssh`, `intdata-vault`.
+- Project/integration plugin: `punktb-connectors`; it is packaged separately because its connector secrets and project scope are not universal.
+- CLI-backed plugins use `codex/bin/mcp-intdata-cli.py` through profile launchers. Wrappers accept structured command args only; arbitrary shell strings are not supported.
+- Mutating commands require `confirm_mutation: true` and `issue_context` in `INT-*` format.
 
 ## Git Branch Policy
 

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "multica": {
+      "command": "cmd.exe",
+      "args": ["/d", "/s", "/c", "D:\\int\\tools\\codex\\bin\\mcp-multica.cmd"]
+    }
+  }
+}
