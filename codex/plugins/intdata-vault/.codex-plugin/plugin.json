@@ -1,15 +1,15 @@
 {
   "name": "intdata-vault",
   "version": "1.0.0",
-  "description": "intData vault sanitation and runtime GC tooling.",
+  "description": "Инструменты intData Vault для санации хранилища и runtime GC.",
   "author": {"name": "IntData", "email": "owner@intdata.pro"},
   "license": "Proprietary",
   "skills": "./skills",
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "intData Vault",
-    "shortDescription": "Vault sanitize and GC",
-    "longDescription": "Dry-run-first MCP wrapper for vault sanitize and runtime GC tools.",
+    "shortDescription": "Санация vault и GC",
+    "longDescription": "Dry-run-first MCP-обёртка для инструментов санации vault и очистки runtime.",
     "developerName": "IntData",
     "category": "Productivity",
     "capabilities": ["Read", "Write"]

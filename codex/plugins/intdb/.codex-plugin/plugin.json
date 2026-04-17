@@ -1,15 +1,15 @@
 {
   "name": "intdb",
   "version": "1.0.0",
-  "description": "IntData database diagnostics and migration tooling.",
+  "description": "Инструменты intData DBA для диагностики БД и миграций.",
   "author": {"name": "IntData", "email": "owner@intdata.pro"},
   "license": "Proprietary",
   "skills": "./skills",
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "intData DBA",
-    "shortDescription": "DB doctor, migration and smoke tooling",
-    "longDescription": "Guarded intData DBA MCP wrapper for the intdb operator CLI.",
+    "shortDescription": "DB doctor, миграции и smoke-проверки",
+    "longDescription": "Guarded MCP-обёртка intData DBA над operator CLI intdb.",
     "developerName": "IntData",
     "category": "Productivity",
     "capabilities": ["Read", "Write"]

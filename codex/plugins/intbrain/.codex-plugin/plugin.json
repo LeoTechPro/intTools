@@ -1,7 +1,7 @@
 {
   "name": "intbrain",
   "version": "1.0.0",
-  "description": "IntBrain MCP tools for chat catalog, people graph, jobs, policies, and context retrieval.",
+  "description": "Инструменты MCP intData Brain: каталог чатов, граф людей, задачи, политики и извлечение контекста.",
   "author": {
     "name": "IntData",
     "email": "owner@intdata.pro"
@@ -11,8 +11,8 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "intData Brain",
-    "shortDescription": "Chat catalog, people graph, jobs and context",
-    "longDescription": "intData Brain MCP integration with context packs, people graph lookup, chat catalog, job policy, and PM tools backed by the IntBrain core API.",
+    "shortDescription": "Каталог чатов, граф людей, задачи и контекст",
+    "longDescription": "Интеграция MCP intData Brain для контекст-паков, поиска по графу людей, каталога чатов, политик задач и PM-инструментов на базе IntBrain Core API.",
     "developerName": "IntData",
     "category": "Productivity",
     "capabilities": ["Read", "Write"]

@@ -1,15 +1,15 @@
 {
   "name": "multica",
   "version": "1.0.0",
-  "description": "Multica task-control-plane CLI tools for IntData agents.",
+  "description": "CLI-инструменты Multica task-control-plane для агентов IntData.",
   "author": {"name": "IntData", "email": "owner@intdata.pro"},
   "license": "Proprietary",
   "skills": "./skills",
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "Multica",
-    "shortDescription": "Issues, projects, agents and runtimes",
-    "longDescription": "Structured MCP wrapper over the Multica CLI for issue workflow, project context, agents, workspaces, repositories, skills, runtime and daemon operations.",
+    "shortDescription": "Issues, проекты, агенты и рантаймы",
+    "longDescription": "Структурированная MCP-обёртка над Multica CLI для issue-workflow, проектного контекста, агентов, workspace, репозиториев, skill, runtime и daemon-операций.",
     "developerName": "IntData",
     "category": "Productivity",
     "capabilities": ["Read", "Write"]
