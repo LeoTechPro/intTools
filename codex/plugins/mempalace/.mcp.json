@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "mempalace": {
+      "command": "D:/int/mempalace/.venv/Scripts/python.exe",
+      "args": [
+        "-m",
+        "mempalace.mcp_server"
+      ],
+      "env": {
+        "PYTHONIOENCODING": "utf-8"
+      }
+    }
+  }
+}

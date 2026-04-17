@@ -163,6 +163,7 @@
 - Marketplace source-of-truth: `.agents/plugins/marketplace.json`.
 - Packaged plugins live in `codex/plugins/<plugin>/` and use `INSTALLED_BY_DEFAULT` + `ON_INSTALL`.
 - Core plugins: `lockctl`, `intbrain`, `multica`, `openspec`, `intdata-governance`, `intdb`, `intdata-runtime`, `intdata-vault`.
+- Memory plugins: `cabinet`, `mempalace`.
 - CLI-backed plugins use `codex/bin/mcp-intdata-cli.py` through profile launchers. Wrappers accept structured command args only; arbitrary shell strings are not supported.
 - Mutating commands require `confirm_mutation: true` and `issue_context` in `INT-*` format.
 - Hard migration note: old plugin IDs `intdata-routing`, `intdata-delivery`, `gatesctl`, `intdata-host`, `intdata-ssh`, `intdata-browser` removed; tools renamed to consolidated governance/runtime surface without aliases.

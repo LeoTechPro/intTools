@@ -1,0 +1,22 @@
+{
+  "name": "cabinet",
+  "version": "1.0.0",
+  "description": "Local Cabinet workspace bridge for Codex via MCP filesystem server.",
+  "author": {
+    "name": "IntData",
+    "email": "owner@intdata.pro"
+  },
+  "homepage": "https://github.com/hilash/cabinet",
+  "repository": "https://github.com/hilash/cabinet",
+  "license": "MIT",
+  "interface": {
+    "displayName": "Cabinet (Local)",
+    "shortDescription": "Cabinet workspace filesystem bridge",
+    "longDescription": "Exposes D:/int/cabinet to Codex through a dedicated MCP filesystem server for read/write workspace operations.",
+    "developerName": "IntData",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/hilash/cabinet"
+  },
+  "mcpServers": "./.mcp.json"
+}

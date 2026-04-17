@@ -1,0 +1,22 @@
+{
+  "name": "mempalace",
+  "version": "1.0.0",
+  "description": "MemPalace MCP bridge for self-hosted memory indexing and retrieval.",
+  "author": {
+    "name": "IntData",
+    "email": "owner@intdata.pro"
+  },
+  "homepage": "https://github.com/MemPalace/mempalace",
+  "repository": "https://github.com/MemPalace/mempalace",
+  "license": "MIT",
+  "interface": {
+    "displayName": "MemPalace",
+    "shortDescription": "Self-hosted memory MCP bridge",
+    "longDescription": "Runs MemPalace MCP server from local D:/int/mempalace runtime for searchable long-term memory operations.",
+    "developerName": "IntData",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write", "Interactive"],
+    "websiteURL": "https://github.com/MemPalace/mempalace"
+  },
+  "mcpServers": "./.mcp.json"
+}
