@@ -155,7 +155,6 @@ PROFILE_TOOLS: dict[str, list[dict[str, Any]]] = {
     "intdata-host": HOST_TOOLS,
     "intdata-ssh": SSH_TOOLS,
     "intdata-vault": VAULT_TOOLS,
-    "punktb-connectors": GENERIC_TOOL,
 }
 
 READ_ONLY_MULTICA: dict[str, set[str]] = {
@@ -196,13 +195,6 @@ PROFILE_COMMANDS: dict[str, dict[str, list[str]]] = {
         "firefox-assess-specialist-v2": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-specialist-v2.cmd")],
         "firefox-assess-admin": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-admin.cmd")],
         "firefox-assess-specialist-restricted": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-specialist-restricted.cmd")],
-    },
-    "punktb-connectors": {
-        "bizon365": ["python", str(ROOT_DIR / "codex" / "bin" / "mcp-bizon365.py")],
-        "salebot": ["node", str(ROOT_DIR / "codex" / "bin" / "mcp-salebot.mjs")],
-        "timeweb-readonly": ["node", str(ROOT_DIR / "codex" / "bin" / "mcp-timeweb-readonly.mjs")],
-        "timeweb": ["bash", str(ROOT_DIR / "codex" / "bin" / "mcp-timeweb.sh")],
-        "bitrix24": ["bash", str(ROOT_DIR / "codex" / "bin" / "mcp-bitrix24.sh")],
     },
 }
 
@@ -450,7 +442,7 @@ def _call_generic(profile: str, arguments: dict[str, Any]) -> dict[str, Any]:
     args = _safe_args(arguments.get("args"))
     if profile == "gatesctl" and (not args or args[0] not in {"status", "show-receipt", "audit-range", "help", "--help", "-h"}):
         _require_mutation(arguments)
-    if profile in {"intdata-browser", "punktb-connectors"}:
+    if profile == "intdata-browser":
         _require_mutation(arguments)
     if profile == "intdb":
         safe_intdb = (
@@ -529,7 +521,7 @@ def _call_tool(profile: str, name: str, arguments: dict[str, Any]) -> dict[str, 
         return _call_routing(name, arguments)
     if profile == "intdata-delivery":
         return _call_delivery(name, arguments)
-    if profile in {"intdb", "gatesctl", "intdata-browser", "punktb-connectors"}:
+    if profile in {"intdb", "gatesctl", "intdata-browser"}:
         return _call_generic(profile, arguments)
     if profile == "intdata-host":
         return _call_host(name, arguments)
