@@ -95,8 +95,8 @@
 - `python /int/tools/codex/bin/agent_tool_routing.py resolve --intent publish:data --platform windows --json` — machine-readable resolution `logical intent -> canonical engine -> thin adapter`;
 - `D:\int\tools\codex\bin\mcp-openspec.cmd` — MCP wrapper для OpenSpec CLI с guarded lifecycle mutations;
 - `D:\int\tools\codex\bin\mcp-multica.cmd` — MCP wrapper для Multica CLI с guarded write/control commands;
-- `D:\int\tools\codex\bin\mcp-intdata-routing.cmd` — MCP wrapper для routing registry validate/resolve;
-- `D:\int\tools\codex\bin\mcp-intdata-delivery.cmd` — MCP wrapper для sync-gate и publish wrappers;
+- `D:\int\tools\codex\bin\mcp-intdata-governance.cmd` — MCP wrapper для routing/sync-gate/publish/gate receipts;
+- `D:\int\tools\codex\bin\mcp-intdata-runtime.cmd` — MCP wrapper для host/ssh/browser runtime tooling;
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
 - `bash /int/tools/openclaw/ops/verify.sh` — проверка overlay OpenClaw;
 - `AUTH_TYPE=oauth-personal HOST=127.0.0.1 PORT=11434 npm start` из `gemini-openai-proxy/` — локальный запуск proxy.
@@ -162,9 +162,10 @@
 
 - Marketplace source-of-truth: `.agents/plugins/marketplace.json`.
 - Packaged plugins live in `codex/plugins/<plugin>/` and use `INSTALLED_BY_DEFAULT` + `ON_INSTALL`.
-- Core plugins: `lockctl`, `intbrain`, `multica`, `openspec`, `intdata-routing`, `intdata-delivery`, `intdb`, `gatesctl`, `intdata-browser`, `intdata-host`, `intdata-ssh`, `intdata-vault`.
+- Core plugins: `lockctl`, `intbrain`, `multica`, `openspec`, `intdata-governance`, `intdb`, `intdata-runtime`, `intdata-vault`.
 - CLI-backed plugins use `codex/bin/mcp-intdata-cli.py` through profile launchers. Wrappers accept structured command args only; arbitrary shell strings are not supported.
 - Mutating commands require `confirm_mutation: true` and `issue_context` in `INT-*` format.
+- Hard migration note: old plugin IDs `intdata-routing`, `intdata-delivery`, `gatesctl`, `intdata-host`, `intdata-ssh`, `intdata-browser` removed; tools renamed to consolidated governance/runtime surface without aliases.
 
 ## Git Branch Policy
 

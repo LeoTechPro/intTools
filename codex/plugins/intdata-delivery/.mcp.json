@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "intdata-delivery": {
-      "command": "cmd.exe",
-      "args": ["/d", "/s", "/c", "D:\\int\\tools\\codex\\bin\\mcp-intdata-delivery.cmd"]
-    }
-  }
-}

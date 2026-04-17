@@ -53,22 +53,10 @@
       "category": "Productivity"
     },
     {
-      "name": "intdata-routing",
+      "name": "intdata-governance",
       "source": {
         "source": "local",
-        "path": "./codex/plugins/intdata-routing"
-      },
-      "policy": {
-        "installation": "INSTALLED_BY_DEFAULT",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
-    },
-    {
-      "name": "intdata-delivery",
-      "source": {
-        "source": "local",
-        "path": "./codex/plugins/intdata-delivery"
+        "path": "./codex/plugins/intdata-governance"
       },
       "policy": {
         "installation": "INSTALLED_BY_DEFAULT",
@@ -89,46 +77,10 @@
       "category": "Productivity"
     },
     {
-      "name": "gatesctl",
+      "name": "intdata-runtime",
       "source": {
         "source": "local",
-        "path": "./codex/plugins/gatesctl"
-      },
-      "policy": {
-        "installation": "INSTALLED_BY_DEFAULT",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
-    },
-    {
-      "name": "intdata-browser",
-      "source": {
-        "source": "local",
-        "path": "./codex/plugins/intdata-browser"
-      },
-      "policy": {
-        "installation": "INSTALLED_BY_DEFAULT",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
-    },
-    {
-      "name": "intdata-host",
-      "source": {
-        "source": "local",
-        "path": "./codex/plugins/intdata-host"
-      },
-      "policy": {
-        "installation": "INSTALLED_BY_DEFAULT",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
-    },
-    {
-      "name": "intdata-ssh",
-      "source": {
-        "source": "local",
-        "path": "./codex/plugins/intdata-ssh"
+        "path": "./codex/plugins/intdata-runtime"
       },
       "policy": {
         "installation": "INSTALLED_BY_DEFAULT",

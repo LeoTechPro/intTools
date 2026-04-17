@@ -112,30 +112,61 @@ MULTICA_TOOLS = [
     _tool("multica_exec", "Run a structured Multica CLI command. Mutating commands require confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "args": _args_prop("Arguments after the multica executable.")}, ["args"]),
 ]
 
-ROUTING_TOOLS = [
-    _tool("intdata_routing_validate", "Validate high-risk agent tool routing registry.", {**COMMON_RUN_PROPS, "strict": {"type": "boolean"}, "json": {"type": "boolean"}}),
-    _tool("intdata_routing_resolve", "Resolve a logical high-risk tooling intent.", {**COMMON_RUN_PROPS, "intent": {"type": "string"}, "platform": {"type": "string"}, "json": {"type": "boolean"}}, ["intent"]),
+GOVERNANCE_TOOLS = [
+    _tool("routing_validate", "Validate high-risk agent tool routing registry.", {**COMMON_RUN_PROPS, "strict": {"type": "boolean"}, "json": {"type": "boolean"}}),
+    _tool(
+        "routing_resolve",
+        "Resolve a logical high-risk tooling intent.",
+        {**COMMON_RUN_PROPS, "intent": {"type": "string"}, "platform": {"type": "string"}, "json": {"type": "boolean"}},
+        ["intent"],
+    ),
+    _tool(
+        "sync_gate",
+        "Run int git sync gate. Finish/push modes require confirmation.",
+        {**COMMON_RUN_PROPS, **_mutation_props(), "stage": {"type": "string", "enum": ["start", "finish"]}, "push": {"type": "boolean"}, "all_repos": {"type": "boolean"}, "root_path": {"type": "string"}},
+        ["stage"],
+    ),
+    _tool(
+        "publish",
+        "Run a canonical publish wrapper. Mutating; requires confirmation.",
+        {**COMMON_RUN_PROPS, **_mutation_props(), "target": {"type": "string"}, "no_push": {"type": "boolean"}, "no_deploy": {"type": "boolean"}, "args": _args_prop()},
+        ["confirm_mutation", "issue_context", "target"],
+    ),
+    _tool(
+        "gate_status",
+        "Show gate receipts/bindings/approvals status.",
+        {**COMMON_RUN_PROPS, "repo_root": {"type": "string"}, "issue": {"type": "string"}, "receipt_id": {"type": "string"}, "commit": {"type": "string"}, "gate": {"type": "string"}, "owner": {"type": "string"}, "format": {"type": "string", "enum": ["json", "text"]}},
+    ),
+    _tool(
+        "gate_receipt",
+        "Show a gate receipt by id or commit binding.",
+        {**COMMON_RUN_PROPS, "repo_root": {"type": "string"}, "receipt_id": {"type": "string"}, "commit": {"type": "string"}, "format": {"type": "string", "enum": ["json", "text"]}},
+    ),
+    _tool(
+        "commit_binding",
+        "Bind a gate receipt to a commit. Mutating; requires confirmation.",
+        {**COMMON_RUN_PROPS, **_mutation_props(), "repo_root": {"type": "string"}, "issue": {"type": "string"}, "receipt_id": {"type": "string"}, "commit_sha": {"type": "string"}, "repo": {"type": "string"}, "post_issue": {"type": "boolean"}, "format": {"type": "string", "enum": ["json", "text"]}},
+        ["confirm_mutation", "issue_context", "commit_sha"],
+    ),
 ]
 
-DELIVERY_TOOLS = [
-    _tool("intdata_sync_gate", "Run int git sync gate. Finish/push modes require confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "stage": {"type": "string", "enum": ["start", "finish"]}, "push": {"type": "boolean"}, "all_repos": {"type": "boolean"}, "root_path": {"type": "string"}}, ["stage"]),
-    _tool("intdata_publish", "Run a canonical publish wrapper. Mutating; requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "target": {"type": "string"}, "no_push": {"type": "boolean"}, "no_deploy": {"type": "boolean"}, "args": _args_prop()}, ["confirm_mutation", "issue_context", "target"]),
+RUNTIME_TOOLS = [
+    _tool("host_preflight", "Run Codex preflight.", {**COMMON_RUN_PROPS, "json": {"type": "boolean"}}),
+    _tool("host_verify", "Run Codex host verification.", {**COMMON_RUN_PROPS, "args": _args_prop()}),
+    _tool("host_bootstrap", "Run Codex host bootstrap. Mutating; requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "args": _args_prop()}, ["confirm_mutation", "issue_context"]),
+    _tool("recovery_bundle", "Create a Codex recovery bundle. Mutating; requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "args": _args_prop()}, ["confirm_mutation", "issue_context"]),
+    _tool("ssh_resolve", "Resolve IntData SSH host transport.", {**COMMON_RUN_PROPS, "host": {"type": "string"}, "mode": {"type": "string"}, "json": {"type": "boolean"}}, ["host"]),
+    _tool("ssh_host", "Print SSH host config/diagnostics, not an interactive shell.", {**COMMON_RUN_PROPS, "host": {"type": "string"}, "args": _args_prop()}, ["host"]),
+    _tool(
+        "browser_profile_launch",
+        "Launch an allowed Firefox MCP profile. Mutating; requires confirmation.",
+        {**COMMON_RUN_PROPS, **_mutation_props(), "profile": {"type": "string", "enum": ["firefox-default", "firefox-assess-client", "firefox-assess-specialist-v1", "firefox-assess-specialist-v2", "firefox-assess-admin", "firefox-assess-specialist-restricted"]}, "args": _args_prop("Optional launcher arguments.")},
+        ["confirm_mutation", "issue_context", "profile"],
+    ),
 ]
 
-GENERIC_TOOL = [
+INTDB_TOOLS = [
     _tool("intdata_cli", "Run a profile allowlisted CLI command with structured arguments.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
-]
-
-HOST_TOOLS = [
-    _tool("intdata_host_verify", "Run Codex host verification.", {**COMMON_RUN_PROPS, "args": _args_prop()}),
-    _tool("intdata_host_preflight", "Run Codex preflight.", {**COMMON_RUN_PROPS, "json": {"type": "boolean"}}),
-    _tool("intdata_host_bootstrap", "Run Codex host bootstrap. Mutating; requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "args": _args_prop()}, ["confirm_mutation", "issue_context"]),
-    _tool("intdata_recovery_bundle", "Create a Codex recovery bundle. Mutating; requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "args": _args_prop()}, ["confirm_mutation", "issue_context"]),
-]
-
-SSH_TOOLS = [
-    _tool("intdata_ssh_resolve", "Resolve IntData SSH host transport.", {**COMMON_RUN_PROPS, "host": {"type": "string"}, "mode": {"type": "string"}, "json": {"type": "boolean"}}, ["host"]),
-    _tool("intdata_ssh_host", "Print SSH host config/diagnostics, not an interactive shell.", {**COMMON_RUN_PROPS, "host": {"type": "string"}, "args": _args_prop()}, ["host"]),
 ]
 
 VAULT_TOOLS = [
@@ -143,17 +174,12 @@ VAULT_TOOLS = [
     _tool("intdata_runtime_vault_gc", "Run runtime vault GC. Defaults to dry-run; non-dry-run requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "dry_run": {"type": "boolean"}, "args": _args_prop()}),
 ]
 
-
 PROFILE_TOOLS: dict[str, list[dict[str, Any]]] = {
     "openspec": OPEN_SPEC_TOOLS,
     "multica": MULTICA_TOOLS,
-    "intdata-routing": ROUTING_TOOLS,
-    "intdata-delivery": DELIVERY_TOOLS,
-    "intdb": GENERIC_TOOL,
-    "gatesctl": GENERIC_TOOL,
-    "intdata-browser": GENERIC_TOOL,
-    "intdata-host": HOST_TOOLS,
-    "intdata-ssh": SSH_TOOLS,
+    "intdata-governance": GOVERNANCE_TOOLS,
+    "intdata-runtime": RUNTIME_TOOLS,
+    "intdb": INTDB_TOOLS,
     "intdata-vault": VAULT_TOOLS,
 }
 
@@ -181,20 +207,18 @@ OPEN_SPEC_READ_ONLY = {
     "help",
 }
 
+BROWSER_PROFILE_COMMANDS: dict[str, list[str]] = {
+    "firefox-default": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-default.cmd")],
+    "firefox-assess-client": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-client.cmd")],
+    "firefox-assess-specialist-v1": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-specialist-v1.cmd")],
+    "firefox-assess-specialist-v2": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-specialist-v2.cmd")],
+    "firefox-assess-admin": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-admin.cmd")],
+    "firefox-assess-specialist-restricted": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-specialist-restricted.cmd")],
+}
+
 PROFILE_COMMANDS: dict[str, dict[str, list[str]]] = {
     "intdb": {
         "intdb": ["python", str(ROOT_DIR / "intdb" / "lib" / "intdb.py")],
-    },
-    "gatesctl": {
-        "gatesctl": ["python", str(ROOT_DIR / "gatesctl" / "gatesctl.py")],
-    },
-    "intdata-browser": {
-        "firefox-default": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-default.cmd")],
-        "firefox-assess-client": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-client.cmd")],
-        "firefox-assess-specialist-v1": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-specialist-v1.cmd")],
-        "firefox-assess-specialist-v2": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-specialist-v2.cmd")],
-        "firefox-assess-admin": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-admin.cmd")],
-        "firefox-assess-specialist-restricted": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-specialist-restricted.cmd")],
     },
 }
 
@@ -382,29 +406,24 @@ def _call_multica(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     return _run(["multica", domain, command, *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout)
 
 
-def _call_routing(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+def _call_governance(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     cwd = _cwd(arguments.get("cwd"))
-    argv = ["python", str(ROOT_DIR / "codex" / "bin" / "agent_tool_routing.py")]
-    if name == "intdata_routing_validate":
-        argv.append("validate")
+    timeout = arguments.get("timeout_sec")
+    if name == "routing_validate":
+        argv = ["python", str(ROOT_DIR / "codex" / "bin" / "agent_tool_routing.py"), "validate"]
         if arguments.get("strict"):
             argv.append("--strict")
         if arguments.get("json"):
             argv.append("--json")
-    elif name == "intdata_routing_resolve":
-        argv.extend(["resolve", "--intent", str(arguments["intent"])])
+        return _run(argv, cwd=cwd, timeout_sec=timeout)
+    if name == "routing_resolve":
+        argv = ["python", str(ROOT_DIR / "codex" / "bin" / "agent_tool_routing.py"), "resolve", "--intent", str(arguments["intent"])]
         if arguments.get("platform"):
             argv.extend(["--platform", str(arguments["platform"])])
         if arguments.get("json"):
             argv.append("--json")
-    else:
-        raise ValueError(f"unknown routing tool: {name}")
-    return _run(argv, cwd=cwd, timeout_sec=arguments.get("timeout_sec"))
-
-
-def _call_delivery(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
-    cwd = _cwd(arguments.get("cwd"))
-    if name == "intdata_sync_gate":
+        return _run(argv, cwd=cwd, timeout_sec=timeout)
+    if name == "sync_gate":
         argv = ["python", str(ROOT_DIR / "scripts" / "codex" / "int_git_sync_gate.py"), "--stage", str(arguments["stage"])]
         if arguments.get("push"):
             _require_mutation(arguments)
@@ -415,8 +434,8 @@ def _call_delivery(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             argv.append("--all-repos")
         if arguments.get("root_path"):
             argv.extend(["--root-path", str(arguments["root_path"])])
-        return _run(argv, cwd=cwd, timeout_sec=arguments.get("timeout_sec"))
-    if name == "intdata_publish":
+        return _run(argv, cwd=cwd, timeout_sec=timeout)
+    if name == "publish":
         _require_mutation(arguments)
         target = str(arguments["target"])
         script = ROOT_DIR / "delivery" / "bin" / f"publish_{target}.py"
@@ -430,52 +449,71 @@ def _call_delivery(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if arguments.get("no_deploy"):
             argv.append("--no-deploy")
         argv.extend(_safe_args(arguments.get("args")))
-        return _run(argv, cwd=cwd, timeout_sec=arguments.get("timeout_sec") or 300)
-    raise ValueError(f"unknown delivery tool: {name}")
-
-
-def _call_generic(profile: str, arguments: dict[str, Any]) -> dict[str, Any]:
-    command = str(arguments["command"])
-    commands = PROFILE_COMMANDS.get(profile, {})
-    if command not in commands:
-        raise ValueError(f"unknown {profile} command: {command}")
-    args = _safe_args(arguments.get("args"))
-    if profile == "gatesctl" and (not args or args[0] not in {"status", "show-receipt", "audit-range", "help", "--help", "-h"}):
+        return _run(argv, cwd=cwd, timeout_sec=timeout or 300)
+    if name == "gate_status":
+        argv = ["python", str(ROOT_DIR / "gatesctl" / "gatesctl.py"), "status"]
+        if arguments.get("repo_root"):
+            argv.extend(["--repo-root", str(arguments["repo_root"])])
+        if arguments.get("issue"):
+            argv.extend(["--issue", str(arguments["issue"])])
+        if arguments.get("receipt_id"):
+            argv.extend(["--receipt-id", str(arguments["receipt_id"])])
+        if arguments.get("commit"):
+            argv.extend(["--commit", str(arguments["commit"])])
+        if arguments.get("gate"):
+            argv.extend(["--gate", str(arguments["gate"])])
+        if arguments.get("owner"):
+            argv.extend(["--owner", str(arguments["owner"])])
+        if arguments.get("format"):
+            argv.extend(["--format", str(arguments["format"])])
+        return _run(argv, cwd=cwd, timeout_sec=timeout)
+    if name == "gate_receipt":
+        argv = ["python", str(ROOT_DIR / "gatesctl" / "gatesctl.py"), "show-receipt"]
+        if arguments.get("repo_root"):
+            argv.extend(["--repo-root", str(arguments["repo_root"])])
+        if arguments.get("receipt_id"):
+            argv.extend(["--receipt-id", str(arguments["receipt_id"])])
+        if arguments.get("commit"):
+            argv.extend(["--commit", str(arguments["commit"])])
+        if arguments.get("format"):
+            argv.extend(["--format", str(arguments["format"])])
+        return _run(argv, cwd=cwd, timeout_sec=timeout)
+    if name == "commit_binding":
         _require_mutation(arguments)
-    if profile == "intdata-browser":
-        _require_mutation(arguments)
-    if profile == "intdb":
-        safe_intdb = (
-            not args
-            or args[:1] in (["doctor"], ["--help"], ["-h"], ["help"])
-            or args[:2] == ["migrate", "status"]
-        )
-        if not safe_intdb:
-            _require_mutation(arguments)
-    return _run([*commands[command], *args], cwd=_cwd(arguments.get("cwd")), timeout_sec=arguments.get("timeout_sec"))
+        argv = ["python", str(ROOT_DIR / "gatesctl" / "gatesctl.py"), "bind-commit", "--commit-sha", str(arguments["commit_sha"])]
+        if arguments.get("repo_root"):
+            argv.extend(["--repo-root", str(arguments["repo_root"])])
+        if arguments.get("issue"):
+            argv.extend(["--issue", str(arguments["issue"])])
+        if arguments.get("receipt_id"):
+            argv.extend(["--receipt-id", str(arguments["receipt_id"])])
+        if arguments.get("repo"):
+            argv.extend(["--repo", str(arguments["repo"])])
+        if arguments.get("post_issue"):
+            argv.append("--post-issue")
+        if arguments.get("format"):
+            argv.extend(["--format", str(arguments["format"])])
+        return _run(argv, cwd=cwd, timeout_sec=timeout)
+    raise ValueError(f"unknown governance tool: {name}")
 
 
-def _call_host(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+def _call_runtime(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     cwd = _cwd(arguments.get("cwd"))
-    if name == "intdata_host_verify":
-        return _run(["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "codex-host-verify.cmd"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=arguments.get("timeout_sec"))
-    if name == "intdata_host_preflight":
+    timeout = arguments.get("timeout_sec")
+    if name == "host_verify":
+        return _run(["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "codex-host-verify.cmd"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout)
+    if name == "host_preflight":
         argv = ["pwsh", "-File", str(ROOT_DIR / "scripts" / "codex" / "codex_preflight.ps1")]
         if arguments.get("json"):
             argv.append("-Json")
-        return _run(argv, cwd=cwd, timeout_sec=arguments.get("timeout_sec"))
-    if name == "intdata_host_bootstrap":
+        return _run(argv, cwd=cwd, timeout_sec=timeout)
+    if name == "host_bootstrap":
         _require_mutation(arguments)
-        return _run(["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "codex-host-bootstrap.cmd"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=arguments.get("timeout_sec") or 300)
-    if name == "intdata_recovery_bundle":
+        return _run(["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "codex-host-bootstrap.cmd"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout or 300)
+    if name == "recovery_bundle":
         _require_mutation(arguments)
-        return _run(["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "codex-recovery-bundle.cmd"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=arguments.get("timeout_sec") or 300)
-    raise ValueError(f"unknown host tool: {name}")
-
-
-def _call_ssh(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
-    cwd = _cwd(arguments.get("cwd"))
-    if name == "intdata_ssh_resolve":
+        return _run(["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "codex-recovery-bundle.cmd"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout or 300)
+    if name == "ssh_resolve":
         argv = [
             "python",
             str(ROOT_DIR / "codex" / "bin" / "int_ssh_resolve.py"),
@@ -490,13 +528,38 @@ def _call_ssh(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             argv.extend(["--mode", str(arguments["mode"])])
         if arguments.get("json"):
             argv.append("--json")
-        return _run(argv, cwd=cwd, timeout_sec=arguments.get("timeout_sec"))
-    if name == "intdata_ssh_host":
+        return _run(argv, cwd=cwd, timeout_sec=timeout)
+    if name == "ssh_host":
         argv = ["pwsh", "-File", str(ROOT_DIR / "codex" / "bin" / "int_ssh_host.ps1"), "-Logical", str(arguments["host"])]
         if arguments.get("args"):
             argv.extend(_safe_args(arguments.get("args")))
-        return _run(argv, cwd=cwd, timeout_sec=arguments.get("timeout_sec"))
-    raise ValueError(f"unknown ssh tool: {name}")
+        return _run(argv, cwd=cwd, timeout_sec=timeout)
+    if name == "browser_profile_launch":
+        _require_mutation(arguments)
+        profile = str(arguments["profile"])
+        if profile not in BROWSER_PROFILE_COMMANDS:
+            raise ValueError(f"unknown browser profile: {profile}")
+        argv = [*BROWSER_PROFILE_COMMANDS[profile], *_safe_args(arguments.get("args"))]
+        return _run(argv, cwd=cwd, timeout_sec=timeout)
+    raise ValueError(f"unknown runtime tool: {name}")
+
+
+def _call_intdb(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    if name != "intdata_cli":
+        raise ValueError(f"unknown intdb tool: {name}")
+    command = str(arguments["command"])
+    commands = PROFILE_COMMANDS["intdb"]
+    if command not in commands:
+        raise ValueError(f"unknown intdb command: {command}")
+    args = _safe_args(arguments.get("args"))
+    safe_intdb = (
+        not args
+        or args[:1] in (["doctor"], ["--help"], ["-h"], ["help"])
+        or args[:2] == ["migrate", "status"]
+    )
+    if not safe_intdb:
+        _require_mutation(arguments)
+    return _run([*commands[command], *args], cwd=_cwd(arguments.get("cwd")), timeout_sec=arguments.get("timeout_sec"))
 
 
 def _call_vault(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
@@ -517,16 +580,12 @@ def _call_tool(profile: str, name: str, arguments: dict[str, Any]) -> dict[str, 
         return _call_openspec(name, arguments)
     if profile == "multica":
         return _call_multica(name, arguments)
-    if profile == "intdata-routing":
-        return _call_routing(name, arguments)
-    if profile == "intdata-delivery":
-        return _call_delivery(name, arguments)
-    if profile in {"intdb", "gatesctl", "intdata-browser"}:
-        return _call_generic(profile, arguments)
-    if profile == "intdata-host":
-        return _call_host(name, arguments)
-    if profile == "intdata-ssh":
-        return _call_ssh(name, arguments)
+    if profile == "intdata-governance":
+        return _call_governance(name, arguments)
+    if profile == "intdata-runtime":
+        return _call_runtime(name, arguments)
+    if profile == "intdb":
+        return _call_intdb(name, arguments)
     if profile == "intdata-vault":
         return _call_vault(name, arguments)
     raise ValueError(f"unknown profile: {profile}")
