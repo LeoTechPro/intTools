@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "intbrain": {
+      "command": "cmd.exe",
+      "args": [
+        "/d",
+        "/s",
+        "/c",
+        "D:\\int\\tools\\codex\\bin\\mcp-intbrain.cmd"
+      ]
+    }
+  }
+}

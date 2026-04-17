@@ -80,7 +80,7 @@
 - `ssh vds-intdata-agents` — canonical remote shell для Codex runtime на `vds.intdata.pro`;
 - `ssh vds-intdata-agents` — canonical remote shell для OpenClaw runtime/service на `vds.intdata.pro`;
 - `python -m unittest discover -s delivery/tests -p test_publish_repo.py -v` — hermetic regression smoke для canonical publish engine и PowerShell compatibility adapter: clean-tree guard, `-NoDeploy` publish, shared SSH resolver и `partial_state` на локально подменённом `ssh` без реальной сети;
-- `/int/tools/codex/bin/mcp-intbrain.sh` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
+- `/int/tools/codex/bin/mcp-intbrain.sh` и `D:\int\tools\codex\bin\mcp-intbrain.cmd` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
 - `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
 - `pwsh -File /int/tools/scripts/codex/bootstrap_windows_toolchain.ps1 -AllowUserFallback` — idempotent bootstrap Windows CLI-toolchain (`rg`, `fd`, `yq`, `uv`, `pnpm`, `terraform`, `make`, PATH-normalization, fallback для `cmake/7z`);
@@ -125,7 +125,8 @@
 
 ## IntBrain Agent-Memory Integration
 
-- `codex/bin/mcp-intbrain.py` и `codex/bin/mcp-intbrain.sh` публикуют универсальный MCP toolset:
+- `codex/plugins/intbrain/` публикует IntBrain как packaged Codex plugin в каталоге `IntData Tools`.
+- `codex/bin/mcp-intbrain.py`, `codex/bin/mcp-intbrain.sh` и `codex/bin/mcp-intbrain.cmd` публикуют универсальный MCP toolset:
   - `intbrain_context_pack`
   - `intbrain_people_resolve`
   - `intbrain_people_get`
