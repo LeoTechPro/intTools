@@ -94,6 +94,13 @@ Ambiguity считается значимой только при неяснос
 - Для repo-owned high-risk tooling в `/int/tools` machine-readable registry живёт в `/int/tools/codex/config/agent-tool-routing.v1.json`.
 - Resolver CLI `/int/tools/codex/bin/agent_tool_routing.py` обязан возвращать только `resolved` или `blocked` для runtime binding resolution.
 - Blocked repo-owned capability не может неявно переключаться на verified skill; fallback допустим только если он явно перечислен как approved metadata в registry.
+- Актуальный deduplicated MCP surface в `@int-tools`:
+  - `intdata-governance` (вместо `intdata-routing`, `intdata-delivery`, `gatesctl`);
+  - `intdata-runtime` (вместо `intdata-host`, `intdata-ssh`, `intdata-browser`).
+- Публичные tool names без alias:
+  - governance: `routing_validate`, `routing_resolve`, `sync_gate`, `publish`, `gate_status`, `gate_receipt`, `commit_binding`;
+  - runtime: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`, `ssh_resolve`, `ssh_host`, `browser_profile_launch`.
+- Удалённые plugin IDs/tool names запрещено использовать в новых AGENTS/skills/runbooks.
 - Для publish family canonical engine root = `/int/tools/delivery/bin`; `codex/bin/publish_*.ps1` остаются только compatibility adapters.
 - Для Firefox/SSH/host launcher family canonical engine root = `/int/tools/codex/bin`; shell/cmd/PowerShell wrappers не являются source-of-truth.
 

@@ -95,6 +95,13 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - Contract V1: `logical intent -> canonical engine -> thin adapter`.
 - Blocked path обязателен при `missing engine`, `missing adapter`, `unsupported platform`, `adapter drift`, `unknown intent` и `ambiguous intent`.
 - Verified skills для high-risk capabilities не могут подменять blocked repo-owned path автоматически; они допустимы только как explicit approved fallback metadata.
+- Актуальный deduplicated MCP surface:
+  - plugin `intdata-governance` заменяет `intdata-routing`, `intdata-delivery`, `gatesctl`;
+  - plugin `intdata-runtime` заменяет `intdata-host`, `intdata-ssh`, `intdata-browser`.
+- Публичные tool names (без alias-совместимости):
+  - governance: `routing_validate`, `routing_resolve`, `sync_gate`, `publish`, `gate_status`, `gate_receipt`, `commit_binding`;
+  - runtime: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`, `ssh_resolve`, `ssh_host`, `browser_profile_launch`.
+- Старые plugin IDs/tool names из удалённых шести плагинов не использовать в AGENTS/skills/runbooks.
 - Canonical engine roots:
   - publish/deploy family: `delivery/bin`
   - SSH / Firefox / host launchers: `codex/bin`
