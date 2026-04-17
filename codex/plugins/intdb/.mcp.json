@@ -2,7 +2,7 @@
   "mcpServers": {
     "intdb": {
       "command": "cmd.exe",
-      "args": ["/d", "/s", "/c", "D:\\int\\tools\\codex\\bin\\mcp-intdb.cmd"]
+      "args": ["/d", "/s", "/c", "D:\\int\\tools\\codex\\bin\\mcp-intdata-cli.cmd", "--profile", "intdb"]
     }
   }
 }

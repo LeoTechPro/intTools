@@ -58,8 +58,9 @@
     "codex/bin/mcp-timeweb.sh",
     "codex/bin/mcp-timeweb-readonly.sh",
     "codex/bin/mcp-bitrix24.sh",
-    "codex/bin/mcp-lockctl.sh",
-    "codex/bin/mcp-lockctl.py",
+    "codex/bin/mcp-intdata-cli.py",
+    "codex/bin/mcp-intdata-cli.cmd",
+    "codex/bin/mcp-intdata-cli.sh",
     "openclaw/.mcp.json",
     "openclaw/ops/install.sh",
     "openclaw/ops/verify.sh"

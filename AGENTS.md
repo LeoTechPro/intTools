@@ -106,7 +106,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
   - publish/deploy family: `delivery/bin`
   - SSH / Firefox / host launchers: `codex/bin`
   - sync gate: `scripts/codex/int_git_sync_gate.py`
-  - lockctl CLI/MCP: `lockctl/lockctl_core.py`, `codex/bin/mcp-lockctl.py`
+  - lockctl CLI/MCP: `lockctl/lockctl_core.py`, `codex/bin/mcp-intdata-cli.py --profile lockctl`
   - intdb: `intdb/lib/intdb.py`
 
 ## Git и завершение работы

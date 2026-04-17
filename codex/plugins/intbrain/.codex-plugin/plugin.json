@@ -10,9 +10,9 @@
   "skills": "./skills",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "IntBrain",
-    "shortDescription": "Chat catalog, people graph, jobs and context retrieval",
-    "longDescription": "IntBrain MCP integration for Codex App with context packs, people graph lookup, chat catalog, job policy, and PM tools backed by the IntBrain core API.",
+    "displayName": "intData Brain",
+    "shortDescription": "Chat catalog, people graph, jobs and context",
+    "longDescription": "intData Brain MCP integration with context packs, people graph lookup, chat catalog, job policy, and PM tools backed by the IntBrain core API.",
     "developerName": "IntData",
     "category": "Productivity",
     "capabilities": ["Read", "Write"]

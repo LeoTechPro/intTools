@@ -1,7 +1,7 @@
 {
   "name": "int-tools",
   "interface": {
-    "displayName": "IntData Tools"
+    "displayName": "intData Tools"
   },
   "plugins": [
     {

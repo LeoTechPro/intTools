@@ -7,9 +7,9 @@
   "skills": "./skills",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "intdb",
+    "displayName": "intData DBA",
     "shortDescription": "DB doctor, migration and smoke tooling",
-    "longDescription": "Guarded MCP wrapper for the intdb operator CLI.",
+    "longDescription": "Guarded intData DBA MCP wrapper for the intdb operator CLI.",
     "developerName": "IntData",
     "category": "Productivity",
     "capabilities": ["Read", "Write"]

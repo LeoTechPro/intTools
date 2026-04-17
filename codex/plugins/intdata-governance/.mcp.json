@@ -2,7 +2,7 @@
   "mcpServers": {
     "intdata-governance": {
       "command": "cmd.exe",
-      "args": ["/d", "/s", "/c", "D:\\int\\tools\\codex\\bin\\mcp-intdata-governance.cmd"]
+      "args": ["/d", "/s", "/c", "D:\\int\\tools\\codex\\bin\\mcp-intdata-cli.cmd", "--profile", "intdata-governance"]
     }
   }
 }

@@ -80,7 +80,7 @@
 - `ssh vds-intdata-agents` — canonical remote shell для Codex runtime на `vds.intdata.pro`;
 - `ssh vds-intdata-agents` — canonical remote shell для OpenClaw runtime/service на `vds.intdata.pro`;
 - `python -m unittest discover -s delivery/tests -p test_publish_repo.py -v` — hermetic regression smoke для canonical publish engine и PowerShell compatibility adapter: clean-tree guard, `-NoDeploy` publish, shared SSH resolver и `partial_state` на локально подменённом `ssh` без реальной сети;
-- `/int/tools/codex/bin/mcp-intbrain.sh` и `D:\int\tools\codex\bin\mcp-intbrain.cmd` — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intbrain` (или `/int/tools/codex/bin/mcp-intdata-cli.sh --profile intbrain`) — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
 - `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
 - `pwsh -File /int/tools/scripts/codex/bootstrap_windows_toolchain.ps1 -AllowUserFallback` — idempotent bootstrap Windows CLI-toolchain (`rg`, `fd`, `yq`, `uv`, `pnpm`, `terraform`, `make`, PATH-normalization, fallback для `cmake/7z`);
@@ -93,10 +93,10 @@
 - `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start --all-repos --root-path /int` — явный legacy-style scan всех top-level repo, когда нужен массовый проход вместо default current-repo режима;
 - `python /int/tools/codex/bin/agent_tool_routing.py validate --strict --json` — validate registry и blocker-rules для V1 high-risk tooling;
 - `python /int/tools/codex/bin/agent_tool_routing.py resolve --intent publish:data --platform windows --json` — machine-readable resolution `logical intent -> canonical engine -> thin adapter`;
-- `D:\int\tools\codex\bin\mcp-openspec.cmd` — MCP wrapper для OpenSpec CLI с guarded lifecycle mutations;
-- `D:\int\tools\codex\bin\mcp-multica.cmd` — MCP wrapper для Multica CLI с guarded write/control commands;
-- `D:\int\tools\codex\bin\mcp-intdata-governance.cmd` — MCP wrapper для routing/sync-gate/publish/gate receipts;
-- `D:\int\tools\codex\bin\mcp-intdata-runtime.cmd` — MCP wrapper для host/ssh/browser runtime tooling;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile openspec` — MCP wrapper для OpenSpec CLI с guarded lifecycle mutations;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile multica` — MCP wrapper для Multica CLI с guarded write/control commands;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-governance` — MCP wrapper для routing/sync-gate/publish/gate receipts;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-runtime` — MCP wrapper для host/ssh/browser runtime tooling;
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
 - `bash /int/tools/openclaw/ops/verify.sh` — проверка overlay OpenClaw;
 - `AUTH_TYPE=oauth-personal HOST=127.0.0.1 PORT=11434 npm start` из `gemini-openai-proxy/` — локальный запуск proxy.
@@ -129,8 +129,8 @@
 
 ## IntBrain Agent-Memory Integration
 
-- `codex/plugins/intbrain/` публикует IntBrain как packaged Codex plugin в каталоге `IntData Tools`.
-- `codex/bin/mcp-intbrain.py`, `codex/bin/mcp-intbrain.sh` и `codex/bin/mcp-intbrain.cmd` публикуют универсальный MCP toolset:
+- `codex/plugins/intbrain/` публикует intData Brain как packaged Codex plugin в каталоге `intData Tools`.
+- `codex/bin/mcp-intdata-cli.py --profile intbrain` (через `mcp-intdata-cli.cmd/.sh`) публикует универсальный MCP toolset:
   - `intbrain_context_pack`
   - `intbrain_people_resolve`
   - `intbrain_people_get`
@@ -155,10 +155,10 @@
   - `intbrain_import_vault_pm`
 - Auth задаётся через `INTBRAIN_AGENT_ID` и `INTBRAIN_AGENT_KEY` (env/secret file), без жёсткой привязки к конкретному агенту.
 - Для `intbrain_import_vault_pm` дополнительно нужен `INTBRAIN_CORE_ADMIN_TOKEN`; без него MCP возвращает `config_error` до HTTP-вызова.
-- После обновления `mcp-intbrain.py` требуется перезапуск Codex/OpenClaw (или MCP runtime), чтобы refresh `tools/list` подтянул новый PM toolset.
+- После обновления профиля `intbrain` в `mcp-intdata-cli.py` требуется перезапуск Codex/OpenClaw (или MCP runtime), чтобы refresh `tools/list` подтянул новый PM toolset.
 - OpenClaw и Codex используют один и тот же generic контракт; agent-specific UX остаётся только в overlay-скриптах `/int/tools/*`.
 
-## IntData Tools Codex Plugins
+## intData Tools Codex Plugins
 
 - Marketplace source-of-truth: `.agents/plugins/marketplace.json`.
 - Packaged plugins live in `codex/plugins/<plugin>/` and use `INSTALLED_BY_DEFAULT` + `ON_INSTALL`.
@@ -1023,7 +1023,7 @@ CLI entrypoints:
 - Linux/macOS wrapper: `/int/tools/lockctl/lockctl`
 - Python CLI: `/int/tools/lockctl/lockctl.py`
 - Windows wrappers: `/int/tools/lockctl/lockctl.ps1`, `/int/tools/lockctl/lockctl.cmd`
-- MCP entrypoint: `/int/tools/codex/bin/mcp-lockctl.py`
+- MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile lockctl`
 
 Do not try to execute the directory `/int/tools/lockctl` itself as a binary.
 

@@ -1,13 +1,13 @@
 {
   "name": "intdata-governance",
   "version": "1.0.0",
-  "description": "IntData routing, gates and delivery governance tooling.",
+  "description": "intData routing, gates and delivery governance tooling.",
   "author": {"name": "IntData", "email": "owner@intdata.pro"},
   "license": "Proprietary",
   "skills": "./skills",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "IntData Governance",
+    "displayName": "intData Governance",
     "shortDescription": "Routing, gates and publish control",
     "longDescription": "Guarded MCP tools for routing validation, sync/publish execution, and gate receipt/binding operations.",
     "developerName": "IntData",

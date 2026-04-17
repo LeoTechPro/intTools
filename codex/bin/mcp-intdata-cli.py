@@ -8,7 +8,12 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+import urllib.error
+import urllib.parse
+import urllib.request
+from datetime import datetime, timedelta
 from typing import Any
+from zoneinfo import ZoneInfo
 
 
 PROTOCOL_VERSION = "2024-11-05"
@@ -18,6 +23,12 @@ IO_MODE = "framed"
 ROOT_DIR = Path(__file__).resolve().parents[2]
 INT_ROOT = ROOT_DIR.parent
 ISSUE_RE = re.compile(r"^INT-\d+$")
+
+LOCKCTL_DIR = ROOT_DIR / "lockctl"
+if str(LOCKCTL_DIR) not in sys.path:
+    sys.path.insert(0, str(LOCKCTL_DIR))
+
+from lockctl_core import LockCtlError, cmd_acquire, cmd_gc, cmd_release_issue, cmd_release_path, cmd_renew, cmd_status
 
 
 def _schema(properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
@@ -174,7 +185,90 @@ VAULT_TOOLS = [
     _tool("intdata_runtime_vault_gc", "Run runtime vault GC. Defaults to dry-run; non-dry-run requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "dry_run": {"type": "boolean"}, "args": _args_prop()}),
 ]
 
+LOCKCTL_TOOLS = [
+    _tool(
+        "lockctl_acquire",
+        "Acquire or renew a lease lock for a file.",
+        {
+            "repo_root": {"type": "string"},
+            "path": {"type": "string"},
+            "owner": {"type": "string"},
+            "issue": {"type": "string"},
+            "reason": {"type": "string"},
+            "lease_sec": {"type": "integer"},
+        },
+        ["repo_root", "path", "owner"],
+    ),
+    _tool(
+        "lockctl_renew",
+        "Renew an active lock by lock id.",
+        {
+            "lock_id": {"type": "string"},
+            "lease_sec": {"type": "integer"},
+        },
+        ["lock_id"],
+    ),
+    _tool(
+        "lockctl_release_path",
+        "Release one active lock by repo/path for the same owner.",
+        {
+            "repo_root": {"type": "string"},
+            "path": {"type": "string"},
+            "owner": {"type": "string"},
+        },
+        ["repo_root", "path", "owner"],
+    ),
+    _tool(
+        "lockctl_release_issue",
+        "Release all active locks for an issue in repo root.",
+        {
+            "repo_root": {"type": "string"},
+            "issue": {"type": "string"},
+        },
+        ["repo_root", "issue"],
+    ),
+    _tool(
+        "lockctl_status",
+        "Read active/expired lock status for repo/path/owner/issue.",
+        {
+            "repo_root": {"type": "string"},
+            "path": {"type": "string"},
+            "owner": {"type": "string"},
+            "issue": {"type": "string"},
+        },
+        ["repo_root"],
+    ),
+    _tool("lockctl_gc", "Delete expired locks from runtime storage.", {}),
+]
+
+INTBRAIN_TOOLS = [
+    _tool("intbrain_context_pack", "Retrieve context package for an entity/person query.", {"owner_id": {"type": "integer"}, "entity_id": {"type": "integer"}, "query": {"type": "string"}, "limit": {"type": "integer"}, "depth": {"type": "integer"}}, ["owner_id"]),
+    _tool("intbrain_people_resolve", "Resolve people by query.", {"owner_id": {"type": "integer"}, "q": {"type": "string"}, "limit": {"type": "integer"}}, ["owner_id", "q"]),
+    _tool("intbrain_people_get", "Get person profile by entity id.", {"owner_id": {"type": "integer"}, "entity_id": {"type": "integer"}}, ["owner_id", "entity_id"]),
+    _tool("intbrain_graph_neighbors", "Get graph neighbors for entity.", {"owner_id": {"type": "integer"}, "entity_id": {"type": "integer"}, "depth": {"type": "integer"}, "limit": {"type": "integer"}, "link_type": {"type": "string"}}, ["owner_id", "entity_id"]),
+    _tool("intbrain_context_store", "Store context item (write scope required).", {"owner_id": {"type": "integer"}, "kind": {"type": "string"}, "title": {"type": "string"}, "text_content": {"type": "string"}, "entity_id": {"type": "integer"}, "source_path": {"type": "string"}, "source_hash": {"type": "string"}, "chunk_kind": {"type": "string"}, "tags": {"type": "array", "items": {"type": "string"}}, "source": {"type": "string"}, "priority": {"type": "integer"}}, ["owner_id", "kind", "title", "text_content"]),
+    _tool("intbrain_graph_link", "Create/update typed graph edge (write scope required).", {"owner_id": {"type": "integer"}, "from_entity_id": {"type": "integer"}, "to_entity_id": {"type": "integer"}, "link_type": {"type": "string"}, "weight": {"type": "number"}, "confidence": {"type": "number"}, "source": {"type": "string"}, "source_path": {"type": "string"}, "metadata": {"type": "object"}}, ["owner_id", "from_entity_id", "to_entity_id", "link_type"]),
+    _tool("intbrain_people_policy_tg_get", "Get effective Telegram policy for person by tg_user_id.", {"owner_id": {"type": "integer"}, "tg_user_id": {"type": "integer"}, "chat_id": {"type": "string"}}, ["owner_id", "tg_user_id"]),
+    _tool("intbrain_group_policy_get", "Get group policy by chat_id.", {"owner_id": {"type": "integer"}, "chat_id": {"type": "string"}}, ["owner_id", "chat_id"]),
+    _tool("intbrain_group_policy_upsert", "Create/update group policy (write scope required).", {"owner_id": {"type": "integer"}, "chat_id": {"type": "string"}, "name": {"type": "string"}, "respond_mode": {"type": "string"}, "access_mode": {"type": "string"}, "tools_policy": {"type": "string"}, "project_scope": {"type": "string"}, "notes": {"type": "string"}, "metadata": {"type": "object"}}, ["owner_id", "chat_id", "respond_mode", "access_mode", "tools_policy"]),
+    _tool("intbrain_jobs_list", "List jobs with optional filters.", {"owner_id": {"type": "integer"}, "enabled": {"type": "boolean"}, "kind": {"type": "string"}, "limit": {"type": "integer"}}, ["owner_id"]),
+    _tool("intbrain_jobs_get", "Get job details by job_id.", {"owner_id": {"type": "integer"}, "job_id": {"type": "string"}}, ["owner_id", "job_id"]),
+    _tool("intbrain_job_policy_upsert", "Create/update job policy override (write scope required).", {"owner_id": {"type": "integer"}, "job_id": {"type": "string"}, "policy_mode": {"type": "string"}, "notes": {"type": "string"}, "metadata": {"type": "object"}}, ["owner_id", "job_id", "policy_mode"]),
+    _tool("intbrain_jobs_sync_runtime", "Sync runtime jobs into intbrain (import scope required).", {"owner_id": {"type": "integer"}, "source_root": {"type": "string"}, "runtime_url": {"type": "string"}}, ["owner_id"]),
+    _tool("intbrain_policy_events_list", "List append-only policy events/provenance.", {"owner_id": {"type": "integer"}, "since": {"type": "string"}, "limit": {"type": "integer"}}, ["owner_id"]),
+    _tool("intbrain_pm_dashboard", "Get PM dashboard with 5-9 constraint evaluation.", {"owner_id": {"type": "integer"}, "date": {"type": "string"}, "timezone": {"type": "string"}}, ["owner_id"]),
+    _tool("intbrain_pm_tasks", "List PM tasks by view (today, week, backlog).", {"owner_id": {"type": "integer"}, "view": {"type": "string", "enum": ["today", "week", "backlog"]}, "date": {"type": "string"}, "timezone": {"type": "string"}, "limit": {"type": "integer"}}, ["owner_id"]),
+    _tool("intbrain_pm_task_create", "Create PM task with PARA/OKR links and constraints.", {"owner_id": {"type": "integer"}, "title": {"type": "string"}, "due_at": {"type": "string"}, "priority": {"type": "integer"}, "energy_cost": {"type": "integer"}, "project_entity_id": {"type": "integer"}, "area_entity_id": {"type": "integer"}, "goal_entity_id": {"type": "integer"}, "okr_entity_id": {"type": "integer"}, "key_result_entity_id": {"type": "integer"}, "source_path": {"type": "string"}, "source_hash": {"type": "string"}, "active_pin": {"type": "boolean"}, "timezone": {"type": "string"}}, ["owner_id", "title"]),
+    _tool("intbrain_pm_task_patch", "Patch PM task fields and status.", {"task_id": {"type": "integer"}, "owner_id": {"type": "integer"}, "title": {"type": "string"}, "status": {"type": "string", "enum": ["open", "done", "archived"]}, "due_at": {"type": "string"}, "priority": {"type": "integer"}, "energy_cost": {"type": "integer"}, "project_entity_id": {"type": "integer"}, "area_entity_id": {"type": "integer"}, "goal_entity_id": {"type": "integer"}, "okr_entity_id": {"type": "integer"}, "key_result_entity_id": {"type": "integer"}, "active_pin": {"type": "boolean"}, "archive": {"type": "boolean"}, "timezone": {"type": "string"}}, ["task_id", "owner_id"]),
+    _tool("intbrain_pm_para", "Get PARA map (projects/areas/resources/archive) for owner.", {"owner_id": {"type": "integer"}}, ["owner_id"]),
+    _tool("intbrain_pm_health", "Get PM health metrics and constraint summary.", {"owner_id": {"type": "integer"}, "date": {"type": "string"}, "timezone": {"type": "string"}}, ["owner_id"]),
+    _tool("intbrain_pm_constraints_validate", "Validate PM 5-9 constraints for owner/date/timezone.", {"owner_id": {"type": "integer"}, "date": {"type": "string"}, "timezone": {"type": "string"}}, ["owner_id"]),
+    _tool("intbrain_import_vault_pm", "Import PM/PARA data from 2brain vault (admin token required).", {"owner_id": {"type": "integer"}, "source_root": {"type": "string"}, "timezone": {"type": "string"}}, ["owner_id", "source_root"]),
+]
+
 PROFILE_TOOLS: dict[str, list[dict[str, Any]]] = {
+    "lockctl": LOCKCTL_TOOLS,
+    "intbrain": INTBRAIN_TOOLS,
     "openspec": OPEN_SPEC_TOOLS,
     "multica": MULTICA_TOOLS,
     "intdata-governance": GOVERNANCE_TOOLS,
@@ -221,6 +315,164 @@ PROFILE_COMMANDS: dict[str, dict[str, list[str]]] = {
         "intdb": ["python", str(ROOT_DIR / "intdb" / "lib" / "intdb.py")],
     },
 }
+
+INTBRAIN_DEFAULT_API_BASE = "https://brain.api.intdata.pro/api/core/v1"
+INTBRAIN_DEFAULT_TIMEOUT = 15.0
+INTBRAIN_ENV_NAME = "intbrain-agent.env"
+INTBRAIN_ENV_LOADED = False
+
+
+def _as_int(raw: Any, default: int) -> int:
+    try:
+        return int(raw)
+    except Exception:
+        return default
+
+
+def _bool_value(raw: Any, default: bool) -> bool:
+    if raw is None:
+        return default
+    if isinstance(raw, bool):
+        return raw
+    token = str(raw).strip().lower()
+    if token in {"1", "true", "yes", "on"}:
+        return True
+    if token in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
+def _float_value(raw: Any, default: float) -> float:
+    try:
+        return float(raw)
+    except Exception:
+        return default
+
+
+def _parse_env_file(path: Path) -> None:
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or "=" not in stripped:
+            continue
+        key, value = stripped.split("=", 1)
+        key = key.strip()
+        if not key:
+            continue
+        os.environ.setdefault(key, value.strip())
+
+
+def _load_intbrain_env_once() -> None:
+    global INTBRAIN_ENV_LOADED
+    if INTBRAIN_ENV_LOADED:
+        return
+    INTBRAIN_ENV_LOADED = True
+    if os.environ.get("INTBRAIN_AGENT_ID") and os.environ.get("INTBRAIN_AGENT_KEY"):
+        return
+
+    codex_home = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
+    int_root = ROOT_DIR.parent
+    runtime_root = Path(os.environ.get("CODEX_RUNTIME_ROOT", int_root / ".runtime"))
+    secrets_root = Path(os.environ.get("CODEX_SECRETS_ROOT", runtime_root / "codex-secrets"))
+    legacy_root = Path(os.environ.get("LEGACY_CODEX_VAR_ROOT", codex_home / "var"))
+    _parse_env_file(secrets_root / INTBRAIN_ENV_NAME)
+    _parse_env_file(legacy_root / INTBRAIN_ENV_NAME)
+
+
+def _coerce_pm_date_alias(value: Any, timezone: str | None) -> Any:
+    if not isinstance(value, str):
+        return value
+    token = value.strip().lower()
+    if token not in {"today", "tomorrow", "yesterday"}:
+        return value
+    tz_name = timezone or "Europe/Moscow"
+    try:
+        tz = ZoneInfo(tz_name)
+    except Exception:
+        tz = ZoneInfo("UTC")
+    base = datetime.now(tz=tz).date()
+    if token == "tomorrow":
+        base = base + timedelta(days=1)
+    elif token == "yesterday":
+        base = base - timedelta(days=1)
+    return base.isoformat()
+
+
+def _coerce_pm_date_args(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    if name not in {
+        "intbrain_pm_dashboard",
+        "intbrain_pm_tasks",
+        "intbrain_pm_health",
+        "intbrain_pm_constraints_validate",
+        "intbrain_pm_task_create",
+        "intbrain_pm_task_patch",
+    }:
+        return arguments
+    args = dict(arguments)
+    if "date" in args and isinstance(args["date"], str):
+        args["date"] = _coerce_pm_date_alias(args["date"], args.get("timezone"))
+    if name in {"intbrain_pm_task_create", "intbrain_pm_task_patch"} and "due_at" in args and isinstance(args["due_at"], str):
+        if args["due_at"].strip().lower() == "today":
+            tz_name = args.get("timezone") or "Europe/Moscow"
+            try:
+                tz = ZoneInfo(tz_name)
+            except Exception:
+                tz = ZoneInfo("UTC")
+            args["due_at"] = datetime.now(tz=tz).isoformat(timespec="seconds")
+    return args
+
+
+def _intbrain_http_json(
+    method: str,
+    path: str,
+    *,
+    params: dict[str, Any] | None = None,
+    payload: dict[str, Any] | None = None,
+    use_agent_auth: bool = True,
+    extra_headers: dict[str, str] | None = None,
+) -> tuple[int, Any]:
+    _load_intbrain_env_once()
+    api_base = os.environ.get("INTBRAIN_API_BASE_URL", INTBRAIN_DEFAULT_API_BASE).rstrip("/")
+    agent_id = os.environ.get("INTBRAIN_AGENT_ID", "").strip()
+    agent_key = os.environ.get("INTBRAIN_AGENT_KEY", "").strip()
+    timeout = _float_value(os.environ.get("INTBRAIN_API_TIMEOUT_SEC"), INTBRAIN_DEFAULT_TIMEOUT)
+
+    if use_agent_auth and (not agent_id or not agent_key):
+        raise RuntimeError("INTBRAIN_AGENT_ID and INTBRAIN_AGENT_KEY must be set")
+
+    url = f"{api_base}/{path.lstrip('/')}"
+    if params:
+        query = urllib.parse.urlencode({k: v for k, v in params.items() if v is not None})
+        if query:
+            url = f"{url}?{query}"
+
+    data = None
+    if payload is not None:
+        data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+
+    request = urllib.request.Request(url=url, method=method.upper(), data=data)
+    request.add_header("Accept", "application/json")
+    request.add_header("Content-Type", "application/json")
+    if use_agent_auth:
+        request.add_header("X-Agent-Id", agent_id)
+        request.add_header("X-Agent-Key", agent_key)
+    for header_name, header_value in (extra_headers or {}).items():
+        request.add_header(header_name, header_value)
+
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            raw = response.read().decode("utf-8", errors="ignore")
+            if not raw:
+                return response.status, {}
+            return response.status, json.loads(raw)
+    except urllib.error.HTTPError as exc:
+        raw = exc.read().decode("utf-8", errors="ignore")
+        try:
+            body = json.loads(raw) if raw else {}
+        except json.JSONDecodeError:
+            body = {"raw": raw}
+        return int(exc.code), body
 
 
 def _write_message(payload: dict[str, Any]) -> None:
@@ -575,7 +827,157 @@ def _call_vault(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     return _run(argv, cwd=cwd, timeout_sec=arguments.get("timeout_sec") or 300)
 
 
+def _call_lockctl(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    try:
+        if name == "lockctl_acquire":
+            payload = cmd_acquire(
+                argparse.Namespace(
+                    repo_root=str(arguments.get("repo_root", "")),
+                    path=str(arguments.get("path", "")),
+                    owner=str(arguments.get("owner", "")),
+                    issue=arguments.get("issue"),
+                    reason=arguments.get("reason"),
+                    lease_sec=_as_int(arguments.get("lease_sec"), 60),
+                )
+            )
+        elif name == "lockctl_renew":
+            payload = cmd_renew(
+                argparse.Namespace(
+                    lock_id=str(arguments.get("lock_id", "")),
+                    lease_sec=_as_int(arguments.get("lease_sec"), 60),
+                )
+            )
+        elif name == "lockctl_release_path":
+            payload = cmd_release_path(
+                argparse.Namespace(
+                    repo_root=str(arguments.get("repo_root", "")),
+                    path=str(arguments.get("path", "")),
+                    owner=str(arguments.get("owner", "")),
+                )
+            )
+        elif name == "lockctl_release_issue":
+            payload = cmd_release_issue(
+                argparse.Namespace(
+                    repo_root=str(arguments.get("repo_root", "")),
+                    issue=arguments.get("issue"),
+                )
+            )
+        elif name == "lockctl_status":
+            payload = cmd_status(
+                argparse.Namespace(
+                    repo_root=str(arguments.get("repo_root", "")),
+                    path=arguments.get("path"),
+                    owner=arguments.get("owner"),
+                    issue=arguments.get("issue"),
+                )
+            )
+        elif name == "lockctl_gc":
+            payload = cmd_gc(argparse.Namespace())
+        else:
+            raise ValueError(f"unknown lockctl tool: {name}")
+    except LockCtlError as exc:
+        payload = {"ok": False, "error": exc.code, "message": exc.message, **exc.payload}
+    except Exception as exc:  # noqa: BLE001
+        payload = {"ok": False, "error": "UNEXPECTED_ERROR", "message": str(exc)}
+    return payload
+
+
+def _call_intbrain(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    args = _coerce_pm_date_args(name, dict(arguments))
+    core_admin_token = os.environ.get("INTBRAIN_CORE_ADMIN_TOKEN", "").strip()
+
+    if name == "intbrain_context_pack":
+        code, body = _intbrain_http_json("POST", "context/pack", payload=args)
+    elif name == "intbrain_people_resolve":
+        code, body = _intbrain_http_json("GET", "people/resolve", params=args)
+    elif name == "intbrain_people_get":
+        entity_id = args.get("entity_id")
+        if entity_id is None:
+            return {"ok": False, "error": "entity_id_required"}
+        code, body = _intbrain_http_json("GET", f"people/{entity_id}", params={"owner_id": args.get("owner_id")})
+    elif name == "intbrain_graph_neighbors":
+        code, body = _intbrain_http_json("GET", "graph/neighbors", params=args)
+    elif name == "intbrain_context_store":
+        code, body = _intbrain_http_json("POST", "context/store", payload=args)
+    elif name == "intbrain_graph_link":
+        code, body = _intbrain_http_json("POST", "graph/link", payload=args)
+    elif name == "intbrain_people_policy_tg_get":
+        code, body = _intbrain_http_json("GET", "people/policy/telegram", params=args)
+    elif name == "intbrain_group_policy_get":
+        chat_id = args.get("chat_id")
+        if chat_id is None:
+            return {"ok": False, "error": "chat_id_required"}
+        code, body = _intbrain_http_json("GET", f"groups/{chat_id}/policy", params={"owner_id": args.get("owner_id")})
+    elif name == "intbrain_group_policy_upsert":
+        chat_id = args.get("chat_id")
+        if chat_id is None:
+            return {"ok": False, "error": "chat_id_required"}
+        payload = dict(args)
+        payload.pop("chat_id", None)
+        code, body = _intbrain_http_json("POST", f"groups/{chat_id}/policy", payload=payload)
+    elif name == "intbrain_jobs_list":
+        code, body = _intbrain_http_json("GET", "jobs", params=args)
+    elif name == "intbrain_jobs_get":
+        job_id = args.get("job_id")
+        if not job_id:
+            return {"ok": False, "error": "job_id_required"}
+        code, body = _intbrain_http_json("GET", f"jobs/{job_id}", params={"owner_id": args.get("owner_id")})
+    elif name == "intbrain_job_policy_upsert":
+        job_id = args.get("job_id")
+        if not job_id:
+            return {"ok": False, "error": "job_id_required"}
+        payload = dict(args)
+        payload.pop("job_id", None)
+        code, body = _intbrain_http_json("POST", f"jobs/{job_id}/policy", payload=payload)
+    elif name == "intbrain_jobs_sync_runtime":
+        code, body = _intbrain_http_json("POST", "jobs/sync/runtime", payload=args)
+    elif name == "intbrain_policy_events_list":
+        code, body = _intbrain_http_json("GET", "policies/events", params=args)
+    elif name == "intbrain_pm_dashboard":
+        code, body = _intbrain_http_json("GET", "pm/dashboard", params=args)
+    elif name == "intbrain_pm_tasks":
+        code, body = _intbrain_http_json("GET", "pm/tasks", params=args)
+    elif name == "intbrain_pm_task_create":
+        code, body = _intbrain_http_json("POST", "pm/task", payload=args)
+    elif name == "intbrain_pm_task_patch":
+        task_id = args.get("task_id")
+        if task_id is None:
+            return {"ok": False, "error": "task_id_required"}
+        payload = dict(args)
+        payload.pop("task_id", None)
+        code, body = _intbrain_http_json("PATCH", f"pm/task/{task_id}", payload=payload)
+    elif name == "intbrain_pm_para":
+        owner_id = args.get("owner_id")
+        if owner_id is None:
+            return {"ok": False, "error": "owner_id_required"}
+        code, body = _intbrain_http_json("GET", f"pm/para/{owner_id}")
+    elif name == "intbrain_pm_health":
+        code, body = _intbrain_http_json("GET", "pm/health", params=args)
+    elif name == "intbrain_pm_constraints_validate":
+        code, body = _intbrain_http_json("POST", "pm/constraints/validate", payload=args)
+    elif name == "intbrain_import_vault_pm":
+        if not core_admin_token:
+            return {"ok": False, "error": "config_error", "message": "INTBRAIN_CORE_ADMIN_TOKEN is required for intbrain_import_vault_pm"}
+        code, body = _intbrain_http_json(
+            "POST",
+            "import/vault/pm",
+            payload=args,
+            use_agent_auth=False,
+            extra_headers={"X-Core-Admin-Token": core_admin_token},
+        )
+    else:
+        raise ValueError(f"unknown intbrain tool: {name}")
+
+    if 200 <= code < 300:
+        return {"ok": True, "data": body}
+    return {"ok": False, "http_status": code, "body": body}
+
+
 def _call_tool(profile: str, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    if profile == "lockctl":
+        return _call_lockctl(name, arguments)
+    if profile == "intbrain":
+        return _call_intbrain(name, arguments)
     if profile == "openspec":
         return _call_openspec(name, arguments)
     if profile == "multica":

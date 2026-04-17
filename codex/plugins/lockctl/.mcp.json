@@ -1,7 +1,8 @@
 {
   "mcpServers": {
     "lockctl": {
-      "command": "lockctl-mcp.cmd"
+      "command": "cmd.exe",
+      "args": ["/d", "/s", "/c", "D:\\int\\tools\\codex\\bin\\mcp-intdata-cli.cmd", "--profile", "lockctl"]
     }
   }
 }

@@ -10,9 +10,9 @@
   "skills": "./skills",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "lockctl",
+    "displayName": "intData Locks",
     "shortDescription": "Machine-wide file lease locks",
-    "longDescription": "Unified lockctl tooling for Codex/OpenClaw via MCP with CLI fallback.",
+    "longDescription": "Unified intData lock tooling for Codex/OpenClaw via MCP with CLI fallback.",
     "developerName": "IntData",
     "category": "Productivity",
     "capabilities": ["Read", "Write"]
