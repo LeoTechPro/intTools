@@ -17,11 +17,60 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 
 <!-- OPENSPEC:END -->
 
-⚠️ Сначала прочитайте [корневой AGENTS.md](/int/AGENTS.md).
+## /int Agent Execution Contract
 
-## Browser Runtime Inheritance
+These repo-local rules include the former machine-wide `/int` rules. `D:\int` is a directory of separate repositories, not a monorepo or project root.
+
+### Scope and Mode
+- Before any task, identify the exact scope, repository, mode (`EXECUTE`, `PLAN`, `SPEC-MUTATION`, `FINISH`) and domain.
+- Allowed paths are `/int/*` by default; owner tasks may also use `/home/leon/*`. Anything else requires written owner approval.
+- Run `whoami` before starting work and record assumptions as `[ASSUMPTION]` when they affect execution.
+- Stop and escalate if scope, access, owner, lock state, git state, or required spec is unclear.
+
+### Rule Priority
+1. Owner directives
+2. Access and security
+3. Execution contract
+4. Spec-first policy
+5. Git, lock, and process gates
+6. Coding rules
+7. Repo-local rules below
+
+When rules conflict, follow the higher-priority rule and record the conflict in handoff.
+
+### Spec-First Policy
+- API, schema, contract, auth/RBAC, runtime interface, and cross-repo boundary changes require an existing approved spec before code changes.
+- In `EXECUTE`, specs may be read but not rewritten. `SPEC-MUTATION` may write specs only with owner approval.
+- If code and spec disagree, fix or approve the spec path first; do not silently invent contract behavior.
+
+### Git, Multica, and Lock Gates
+- Multica Issues are the only task-control-plane for agent work. GitHub Issues, `gh issue`, and `gh project` are not fallback coordination systems.
+- Before non-trivial implementation, commit, push, deploy, or publication, verify a reachable Multica issue in `INT-*` format.
+- Every local commit for agent work must include the current `INT-*` id in subject or body.
+- Push, deploy, and publication require explicit owner approval or a direct `push/publish` command.
+- Before file mutation, acquire a runtime `lockctl` lock for each changed file. Release locks after completion.
+- The source of truth for locks is runtime `lockctl`, not YAML notes.
+- Work only from a clean tree unless the owner explicitly scopes around existing unrelated changes; never revert or stage unrelated user changes.
+
+### Coding and Change Discipline
+- Make minimal, targeted edits; preserve existing architecture, conventions, and file structure.
+- Do not add speculative flexibility, broad rewrites, or unrelated cleanup.
+- Reproduce or inspect before fixing; verify the requested result before finishing.
+- Do not change production state, delete data, reset history, or run destructive operations without explicit owner approval.
+
+### Process, Paths, and Runtime
+- Process gate order: Intake, Architecture, Implementation, Merge, QA, InfoSec, DevOps, Promotion.
+- Do not place junk in `/int`; temporary files belong under `/int/.tmp/<ISO8601>/`.
+- Reusable tooling belongs under `/int/tools/**`.
+- Canonical hosts: prod `vds.punkt-b.pro`, dev `vds.intdata.pro`.
+- Canonical users: `intdata` primary, `codex` runtime agent, `leon` manual-only.
+- Supabase system roles and system tables must not be changed.
+- Frontend diagnostics default to headless Firefox MCP with separate profiles; owner Chrome is only a documented fallback.
+- If a repo-local or tooling machine-readable policy file exists, read it. If a referenced machine policy file is missing, record that as a blocker or assumption instead of treating it as available.
+- Communication language is Russian unless the owner explicitly asks otherwise; record decisions, blockers, verification, and remaining risks.
+
+## Frontend Runtime Policy
 - Для сессий, стартующих из этого репозитория, default frontend-диагностика и browser-proof выполняются через dedicated Firefox DevTools MCP runtime с persistent profiles.
-- Канонический policy, runtime layout и fallback-ограничения задаются только в `/int/AGENTS.md` (раздел `Frontend Browser Runtime Policy`) и наследуются без локальной переинтерпретации.
 - Attach к owner Chrome допустим только как documented fallback по blocker-case с явной фиксацией причины в handoff.
 # AGENTS — intTools
 

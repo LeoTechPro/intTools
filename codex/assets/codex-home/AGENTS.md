@@ -58,7 +58,7 @@ Ambiguity считается значимой только при неяснос
 - Самописный versioned tooling для Codex CLI хранится только в `/int/tools/codex/**`.
 - `~/.codex` / `C:\Users\intData\.codex` используются только для native runtime-state, обязательных runtime instructions и тех home-level файлов, которые сам Codex требует именно там.
 - Не использовать `~/.codex/scripts` как source-of-truth для самописных publish/helper scripts, если эти файлы можно держать в versioned `/int/tools/codex`.
-- Machine-wide policy source-of-truth находится в `/int/AGENTS.md`.
+- Для контуров под `D:\int` policy source-of-truth распределён по repo-local `AGENTS.md`; отдельный общий файл в корне каталога не используется.
 - На `vds.intdata.pro` canonical remote users разделены так: IntData automation/deploy работает под `intdata`, Codex remote work — под `agents`, OpenClaw runtime/service — под `agents`.
 - Автоматизированные действия под `leon` на `vds.intdata.pro` запрещены без прямого письменного разрешения владельца.
 

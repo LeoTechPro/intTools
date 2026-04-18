@@ -4,7 +4,7 @@
 
 ## Source of truth
 - Назначение репозитория, ownership и process-specific ограничения живут в `../AGENTS.md` и `../README.md`.
-- Machine-wide правила работы, lockctl и mode-lattice живут в `/int/AGENTS.md`.
+- Общие правила работы, lockctl и mode-lattice живут в repo root `../AGENTS.md`.
 - `openspec/specs/**` и `openspec/changes/**` в этом репозитории являются каноническим source-of-truth для tracked tooling/process governance внутри `/int/tools`.
 
 ## TL;DR
@@ -44,7 +44,7 @@ Ambiguity считается значимой только при неяснос
 
 ## Catalog note
 - `openspec/project.md` описывает governance model именно для `/int/tools`, а не заменяет root repo docs.
-- За фактической архитектурой, ветками, ownership и host-ограничениями всегда идите в root `README.md`, root `AGENTS.md` и `/int/AGENTS.md`.
+- За фактической архитектурой, ветками, ownership и host-ограничениями всегда идите в repo root `../README.md` и `../AGENTS.md`.
 
 ## Spec-First Policy
 - Главный приоритет любой реализации — согласованная актуальная спека (OpenSpec / approved spec source-of-truth для контура).
