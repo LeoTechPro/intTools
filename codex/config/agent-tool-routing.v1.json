@@ -557,6 +557,19 @@
           ],
           "adapter_targets_engine": "codex/bin/int_ssh_resolve.py",
           "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/mcp-intdata-cli.py",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "codex/bin/int_ssh_resolve.py",
+          "parity_required": true
         }
       ]
     },

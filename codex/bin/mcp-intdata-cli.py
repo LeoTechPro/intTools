@@ -804,7 +804,7 @@ def _call_runtime(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             "--requested-host",
             str(arguments["host"]),
             "--capability",
-            "intdata_ssh_resolve",
+            "int_ssh_resolve",
             "--binding-origin",
             "codex/bin/mcp-intdata-cli.py",
         ]

@@ -1,28 +1,65 @@
 ## ADDED Requirements
 
-### Requirement: Int-tools plugin tools MUST have capability-level skill coverage
-Every MCP tool exposed by an `int-tools` plugin MUST be covered by exactly one capability skill that explains when to use it, required inputs, guardrails, blockers, fallback policy, and example calls.
+### Requirement: Neutral agent plane MUST treat facades as equal clients
 
-#### Scenario: Agent chooses a plugin tool
-- **WHEN** an agent task maps to an int-tools MCP capability
-- **THEN** a capability skill exists for the relevant tool group
-- **AND** the root plugin skill routes the agent to that capability skill
-- **AND** the tool is not documented only in a broad plugin-level skill
+`int-agent-plane` MUST expose a facade-neutral tool-call interface for `agno`, `openclaw`, and `codex_app`. The service MUST NOT require one facade to call through another facade.
 
-### Requirement: Int-tools plugin and app surfaces MUST be verifiable
-The repository MUST include a verifier that checks plugin manifests, marketplace entries, MCP protocol smoke, expected tool counts, skill coverage, and negative mutation guard behavior.
+#### Scenario: Facade calls a canonical tool
+- **WHEN** a request is submitted to `POST /v1/tools/call`
+- **THEN** the request includes `request_id`, `facade`, `principal`, `tool`, `args`, `context`, `dry_run`, and optional `approval_ref`
+- **AND** `facade` is one of `agno`, `openclaw`, or `codex_app`
+- **AND** the response includes `ok`, `result`, `policy_decision_id`, `tool_call_id`, and `error`
 
-#### Scenario: Plugin verification runs
-- **WHEN** the verifier is executed in `/int/tools`
-- **THEN** it validates the four int-tools plugin profiles
-- **AND** it fails if a tool is missing capability skill coverage
-- **AND** it fails if guarded high-risk tools accept missing mutation confirmation
+### Requirement: Agent plane MUST expose a minimal HTTP API
 
-### Requirement: Remote ChatGPT app exposure MUST be curated
-The remote ChatGPT Apps/Connectors surface for int-tools MUST expose a curated tool-only MCP app in v1 and MUST NOT publish the whole local control-plane surface by default.
+The service MUST bind to localhost by default and expose only the MVP HTTP API needed for health, discovery, dispatch, and audit inspection.
 
-#### Scenario: Remote app v1 is designed
-- **WHEN** int-tools capabilities are exposed through a remote MCP endpoint
-- **THEN** read/search tools are preferred for knowledge retrieval
-- **AND** write or control actions are explicitly selected, annotated, authenticated, logged, and owner-approved
-- **AND** production secrets remain outside tracked git
+#### Scenario: Client discovers and calls tools
+- **WHEN** a client calls `GET /health`
+- **THEN** the service returns an OK health payload
+- **WHEN** a client calls `GET /v1/tools`
+- **THEN** the service lists canonical tools available through existing MCP profiles
+- **WHEN** a client calls `GET /v1/audit/tool-calls`
+- **THEN** the service returns recent sanitized audit entries
+
+### Requirement: Agent plane MUST preserve canonical tool ownership
+
+The service MUST dispatch to existing intData MCP profiles and canonical engines. It MUST NOT become the source of truth for memory, issues, specs, locks, jobs, or runtime host capabilities.
+
+#### Scenario: Tool dispatch occurs
+- **WHEN** a request passes validation and policy checks
+- **THEN** the dispatcher calls the existing MCP runtime for the tool's canonical profile
+- **AND** the service records audit metadata
+- **AND** canonical memory/content remains in IntBrain
+- **AND** canonical issue/spec/lock state remains in Multica, OpenSpec, and lockctl
+
+### Requirement: Agent plane MUST reject out-of-scope Cabinet surfaces
+
+Cabinet absorption is owned by `INT-225` outside this change. This change MUST NOT add Cabinet public tools, aliases, compatibility APIs, product shells, or `/int/brain` changes.
+
+#### Scenario: Cabinet tool is requested
+- **WHEN** a tool name starts with `cabinet_`, starts with `cabinet.`, contains `_cabinet_`, or ends with `_cabinet`
+- **THEN** validation or policy rejects the request
+- **AND** the tool is not included in neutral plane discovery
+
+### Requirement: Guarded calls MUST require approval
+
+Mutating, destructive, runtime-sensitive, or high-risk calls MUST be rejected unless the request carries explicit approval metadata.
+
+#### Scenario: Guarded call lacks approval
+- **WHEN** a request targets a guarded tool such as lock acquisition, OpenSpec mutation, publish, sync gate, host bootstrap, recovery bundle, browser launch, or IntBrain write/import
+- **AND** `approval_ref` is absent
+- **THEN** the service rejects the call with `policy_rejected`
+- **AND** writes a sanitized audit entry with `source_facade`
+
+### Requirement: Agent plane MUST provide repo-owned client surfaces
+
+The repository MUST provide minimal client surfaces for Codex App, OpenClaw, and Agno/local usage without changing production Telegram or VDS runtime configuration by default.
+
+#### Scenario: Facade clients are smoke-tested locally
+- **WHEN** the Codex MCP client initializes
+- **THEN** it exposes `agent_plane_tools`, `agent_plane_call`, and `agent_plane_audit_recent`
+- **WHEN** OpenClaw uses its wrapper
+- **THEN** it calls the localhost HTTP endpoint
+- **WHEN** Agno/local harness runs
+- **THEN** it calls the same localhost HTTP endpoint

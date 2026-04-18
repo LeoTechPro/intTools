@@ -1,0 +1,15 @@
+[Unit]
+Description=intData Agent Tool Plane
+After=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-%h/.config/int-agent-plane/agent-plane.env
+WorkingDirectory=/int/tools
+ExecStart=/usr/bin/python3 -m agent_plane.server --host 127.0.0.1 --port 9192
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+
+[Install]
+WantedBy=default.target

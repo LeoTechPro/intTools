@@ -1,23 +1,28 @@
-# Change: Harden int-tools plugin and app surfaces
+# Change: Neutral Agent Tool Plane V1
 
 ## Why
 
-`intbrain`, `intdata-control`, `intdata-runtime`, and `intdb` are packaged as Codex plugins and expose MCP tools, but agents still need sharper capability-level skills and reproducible verification before the surfaces can be treated as working app/plugin infrastructure.
+Agno, OpenClaw, and Codex App need to call intData tools as equal clients instead of routing through each other. The shared layer must normalize requests, apply policy, dispatch to existing canonical MCP profiles, and keep audit/runtime state without becoming a new source of truth for memory, issues, specs, locks, or jobs.
 
 ## What Changes
 
-- Add capability skills for every int-tools MCP tool group.
-- Add app-surface metadata to plugin manifests without inventing an unsupported `.app.json` schema.
-- Add a repo-owned verifier for manifests, MCP protocol smoke, tool counts, skill coverage, and mutation guards.
-- Document the internal remote ChatGPT Apps/Connectors v1 shape as a tool-only MCP app.
-- Add missing mutation guards for IntBrain write/import tools.
+- Add `int-agent-plane`, a localhost-only neutral Tool/Policy/State Plane service for `agents@vds.intdata.pro`.
+- Expose HTTP endpoints for health, tool discovery, tool calls, and recent audit entries.
+- Add a facade-neutral request envelope for `agno`, `openclaw`, and `codex_app`.
+- Add policy gates that reject unknown facades/principals, Cabinet tools, and guarded mutations without explicit approval.
+- Add an audit/state schema `agent_plane` for PostgreSQL, with JSONL fallback for local development.
+- Add minimal clients for Codex App MCP, OpenClaw shell wrapper, and Agno/local harness.
+- Fix the `ssh_resolve` preflight mismatch by using canonical capability `int_ssh_resolve`.
 
-## Scope boundaries
+## Scope Boundaries
 
-- Existing CLI engines and product APIs remain canonical.
-- Local Codex plugins stay repo-owned distribution/UX surfaces.
-- Remote ChatGPT app v1 is documented and testable as a design target, not deployed in this change.
+- Cabinet absorption is owned by `INT-225` outside this change.
+- This change MUST NOT add `cabinet_*` public tools, aliases, compatibility APIs, product shells, or `/int/brain` changes.
+- Canonical memory/context remains in IntBrain; `agent_plane.memory_refs` stores provenance references only.
+- Canonical issue/spec/lock/runtime engines remain existing MCP profiles and CLI engines.
+- PostgreSQL migration is delivered but not applied automatically.
 - Runtime secrets stay outside git.
+- Push, deploy, systemd install, and live VDS DB apply require separate owner approval.
 
 ## Issue
 
@@ -25,9 +30,10 @@ Owning Multica issue: `INT-226`.
 
 ## Acceptance
 
-- All four plugin manifests parse and include discovery metadata.
-- Every plugin MCP profile responds to `initialize`, `ping`, and `tools/list`.
-- Tool counts remain `intbrain=29`, `intdata-control=35`, `intdata-runtime=9`, `intdb=1`.
-- Every MCP tool is assigned to exactly one capability skill.
-- High-risk guarded tools reject missing `confirm_mutation=true` and `issue_context=INT-*`.
-- OpenSpec validation and routing validation pass.
+- OpenSpec for `agent-tool-plane-v1` validates strictly and describes neutral plane behavior.
+- HTTP service exposes `GET /health`, `GET /v1/tools`, `POST /v1/tools/call`, and `GET /v1/audit/tool-calls`.
+- `GET /v1/tools` excludes Cabinet tools.
+- Guarded/mutating calls without `approval_ref` are rejected and audited.
+- Codex MCP client lists and calls the neutral plane surface.
+- Agno/local harness and OpenClaw wrapper can call the localhost service without changing Telegram/runtime config.
+- Routing validation passes and fresh `ssh_resolve` uses `int_ssh_resolve`.
