@@ -20,7 +20,9 @@ description: Веди agent task-control-plane через MCP-обёртку Mul
 
 ## Guardrails
 
-- Не вызывай `multica` CLI напрямую, если доступен MCP-инструмент этого плагина.
+- В MCP-enabled runtime этот plugin tool surface является обязательным first path для Multica issue state.
+- Не вызывай `multica` CLI напрямую, если доступен MCP-инструмент этого плагина; это относится к `create`, `comment`, `status`, `update`, `assign`, `get`, `list` и `search`.
 - Для mutating commands указывай `issue_context=INT-*`, когда задача уже привязана к issue.
+- Если MCP tool недоступен или возвращает blocker для нужной операции, остановись, зафиксируй tool/error и запроси owner approval на direct CLI fallback.
 - Если Multica недоступна или issue не найден, остановись и сообщи blocker; не переходи на GitHub Issues.
 - Не создавай новую issue без прямого запроса владельца или утверждённого process path.

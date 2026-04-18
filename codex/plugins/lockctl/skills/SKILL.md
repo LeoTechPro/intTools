@@ -18,7 +18,7 @@ description: Управляй runtime lease-локами файлов через
 
 - Не вызывай `lockctl` CLI напрямую, если доступен MCP-инструмент этого плагина.
 - Лок берётся только на конкретный файл, не на директорию.
-- Перед правкой укажи `repo_root`, `path`, `owner`, `reason`; для issue-disciplined задач укажи issue id.
-- В текущей MCP-реализации issue может требовать numeric id; если repo policy требует `INT-*`, зафиксируй конфликт и используй numeric часть только как технический adapter constraint.
+- Перед правкой укажи `repo_root`, `path`, `owner`, `reason`; `issue` является optional metadata и нужен только для issue-disciplined задач.
+- Если issue указан, допускается legacy numeric id или полный Multica id формата `INT-*`; не обрезай `INT-*` до числа.
 - После завершения scope сними locks через `lockctl_release_issue` или целевой release-flow, если он доступен.
 - Expired lock не подменяет ownership: проверь status перед повторным acquire, если есть сомнение.

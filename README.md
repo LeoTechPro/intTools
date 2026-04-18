@@ -35,6 +35,8 @@
 ## OpenSpec governance
 
 - Для любых tracked-мутаций repo-owned tooling в `/int/tools/**` канонический process source-of-truth живёт в `openspec/specs/process/spec.md`.
+- Agents in MCP-enabled Codex/OpenClaw runtimes must use the OpenSpec MCP plugin (`mcp__openspec__`) for OpenSpec discovery, validation, status, and lifecycle operations; repo-local `codex/bin/openspec*` entrypoints are operator/adapter fallback paths, not a PATH fallback.
+- Agents must use the Multica MCP plugin (`mcp__multica__`) for Multica issue state; direct `multica` CLI usage requires a recorded plugin blocker and explicit owner approval.
 - Перед первой правкой обязателен owner-approved change package в `openspec/changes/<change-id>/`:
   - `proposal.md`
   - `tasks.md`
@@ -85,16 +87,16 @@
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
 - `pwsh -File /int/tools/scripts/codex/bootstrap_windows_toolchain.ps1 -AllowUserFallback` — idempotent bootstrap Windows CLI-toolchain (`rg`, `fd`, `yq`, `uv`, `pnpm`, `terraform`, `make`, PATH-normalization, fallback для `cmake/7z`);
 - `pwsh -File /int/tools/scripts/codex/codex_preflight.ps1` — preflight-проверка ключевых CLI с machine-readable режимом `-Json`;
-- `/int/tools/codex/bin/openspec` — tracked Linux entrypoint для локального OpenSpec CLI;
-- `pwsh -File D:\int\tools\codex\bin\openspec.ps1` — tracked Windows PowerShell entrypoint для локального OpenSpec CLI;
-- `D:\int\tools\codex\bin\openspec.cmd` — tracked Windows CMD entrypoint для локального OpenSpec CLI;
+- `/int/tools/codex/bin/openspec` — tracked Linux operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `mcp__openspec__` first;
+- `pwsh -File D:\int\tools\codex\bin\openspec.ps1` — tracked Windows PowerShell operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `mcp__openspec__` first;
+- `D:\int\tools\codex\bin\openspec.cmd` — tracked Windows CMD operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `mcp__openspec__` first;
 - `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Windows) — обязательный start-gate для текущего checkout в `/int/*` (`clean check -> fetch -> pull --ff-only` только если `behind>0`);
 - `python /int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Windows) — обязательный finish-gate для текущего checkout (`clean check -> fetch -> verify -> push -> post-push fetch`, без auto-merge/rebase);
 - `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start --all-repos --root-path /int` — явный legacy-style scan всех top-level repo, когда нужен массовый проход вместо default current-repo режима;
 - `python /int/tools/codex/bin/agent_tool_routing.py validate --strict --json` — validate registry и blocker-rules для V1 high-risk tooling;
 - `python /int/tools/codex/bin/agent_tool_routing.py resolve --intent publish:data --platform windows --json` — machine-readable resolution `logical intent -> canonical engine -> thin adapter`;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile openspec` — MCP wrapper для OpenSpec CLI с guarded lifecycle mutations;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile multica` — MCP wrapper для Multica CLI с guarded write/control commands;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile openspec` — MCP server adapter для OpenSpec CLI с guarded lifecycle mutations; agent-facing calls go through the exposed `mcp__openspec__` tools;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile multica` — MCP server adapter для Multica CLI с guarded write/control commands; agent-facing calls go through the exposed `mcp__multica__` tools;
 - `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-governance` — MCP wrapper для routing/sync-gate/publish/gate receipts;
 - `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-runtime` — MCP wrapper для host/ssh/browser runtime tooling;
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
@@ -1033,6 +1035,7 @@ Do not try to execute the directory `/int/tools/lockctl` itself as a binary.
 - One active writer lease per repo-relative file.
 - Truth for active locks lives in SQLite, not in project-local YAML files.
 - Leases are short-lived and must be renewed while a write is active.
+- `issue` is optional metadata. Use it only for issue-disciplined tasks; accepted formats are legacy numeric ids and full Multica ids such as `INT-224`.
 - `release-path` is the normal per-file cleanup path.
 - `release-issue` is the normal bulk cleanup path for issue-bound repos.
 
@@ -1057,11 +1060,19 @@ lockctl acquire \
   --repo-root /int/crm \
   --path README.md \
   --owner codex:session-1 \
-  --issue 1217 \
+  --issue INT-1217 \
   --lease-sec 60 \
   --format json
 
-lockctl status --repo-root /int/crm --issue 1217 --format json
+lockctl status --repo-root /int/crm --issue INT-1217 --format json
+
+lockctl acquire \
+  --repo-root /int/tools \
+  --path README.md \
+  --owner codex:session-1 \
+  --reason "non-project maintenance" \
+  --lease-sec 60 \
+  --format json
 
 lockctl release-path \
   --repo-root /int/crm \
@@ -1069,7 +1080,7 @@ lockctl release-path \
   --owner codex:session-1 \
   --format json
 
-lockctl release-issue --repo-root /int/crm --issue 1217 --format json
+lockctl release-issue --repo-root /int/crm --issue INT-1217 --format json
 
 lockctl gc --format json
 ```

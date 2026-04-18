@@ -36,6 +36,24 @@ class LockCtlCoreTest(unittest.TestCase):
         with self.assertRaises(lockctl_core.LockCtlError):
             lockctl_core.normalize_path(repo_root, "..\\outside.txt")
 
+    def test_normalize_issue_is_optional(self):
+        self.assertIsNone(lockctl_core.normalize_issue(None))
+        self.assertIsNone(lockctl_core.normalize_issue(""))
+        self.assertIsNone(lockctl_core.normalize_issue("   "))
+
+    def test_normalize_issue_accepts_legacy_numeric_id(self):
+        self.assertEqual(lockctl_core.normalize_issue("224"), "224")
+
+    def test_normalize_issue_accepts_full_multica_id(self):
+        self.assertEqual(lockctl_core.normalize_issue("INT-224"), "INT-224")
+        self.assertEqual(lockctl_core.normalize_issue("int-224"), "INT-224")
+
+    def test_normalize_issue_rejects_invalid_ids(self):
+        for value in ("0", "0224", "INT-0", "INT-0224", "PB-224", "abc"):
+            with self.subTest(value=value):
+                with self.assertRaises(lockctl_core.LockCtlError):
+                    lockctl_core.normalize_issue(value)
+
     def test_normalize_repo_root_accepts_posix_style_on_windows(self):
         if os.name != "nt":
             self.skipTest("Windows-only compatibility behavior")

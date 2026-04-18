@@ -49,8 +49,15 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 - Every local commit for agent work must include the current `INT-*` id in subject or body.
 - Push, deploy, and publication require explicit owner approval or a direct `push/publish` command.
 - Before file mutation, acquire a runtime `lockctl` lock for each changed file. Release locks after completion.
+- `lockctl.issue` is optional metadata at the tool level; use the full `INT-*` value for issue-bound work, and omit it only for non-project or pre-intake locks where no issue applies.
 - The source of truth for locks is runtime `lockctl`, not YAML notes.
 - Work only from a clean tree unless the owner explicitly scopes around existing unrelated changes; never revert or stage unrelated user changes.
+
+### Agent Tool Access
+- В MCP-enabled Codex/OpenClaw runtimes agent-facing доступ к governed tooling идёт через установленные MCP plugins; direct CLI/wrapper path является только documented fallback после blocker/approval.
+- OpenSpec operations выполняются через plugin `OpenSpec` (`mcp__openspec__`: `openspec_list`, `openspec_show`, `openspec_status`, `openspec_validate`, `openspec_new`, `openspec_change`, `openspec_spec`, `openspec_archive`). Отсутствие `openspec` в Windows `PATH` не является причиной вызывать `codex/bin/openspec.cmd` или `codex/bin/openspec.ps1` напрямую.
+- Multica operations выполняются через plugin `Multica` (`mcp__multica__`: `multica_issue` и related structured wrappers). Не вызывайте `multica issue ...` напрямую, если доступен MCP tool; это относится и к `create/comment/status/update`.
+- Если нужный plugin tool недоступен или возвращает blocker, остановитесь или запросите owner approval на fallback; в worklog/handoff укажите tool, error/blocker и почему direct CLI/wrapper fallback был необходим.
 
 ### Coding and Change Discipline
 - Make minimal, targeted edits; preserve existing architecture, conventions, and file structure.
@@ -113,16 +120,18 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 ## Lock discipline
 
 - Любые файловые правки в `/int/tools` запрещены без предварительного `lockctl acquire` по конкретному файлу.
+- Для issue-bound работ указывайте в lockctl полный Multica id (`INT-*`), не только numeric suffix; для non-project/pre-intake locks `issue` может быть omitted.
 - Источник истины по активным локам — только `lockctl`; project-local заметки не подменяют runtime truth.
 - После завершения правки лок обязательно снимается через `lockctl release-path` или `lockctl release-issue`.
 
 ## Multica issue and commit gate
 - Multica Issues are the mandatory task-control-plane for agent work in this repo; GitHub Issues, `gh issue`, and `gh project` are not used for agent task coordination and are not fallback.
+- Agents must use the Multica MCP plugin (`mcp__multica__`) for issue reads and writes when it is available; direct `multica` CLI usage requires a recorded plugin blocker and explicit owner approval.
 - Before non-trivial implementation, commit, push, deploy, or publication, the agent must identify a reachable Multica issue id in `INT-*` format for the current task.
 - Missing Multica issue id, inaccessible Multica, or an issue id that cannot be verified is a blocker: stop, report the blocker to the owner, and continue without Multica only after explicit owner approval for that exception.
 - Every local commit message must contain the current Multica task id in `INT-*` format in the subject or body. A commit without `INT-*` is forbidden.
 - Push/publication/deploy is forbidden if any commit being published for the current scope lacks a Multica `INT-*` id; fix the commit metadata through the safest owner-approved path before publication.
-- Agent locks and close-out notes must reference the Multica `INT-*` id; generic issue ids without the Multica prefix are not sufficient for agent work.
+- Issue-bound agent locks and close-out notes must reference the Multica `INT-*` id; generic issue ids without the Multica prefix are not sufficient for Multica-scoped agent work.
 ## Docs split
 
 - `README.md` хранит только документацию и инструкции по репозиторию.
@@ -132,6 +141,7 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 ## Tooling Mutation Governance
 
 - Любая tracked-мутация repo-owned tooling в `/int/tools/**` обязана начинаться с согласованного OpenSpec package в `openspec/changes/<change-id>/`.
+- Agents must use the OpenSpec MCP plugin (`mcp__openspec__`) for OpenSpec discovery, validation, status, and lifecycle operations when available; direct `openspec` CLI or repo-local `codex/bin/openspec*` usage is an explicit blocker/fallback path, not a PATH fallback.
 - До первой tracked-правки должны существовать как минимум `proposal.md`, `tasks.md` и релевантный `spec.md` delta в `openspec/changes/<change-id>/specs/**`; `design.md` обязателен, если change меняет resolver/runtime architecture, capability boundaries или enforcement model.
 - Execution допускается только против active agreed change; если `change-id`, spec source-of-truth или acceptance scope не определены, работа останавливается и эскалируется владельцу.
 - Это требование распространяется на wrapper-скрипты, publish/deploy flows, hooks/gates, MCP launcher-ы, Codex/OpenClaw overlays, prompts/rules/skills, repo policy docs и любой другой tracked tooling/process asset, который меняет поведение или governance контура `/int/tools`.

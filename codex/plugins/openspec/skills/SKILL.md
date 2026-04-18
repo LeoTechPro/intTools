@@ -18,7 +18,10 @@ description: Выполняй OpenSpec list/show/validate/status и lifecycle-м
 
 ## Правила выполнения
 
-- Не вызывай `openspec` CLI напрямую, если доступен MCP-инструмент этого плагина.
+- В MCP-enabled runtime этот plugin tool surface является обязательным first path для OpenSpec.
+- Не вызывай `openspec` CLI или repo-local wrappers `codex/bin/openspec*` напрямую, если доступен MCP-инструмент этого плагина.
+- Не используй отсутствие `openspec` в Windows `PATH` как причину для прямого вызова `codex/bin/openspec.cmd`/`.ps1`; используй MCP tool.
+- Если MCP tool недоступен или возвращает blocker для нужной операции, остановись, зафиксируй tool/error и запроси owner approval на direct CLI/wrapper fallback.
 - Перед planning/proposal/spec/capability-boundary задачами открой repo-local `openspec/AGENTS.md`, если он есть.
 - В `EXECUTE` не создавай lifecycle "на всякий случай"; используй только active agreed change/spec.
 - Mutating OpenSpec operations требуют `confirm_mutation=true`, `issue_context=INT-*` и явное owner approval.

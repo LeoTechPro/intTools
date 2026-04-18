@@ -306,9 +306,15 @@ def normalize_issue(raw: str | None) -> str | None:
     value = raw.strip()
     if not value:
         return None
-    if not value.isdigit() or value.startswith("0"):
-        raise LockCtlError("INVALID_ISSUE_ID", f"issue must be numeric: {raw}")
-    return value
+    if value.isdigit():
+        if value.startswith("0"):
+            raise LockCtlError("INVALID_ISSUE_ID", f"issue must be a positive integer or INT-* id: {raw}")
+        return value
+
+    normalized = value.upper()
+    if re.fullmatch(r"INT-[1-9][0-9]*", normalized):
+        return normalized
+    raise LockCtlError("INVALID_ISSUE_ID", f"issue must be a positive integer or INT-* id: {raw}")
 
 
 def require_owner(raw: str) -> str:
@@ -711,7 +717,7 @@ def build_top_level_epilog() -> str:
           --repo-root  абсолютный корень репозитория, например /int/crm
           --path       путь к файлу относительно --repo-root
           --owner      стабильный id агента/сессии, например codex:session-1
-          --issue      числовой id GitHub issue, если проект требует issue-bound локи
+          --issue      optional issue id for issue-bound локи: legacy numeric id or full Multica INT-* id
           --lease-sec  длительность lease в секундах (по умолчанию {DEFAULT_LEASE_SEC}, максимум {MAX_LEASE_SEC})
 
         Файлы рантайма:
@@ -720,10 +726,10 @@ def build_top_level_epilog() -> str:
           events={EVENTS_PATH}
 
         Примеры:
-          lockctl acquire --repo-root /int/crm --path AGENTS.md --owner codex:session-1 --issue 1217 --lease-sec 60
-          lockctl status --repo-root /int/crm --issue 1217 --format json
+          lockctl acquire --repo-root /int/crm --path AGENTS.md --owner codex:session-1 --issue INT-1217 --lease-sec 60
+          lockctl status --repo-root /int/crm --issue INT-1217 --format json
           lockctl release-path --repo-root /int/crm --path AGENTS.md --owner codex:session-1
-          lockctl release-issue --repo-root /int/crm --issue 1217
+          lockctl release-issue --repo-root /int/crm --issue INT-1217
 
         Коды выхода:
           {EXIT_OK}  успех
@@ -758,14 +764,14 @@ def build_parser() -> tuple[argparse.ArgumentParser, dict[str, argparse.Argument
             Взять lease-лок записи для одного файла относительно репозитория.
 
             Пример:
-              lockctl acquire --repo-root /int/crm --path README.md --owner codex:session-1 --issue 1217 --lease-sec {DEFAULT_LEASE_SEC}
+              lockctl acquire --repo-root /int/crm --path README.md --owner codex:session-1 --issue INT-1217 --lease-sec {DEFAULT_LEASE_SEC}
             """
         ).strip(),
     )
     acquire.add_argument("--repo-root", required=True, help="Абсолютный корень репозитория.")
     acquire.add_argument("--path", required=True, help="Путь к файлу относительно репозитория.")
     acquire.add_argument("--owner", required=True, help="Стабильный id владельца/сессии.")
-    acquire.add_argument("--issue", help="Числовой id GitHub issue для проектов с issue-bound локами.")
+    acquire.add_argument("--issue", help="Optional issue id for issue-bound локи: legacy numeric id or full Multica INT-* id.")
     acquire.add_argument("--reason", help="Необязательная краткая причина для lease.")
     acquire.add_argument("--lease-sec", type=int, default=DEFAULT_LEASE_SEC, help="Длительность lease в секундах.")
     add_format_argument(acquire)
@@ -811,12 +817,12 @@ def build_parser() -> tuple[argparse.ArgumentParser, dict[str, argparse.Argument
             Освободить все активные локи в одном корне репозитория для указанного issue id.
 
             Пример:
-              lockctl release-issue --repo-root /int/crm --issue 1217
+              lockctl release-issue --repo-root /int/crm --issue INT-1217
             """
         ).strip(),
     )
     release_issue.add_argument("--repo-root", required=True, help="Абсолютный корень репозитория.")
-    release_issue.add_argument("--issue", required=True, help="Числовой id GitHub issue.")
+    release_issue.add_argument("--issue", required=True, help="Issue id to release: legacy numeric id or full Multica INT-* id.")
     add_format_argument(release_issue)
 
     status = add_command(
@@ -829,14 +835,14 @@ def build_parser() -> tuple[argparse.ArgumentParser, dict[str, argparse.Argument
             Примеры:
               lockctl status --repo-root /int/crm
               lockctl status --repo-root /int/crm --path README.md --format json
-              lockctl status --repo-root /int/crm --issue 1217 --format json
+              lockctl status --repo-root /int/crm --issue INT-1217 --format json
             """
         ).strip(),
     )
     status.add_argument("--repo-root", required=True, help="Абсолютный корень репозитория.")
     status.add_argument("--path", help="Фильтр по пути к файлу относительно репозитория.")
     status.add_argument("--owner", help="Фильтр по id владельца/сессии.")
-    status.add_argument("--issue", help="Фильтр по числовому id GitHub issue.")
+    status.add_argument("--issue", help="Filter by issue id: legacy numeric id or full Multica INT-* id.")
     add_format_argument(status)
 
     gc = add_command(

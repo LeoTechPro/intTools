@@ -9,6 +9,8 @@
 
 ## TL;DR
 - Не мутируйте tracked tooling/process assets без owner-approved change package в `openspec/changes/<change-id>/`.
+- В MCP-enabled Codex/OpenClaw runtimes обращайтесь к OpenSpec через plugin `OpenSpec` (`mcp__openspec__` tools), а не через `openspec`, `codex/bin/openspec`, `codex/bin/openspec.ps1` или `codex/bin/openspec.cmd`.
+- Отсутствие `openspec` в Windows `PATH` не является fallback-основанием: если plugin tool доступен, используйте его; если plugin tool недоступен/blocked, зафиксируйте blocker и получите owner approval на direct wrapper.
 - `SPEC-MUTATION` обязателен не только для `public API/contracts`, `schema/DB`, capability boundaries и breaking changes, но и для любых tracked tooling mutations этого репозитория.
 - В `EXECUTE` разрешена только реализация по уже согласованному active change; прямой mutate-first path без change package запрещён.
 - Если релевантный spec/change уже существует, его нужно читать и обновлять в пределах согласованного scope, а не создавать параллельный lifecycle.
@@ -24,7 +26,7 @@
 ## Mode boundaries
 - В `EXECUTE` и `FINISH` не создавайте новый lifecycle "на всякий случай", но обязаны опираться на уже согласованный active change/spec.
 - В `PLAN` не создавайте scaffold и не меняйте lifecycle state.
-- В `SPEC-MUTATION` сначала найдите существующий spec/change через `openspec list`, `openspec list --specs`, `openspec show <item>`.
+- В `SPEC-MUTATION` сначала найдите существующий spec/change через OpenSpec MCP tools: `openspec_list`, `openspec_list` with `specs=true`, `openspec_show <item>`.
 - Если подходящего spec/change нет, остановитесь и запросите явное одобрение владельца перед созданием нового `change-id` или capability.
 
 ## Objective Ambiguity Gate
@@ -40,7 +42,7 @@ Ambiguity считается значимой только при неяснос
 - Любая tracked-мутация repo-owned tooling должна иметь active change package и релевантную canonical spec.
 - Создание `proposal.md`, `tasks.md`, `design.md` и spec-deltas разрешено только после явного owner approval.
 - По умолчанию предпочитайте обновление уже существующего approved spec/change вместо создания нового.
-- Перед handoff используйте только релевантные проверки (`openspec validate ...` нужен только если вы реально меняли spec/change lifecycle).
+- Перед handoff используйте только релевантные проверки через OpenSpec MCP (`openspec_validate ...` нужен только если вы реально меняли spec/change lifecycle).
 
 ## Catalog note
 - `openspec/project.md` описывает governance model именно для `/int/tools`, а не заменяет root repo docs.
