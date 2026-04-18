@@ -3,281 +3,1012 @@
   "capabilities": [
     {
       "capability_id": "publish_data",
-      "logical_intents": ["publish_data", "publish:data", "deploy:data"],
+      "logical_intents": [
+        "publish_data",
+        "publish:data",
+        "deploy:data"
+      ],
       "canonical_engine": "delivery/bin/publish_data.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "delivery/bin/publish_data.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_data.ps1", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "delivery/bin/publish_data.py", "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_data.sh", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "delivery/bin/publish_data.py", "parity_required": true},
-        {"binding_origin": "codex/bin/publish_data.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "delivery/bin/publish_data.py", "parity_required": true}
+        {
+          "binding_origin": "delivery/bin/publish_data.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_data.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_data.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_data.sh",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_data.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "publish_assess",
-      "logical_intents": ["publish_assess", "publish:assess", "deploy:assess"],
+      "logical_intents": [
+        "publish_assess",
+        "publish:assess",
+        "deploy:assess"
+      ],
       "canonical_engine": "delivery/bin/publish_assess.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "delivery/bin/publish_assess.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_assess.ps1", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "delivery/bin/publish_assess.py", "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_assess.sh", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "delivery/bin/publish_assess.py", "parity_required": true},
-        {"binding_origin": "codex/bin/publish_assess.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "delivery/bin/publish_assess.py", "parity_required": true}
+        {
+          "binding_origin": "delivery/bin/publish_assess.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_assess.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_assess.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_assess.sh",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_assess.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "publish_crm",
-      "logical_intents": ["publish_crm", "publish:crm", "deploy:crm"],
+      "logical_intents": [
+        "publish_crm",
+        "publish:crm",
+        "deploy:crm"
+      ],
       "canonical_engine": "delivery/bin/publish_crm.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "delivery/bin/publish_crm.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_crm.ps1", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "delivery/bin/publish_crm.py", "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_crm.sh", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "delivery/bin/publish_crm.py", "parity_required": true},
-        {"binding_origin": "codex/bin/publish_crm.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "delivery/bin/publish_crm.py", "parity_required": true}
+        {
+          "binding_origin": "delivery/bin/publish_crm.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_crm.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_crm.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_crm.sh",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_crm.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "publish_id",
-      "logical_intents": ["publish_id", "publish:id", "deploy:id"],
+      "logical_intents": [
+        "publish_id",
+        "publish:id",
+        "deploy:id"
+      ],
       "canonical_engine": "delivery/bin/publish_id.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "delivery/bin/publish_id.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_id.ps1", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "delivery/bin/publish_id.py", "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_id.sh", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "delivery/bin/publish_id.py", "parity_required": true},
-        {"binding_origin": "codex/bin/publish_id.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "delivery/bin/publish_id.py", "parity_required": true}
+        {
+          "binding_origin": "delivery/bin/publish_id.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_id.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_id.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_id.sh",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_id.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "publish_nexus",
-      "logical_intents": ["publish_nexus", "publish:nexus", "deploy:nexus"],
+      "logical_intents": [
+        "publish_nexus",
+        "publish:nexus",
+        "deploy:nexus"
+      ],
       "canonical_engine": "delivery/bin/publish_nexus.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "delivery/bin/publish_nexus.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_nexus.ps1", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "delivery/bin/publish_nexus.py", "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_nexus.sh", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "delivery/bin/publish_nexus.py", "parity_required": true},
-        {"binding_origin": "codex/bin/publish_nexus.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "delivery/bin/publish_nexus.py", "parity_required": true}
+        {
+          "binding_origin": "delivery/bin/publish_nexus.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_nexus.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_nexus.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_nexus.sh",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_nexus.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "publish_bundle_dint",
-      "logical_intents": ["publish_bundle_dint", "publish:bundle-dint"],
+      "logical_intents": [
+        "publish_bundle_dint",
+        "publish:bundle-dint"
+      ],
       "canonical_engine": "delivery/bin/publish_bundle_dint.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "delivery/bin/publish_bundle_dint.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_bundle_dint.ps1", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "delivery/bin/publish_bundle_dint.py", "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_bundle_dint.sh", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "delivery/bin/publish_bundle_dint.py", "parity_required": true},
-        {"binding_origin": "codex/bin/publish_bundle_dint.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "delivery/bin/publish_bundle_dint.py", "parity_required": true}
+        {
+          "binding_origin": "delivery/bin/publish_bundle_dint.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_bundle_dint.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_bundle_dint.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_bundle_dint.sh",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_bundle_dint.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "publish_brain_dev",
-      "logical_intents": ["publish_brain_dev", "publish:brain-dev", "deploy:brain-dev"],
+      "logical_intents": [
+        "publish_brain_dev",
+        "publish:brain-dev",
+        "deploy:brain-dev"
+      ],
       "canonical_engine": "delivery/bin/publish_brain_dev.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "delivery/bin/publish_brain_dev.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_brain_dev.ps1", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "delivery/bin/publish_brain_dev.py", "parity_required": true},
-        {"binding_origin": "delivery/bin/publish_brain_dev.sh", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "delivery/bin/publish_brain_dev.py", "parity_required": true}
+        {
+          "binding_origin": "delivery/bin/publish_brain_dev.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_brain_dev.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_brain_dev.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "delivery/bin/publish_brain_dev.sh",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "delivery/bin/publish_brain_dev.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "int_git_sync_gate",
-      "logical_intents": ["int_git_sync_gate", "sync-gate:start", "sync-gate:finish"],
+      "logical_intents": [
+        "int_git_sync_gate",
+        "sync-gate:start",
+        "sync-gate:finish"
+      ],
       "canonical_engine": "scripts/codex/int_git_sync_gate.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "scripts/codex/int_git_sync_gate.py", "binding_kind": "engine", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "codex/bin/int_git_sync_gate.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "scripts/codex/int_git_sync_gate.py", "parity_required": true},
-        {"binding_origin": "codex/bin/int_git_sync_gate.sh", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "scripts/codex/int_git_sync_gate.py", "parity_required": true}
+        {
+          "binding_origin": "scripts/codex/int_git_sync_gate.py",
+          "binding_kind": "engine",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/int_git_sync_gate.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "scripts/codex/int_git_sync_gate.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/int_git_sync_gate.sh",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "scripts/codex/int_git_sync_gate.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "lockctl-cli",
-      "logical_intents": ["lockctl-cli", "lockctl:cli"],
+      "logical_intents": [
+        "lockctl-cli",
+        "lockctl:cli"
+      ],
       "canonical_engine": "lockctl/lockctl_core.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "lockctl/lockctl_core.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "lockctl/lockctl.py", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": "lockctl/lockctl_core.py", "parity_required": true},
-        {"binding_origin": "lockctl/lockctl.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "lockctl/lockctl_core.py", "parity_required": true},
-        {"binding_origin": "lockctl/lockctl.cmd", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "lockctl/lockctl_core.py", "parity_required": true},
-        {"binding_origin": "lockctl/lockctl", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "lockctl/lockctl_core.py", "parity_required": true}
+        {
+          "binding_origin": "lockctl/lockctl_core.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "lockctl/lockctl.py",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "lockctl/lockctl_core.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "lockctl/lockctl.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "lockctl/lockctl_core.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "lockctl/lockctl.cmd",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "lockctl/lockctl_core.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "lockctl/lockctl",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "lockctl/lockctl_core.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "lockctl-mcp",
-      "logical_intents": ["lockctl-mcp", "lockctl:mcp"],
+      "logical_intents": [
+        "lockctl-mcp",
+        "lockctl:mcp"
+      ],
       "canonical_engine": "codex/bin/mcp-intdata-cli.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/mcp-intdata-cli.py", "binding_kind": "engine", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-intdata-cli.cmd", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/mcp-intdata-cli.py", "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-intdata-cli.sh", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "codex/bin/mcp-intdata-cli.py", "parity_required": true}
+        {
+          "binding_origin": "codex/bin/mcp-intdata-cli.py",
+          "binding_kind": "engine",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/mcp-intdata-cli.cmd",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "codex/bin/mcp-intdata-cli.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/mcp-intdata-cli.sh",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "codex/bin/mcp-intdata-cli.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "int_ssh_resolve",
-      "logical_intents": ["int_ssh_resolve", "ssh:resolve"],
+      "logical_intents": [
+        "int_ssh_resolve",
+        "ssh:resolve"
+      ],
       "canonical_engine": "codex/bin/int_ssh_resolve.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/int_ssh_resolve.py", "binding_kind": "engine", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "codex/bin/int_ssh_resolve.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/int_ssh_resolve.py", "parity_required": true},
-        {"binding_origin": "codex/bin/int_ssh_resolve.sh", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "codex/bin/int_ssh_resolve.py", "parity_required": true}
+        {
+          "binding_origin": "codex/bin/int_ssh_resolve.py",
+          "binding_kind": "engine",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/int_ssh_resolve.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "codex/bin/int_ssh_resolve.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/int_ssh_resolve.sh",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "codex/bin/int_ssh_resolve.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "int_ssh_host",
-      "logical_intents": ["int_ssh_host", "ssh:host"],
+      "logical_intents": [
+        "int_ssh_host",
+        "ssh:host"
+      ],
       "canonical_engine": "codex/bin/int_ssh_resolve.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/int_ssh_resolve.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "codex/bin/int_ssh_host.ps1", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/int_ssh_resolve.py", "parity_required": true},
-        {"binding_origin": "codex/bin/int_ssh_host.sh", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "codex/bin/int_ssh_resolve.py", "parity_required": true}
+        {
+          "binding_origin": "codex/bin/int_ssh_resolve.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/int_ssh_host.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "codex/bin/int_ssh_resolve.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/int_ssh_host.sh",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "codex/bin/int_ssh_resolve.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "firefox-default",
-      "logical_intents": ["firefox-default", "browser:firefox-default"],
+      "logical_intents": [
+        "firefox-default",
+        "browser:firefox-default"
+      ],
       "canonical_engine": "codex/bin/firefox_mcp_launcher.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/firefox_mcp_launcher.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-firefox-default.cmd", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py", "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-firefox-default", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py", "parity_required": true}
+        {
+          "binding_origin": "codex/bin/firefox_mcp_launcher.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/mcp-firefox-default.cmd",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/mcp-firefox-default",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "assess-firefox-client",
-      "logical_intents": ["assess-firefox-client", "browser:assess-client"],
+      "logical_intents": [
+        "assess-firefox-client",
+        "browser:assess-client"
+      ],
       "canonical_engine": "codex/bin/firefox_mcp_launcher.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/firefox_mcp_launcher.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-firefox-assess-client.cmd", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py", "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-firefox-assess-client", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py", "parity_required": true}
+        {
+          "binding_origin": "codex/bin/firefox_mcp_launcher.py",
+          "binding_kind": "engine",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "assess-firefox-specialist-v1",
-      "logical_intents": ["assess-firefox-specialist-v1", "browser:assess-specialist-v1"],
+      "logical_intents": [
+        "assess-firefox-specialist-v1",
+        "browser:assess-specialist-v1"
+      ],
       "canonical_engine": "codex/bin/firefox_mcp_launcher.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/firefox_mcp_launcher.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-firefox-assess-specialist-v1.cmd", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py", "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-firefox-assess-specialist-v1", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py", "parity_required": true}
+        {
+          "binding_origin": "codex/bin/firefox_mcp_launcher.py",
+          "binding_kind": "engine",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "assess-firefox-specialist-v2",
-      "logical_intents": ["assess-firefox-specialist-v2", "browser:assess-specialist-v2"],
+      "logical_intents": [
+        "assess-firefox-specialist-v2",
+        "browser:assess-specialist-v2"
+      ],
       "canonical_engine": "codex/bin/firefox_mcp_launcher.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/firefox_mcp_launcher.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-firefox-assess-specialist-v2.cmd", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py", "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-firefox-assess-specialist-v2", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py", "parity_required": true}
+        {
+          "binding_origin": "codex/bin/firefox_mcp_launcher.py",
+          "binding_kind": "engine",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "assess-firefox-admin",
-      "logical_intents": ["assess-firefox-admin", "browser:assess-admin"],
+      "logical_intents": [
+        "assess-firefox-admin",
+        "browser:assess-admin"
+      ],
       "canonical_engine": "codex/bin/firefox_mcp_launcher.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/firefox_mcp_launcher.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-firefox-assess-admin.cmd", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py", "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-firefox-assess-admin", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py", "parity_required": true}
+        {
+          "binding_origin": "codex/bin/firefox_mcp_launcher.py",
+          "binding_kind": "engine",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "assess-firefox-specialist-restricted",
-      "logical_intents": ["assess-firefox-specialist-restricted", "browser:assess-specialist-restricted"],
+      "logical_intents": [
+        "assess-firefox-specialist-restricted",
+        "browser:assess-specialist-restricted"
+      ],
       "canonical_engine": "codex/bin/firefox_mcp_launcher.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/firefox_mcp_launcher.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-firefox-assess-specialist-restricted.cmd", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py", "parity_required": true},
-        {"binding_origin": "codex/bin/mcp-firefox-assess-specialist-restricted", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "codex/bin/firefox_mcp_launcher.py", "parity_required": true}
+        {
+          "binding_origin": "codex/bin/firefox_mcp_launcher.py",
+          "binding_kind": "engine",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "intdb",
-      "logical_intents": ["intdb", "db:intdb"],
+      "logical_intents": [
+        "intdb",
+        "db:intdb"
+      ],
       "canonical_engine": "intdb/lib/intdb.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "intdb/lib/intdb.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux", "macos"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "intdb/intdb.ps1", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "intdb/lib/intdb.py", "parity_required": true},
-        {"binding_origin": "intdb/intdb.sh", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "intdb/lib/intdb.py", "parity_required": true},
-        {"binding_origin": "intdb/intdb.cmd", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "intdb/lib/intdb.py", "parity_required": true},
-        {"binding_origin": "codex/bin/intdb.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "intdb/lib/intdb.py", "parity_required": true},
-        {"binding_origin": "codex/bin/intdb.cmd", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "intdb/lib/intdb.py", "parity_required": true},
-        {"binding_origin": "codex/bin/intdb.sh", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["linux", "macos"], "adapter_targets_engine": "intdb/lib/intdb.py", "parity_required": true}
+        {
+          "binding_origin": "intdb/lib/intdb.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "intdb/intdb.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "intdb/lib/intdb.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "intdb/intdb.sh",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "intdb/lib/intdb.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "intdb/intdb.cmd",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "intdb/lib/intdb.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "codex-host-bootstrap",
-      "logical_intents": ["codex-host-bootstrap", "host:bootstrap"],
+      "logical_intents": [
+        "codex-host-bootstrap",
+        "host:bootstrap"
+      ],
       "canonical_engine": "codex/bin/codex_host_bootstrap.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/codex_host_bootstrap.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "codex/bin/codex-host-bootstrap.cmd", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/codex_host_bootstrap.py", "parity_required": true},
-        {"binding_origin": "codex/bin/codex-host-bootstrap.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/codex_host_bootstrap.py", "parity_required": true},
-        {"binding_origin": "codex/bin/codex-host-bootstrap", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux"], "adapter_targets_engine": "codex/bin/codex_host_bootstrap.py", "parity_required": true}
+        {
+          "binding_origin": "codex/bin/codex_host_bootstrap.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/codex-host-bootstrap.cmd",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "codex/bin/codex_host_bootstrap.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/codex-host-bootstrap.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "codex/bin/codex_host_bootstrap.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/codex-host-bootstrap",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux"
+          ],
+          "adapter_targets_engine": "codex/bin/codex_host_bootstrap.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "codex-host-verify",
-      "logical_intents": ["codex-host-verify", "host:verify"],
+      "logical_intents": [
+        "codex-host-verify",
+        "host:verify"
+      ],
       "canonical_engine": "codex/bin/codex_host_verify.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/codex_host_verify.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "codex/bin/codex-host-verify.cmd", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/codex_host_verify.py", "parity_required": true},
-        {"binding_origin": "codex/bin/codex-host-verify.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/codex_host_verify.py", "parity_required": true},
-        {"binding_origin": "codex/bin/codex-host-verify", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux"], "adapter_targets_engine": "codex/bin/codex_host_verify.py", "parity_required": true}
+        {
+          "binding_origin": "codex/bin/codex_host_verify.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/codex-host-verify.cmd",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "codex/bin/codex_host_verify.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/codex-host-verify.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "codex/bin/codex_host_verify.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/codex-host-verify",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux"
+          ],
+          "adapter_targets_engine": "codex/bin/codex_host_verify.py",
+          "parity_required": true
+        }
       ]
     },
     {
       "capability_id": "codex-recovery-bundle",
-      "logical_intents": ["codex-recovery-bundle", "host:recovery-bundle"],
+      "logical_intents": [
+        "codex-recovery-bundle",
+        "host:recovery-bundle"
+      ],
       "canonical_engine": "codex/bin/codex_recovery_bundle.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
-        {"binding_origin": "codex/bin/codex_recovery_bundle.py", "binding_kind": "engine", "binding_role": "canonical", "binding_origin_type": "repo-path", "platforms_supported": ["windows", "linux"], "adapter_targets_engine": null, "parity_required": true},
-        {"binding_origin": "codex/bin/codex-recovery-bundle.cmd", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/codex_recovery_bundle.py", "parity_required": true},
-        {"binding_origin": "codex/bin/codex-recovery-bundle.ps1", "binding_kind": "adapter", "binding_role": "compatibility", "binding_origin_type": "repo-path", "platforms_supported": ["windows"], "adapter_targets_engine": "codex/bin/codex_recovery_bundle.py", "parity_required": true},
-        {"binding_origin": "codex/bin/codex-recovery-bundle", "binding_kind": "adapter", "binding_role": "primary", "binding_origin_type": "repo-path", "platforms_supported": ["linux"], "adapter_targets_engine": "codex/bin/codex_recovery_bundle.py", "parity_required": true}
+        {
+          "binding_origin": "codex/bin/codex_recovery_bundle.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/codex-recovery-bundle.cmd",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "codex/bin/codex_recovery_bundle.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/codex-recovery-bundle.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "codex/bin/codex_recovery_bundle.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/codex-recovery-bundle",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux"
+          ],
+          "adapter_targets_engine": "codex/bin/codex_recovery_bundle.py",
+          "parity_required": true
+        }
       ]
     }
   ]

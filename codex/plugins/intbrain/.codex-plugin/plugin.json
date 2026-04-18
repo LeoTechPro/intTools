@@ -11,10 +11,10 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "intData Brain",
-    "shortDescription": "Каталог чатов, граф людей, задачи и контекст",
-    "longDescription": "Интеграция MCP intData Brain для контекст-паков, поиска по графу людей, каталога чатов, политик задач и PM-инструментов на базе IntBrain Core API.",
+    "shortDescription": "Контекст, память, Cabinet import, задачи и граф",
+    "longDescription": "Интеграция MCP intData Brain для контекст-паков, памяти, Cabinet workspace import, поиска по графу людей, каталога чатов, политик задач и PM-инструментов на базе IntBrain Core API.",
     "developerName": "IntData",
-    "category": "Productivity",
+    "category": "Developer Tools",
     "capabilities": ["Read", "Write"]
   }
 }

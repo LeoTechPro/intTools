@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+from dataclasses import asdict
 import json
 import os
 from pathlib import Path
@@ -28,7 +29,12 @@ LOCKCTL_DIR = ROOT_DIR / "lockctl"
 if str(LOCKCTL_DIR) not in sys.path:
     sys.path.insert(0, str(LOCKCTL_DIR))
 
+CODEX_LIB_DIR = ROOT_DIR / "codex" / "lib"
+if str(CODEX_LIB_DIR) not in sys.path:
+    sys.path.insert(0, str(CODEX_LIB_DIR))
+
 from lockctl_core import LockCtlError, cmd_acquire, cmd_gc, cmd_release_issue, cmd_release_path, cmd_renew, cmd_status
+from intbrain_memory import IntBrainMemory
 
 
 def _schema(properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
@@ -54,6 +60,19 @@ def _mutation_props() -> dict[str, Any]:
 
 def _tool(name: str, description: str, properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
     return {"name": name, "description": description, "inputSchema": _schema(properties, required)}
+
+
+def _load_browser_profile_registry() -> dict[str, dict[str, Any]]:
+    path = ROOT_DIR / "codex" / "config" / "browser-profiles.v1.json"
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    profiles = raw.get("profiles") if isinstance(raw, dict) else None
+    if not isinstance(profiles, dict):
+        raise RuntimeError(f"invalid browser profile registry: {path}")
+    return profiles
+
+
+BROWSER_PROFILE_REGISTRY = _load_browser_profile_registry()
+BROWSER_PROFILE_NAMES = sorted(BROWSER_PROFILE_REGISTRY)
 
 
 OPEN_SPEC_TOOLS = [
@@ -171,7 +190,7 @@ RUNTIME_TOOLS = [
     _tool(
         "browser_profile_launch",
         "Launch an allowed Firefox MCP profile. Mutating; requires confirmation.",
-        {**COMMON_RUN_PROPS, **_mutation_props(), "profile": {"type": "string", "enum": ["firefox-default", "firefox-assess-client", "firefox-assess-specialist-v1", "firefox-assess-specialist-v2", "firefox-assess-admin", "firefox-assess-specialist-restricted"]}, "args": _args_prop("Optional launcher arguments.")},
+        {**COMMON_RUN_PROPS, **_mutation_props(), "profile": {"type": "string", "enum": BROWSER_PROFILE_NAMES}, "args": _args_prop("Optional launcher arguments.")},
         ["confirm_mutation", "issue_context", "profile"],
     ),
 ]
@@ -264,17 +283,23 @@ INTBRAIN_TOOLS = [
     _tool("intbrain_pm_health", "Get PM health metrics and constraint summary.", {"owner_id": {"type": "integer"}, "date": {"type": "string"}, "timezone": {"type": "string"}}, ["owner_id"]),
     _tool("intbrain_pm_constraints_validate", "Validate PM 5-9 constraints for owner/date/timezone.", {"owner_id": {"type": "integer"}, "date": {"type": "string"}, "timezone": {"type": "string"}}, ["owner_id"]),
     _tool("intbrain_import_vault_pm", "Import PM/PARA data from 2brain vault (admin token required).", {"owner_id": {"type": "integer"}, "source_root": {"type": "string"}, "timezone": {"type": "string"}}, ["owner_id", "source_root"]),
+    _tool("intbrain_memory_sync_sessions", "Import Codex/OpenClaw session memory into IntBrain.", {"owner_id": {"type": "integer"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}, "since": {"type": "string"}, "file": {"type": "string"}, "incremental": {"type": "boolean"}, "dry_run": {"type": "boolean"}}, []),
+    _tool("intbrain_memory_search", "Search previously imported IntBrain memory items.", {"owner_id": {"type": "integer"}, "query": {"type": "string"}, "limit": {"type": "integer"}, "days": {"type": "integer"}, "repo": {"type": "string"}}, ["owner_id", "query"]),
+    _tool("intbrain_memory_recent_work", "Summarize recent in-scope local Codex/OpenClaw sessions.", {"codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}, "days": {"type": "integer"}, "limit": {"type": "integer"}, "repo": {"type": "string"}}, []),
+    _tool("intbrain_memory_session_brief", "Build a concise brief for one Codex/OpenClaw session.", {"session_id": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}}, ["session_id"]),
+    _tool("intbrain_memory_import_mempalace", "Inventory or import MemPalace palace data into IntBrain.", {"owner_id": {"type": "integer"}, "palace_root": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "limit": {"type": "integer"}, "dry_run": {"type": "boolean"}}, ["palace_root"]),
+    _tool("intbrain_cabinet_inventory", "Inventory Cabinet workspace/runtime data before IntBrain absorption.", {"cabinet_root": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "limit": {"type": "integer"}}, []),
+    _tool("intbrain_cabinet_import", "Import Cabinet workspace/runtime data into IntBrain.", {"owner_id": {"type": "integer"}, "cabinet_root": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "limit": {"type": "integer"}, "dry_run": {"type": "boolean"}}, []),
 ]
 
+RUNTIME_TOOLS.extend(VAULT_TOOLS)
+CONTROL_TOOLS = [*LOCKCTL_TOOLS, *OPEN_SPEC_TOOLS, *MULTICA_TOOLS, *GOVERNANCE_TOOLS]
+
 PROFILE_TOOLS: dict[str, list[dict[str, Any]]] = {
-    "lockctl": LOCKCTL_TOOLS,
     "intbrain": INTBRAIN_TOOLS,
-    "openspec": OPEN_SPEC_TOOLS,
-    "multica": MULTICA_TOOLS,
-    "intdata-governance": GOVERNANCE_TOOLS,
+    "intdata-control": CONTROL_TOOLS,
     "intdata-runtime": RUNTIME_TOOLS,
     "intdb": INTDB_TOOLS,
-    "intdata-vault": VAULT_TOOLS,
 }
 
 READ_ONLY_MULTICA: dict[str, set[str]] = {
@@ -299,15 +324,6 @@ OPEN_SPEC_READ_ONLY = {
     "schemas",
     "completion",
     "help",
-}
-
-BROWSER_PROFILE_COMMANDS: dict[str, list[str]] = {
-    "firefox-default": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-default.cmd")],
-    "firefox-assess-client": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-client.cmd")],
-    "firefox-assess-specialist-v1": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-specialist-v1.cmd")],
-    "firefox-assess-specialist-v2": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-specialist-v2.cmd")],
-    "firefox-assess-admin": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-admin.cmd")],
-    "firefox-assess-specialist-restricted": ["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "mcp-firefox-assess-specialist-restricted.cmd")],
 }
 
 PROFILE_COMMANDS: dict[str, dict[str, list[str]]] = {
@@ -788,9 +804,24 @@ def _call_runtime(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if name == "browser_profile_launch":
         _require_mutation(arguments)
         profile = str(arguments["profile"])
-        if profile not in BROWSER_PROFILE_COMMANDS:
+        profile_config = BROWSER_PROFILE_REGISTRY.get(profile)
+        if not profile_config:
             raise ValueError(f"unknown browser profile: {profile}")
-        argv = [*BROWSER_PROFILE_COMMANDS[profile], *_safe_args(arguments.get("args"))]
+        argv = [
+            "python",
+            str(ROOT_DIR / "codex" / "bin" / "firefox_mcp_launcher.py"),
+            "--capability",
+            str(profile_config["capability"]),
+            "--binding-origin",
+            "codex/bin/mcp-intdata-cli.py",
+            "--profile-key",
+            str(profile_config["profile_key"]),
+            "--start-url",
+            str(profile_config["start_url"]),
+            "--viewport",
+            str(profile_config.get("viewport", "1440x900")),
+            *_safe_args(arguments.get("args")),
+        ]
         return _run(argv, cwd=cwd, timeout_sec=timeout)
     raise ValueError(f"unknown runtime tool: {name}")
 
@@ -881,6 +912,42 @@ def _call_lockctl(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     return payload
 
 
+def _scope_roots(source_root: object) -> list[str]:
+    if isinstance(source_root, str) and source_root.strip():
+        return [source_root.strip()]
+    return ["D:/int", "/int"]
+
+
+def _store_memory_items(*, owner_id: int, items: list[dict[str, Any]]) -> dict[str, Any]:
+    stored_items: list[dict[str, Any]] = []
+    failures: list[dict[str, Any]] = []
+    for item in items:
+        payload = {
+            "owner_id": owner_id,
+            "kind": item.get("kind", "fact"),
+            "title": item.get("title"),
+            "text_content": item.get("text_content"),
+            "source_path": item.get("source_path"),
+            "source_hash": item.get("source_hash"),
+            "chunk_kind": item.get("chunk_kind"),
+            "tags": item.get("tags") or [],
+            "source": item.get("source"),
+            "priority": item.get("priority", 3),
+        }
+        code, body = _intbrain_http_json("POST", "context/store", payload=payload)
+        if 200 <= code < 300:
+            stored_items.append(item)
+        else:
+            failures.append({"item": item.get("source_hash"), "http_status": code, "body": body})
+    return {
+        "ok": not failures,
+        "stored_count": len(stored_items),
+        "failed_count": len(failures),
+        "stored_items": stored_items,
+        "failures": failures,
+    }
+
+
 def _call_intbrain(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     args = _coerce_pm_date_args(name, dict(arguments))
     core_admin_token = os.environ.get("INTBRAIN_CORE_ADMIN_TOKEN", "").strip()
@@ -964,6 +1031,91 @@ def _call_intbrain(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             use_agent_auth=False,
             extra_headers={"X-Core-Admin-Token": core_admin_token},
         )
+    elif name == "intbrain_memory_sync_sessions":
+        memory = IntBrainMemory(
+            codex_home=args.get("codex_home"),
+            state_path=args.get("state_path"),
+            scope_roots=_scope_roots(args.get("source_root")),
+        )
+        summary = memory.extract_session_items(
+            file_path=args.get("file"),
+            since=args.get("since"),
+            incremental=args.get("incremental", True) is not False,
+        )
+        if args.get("dry_run", True) is not False:
+            return {"ok": True, "data": summary}
+        owner_id = args.get("owner_id")
+        if owner_id is None:
+            return {"ok": False, "error": "owner_id_required"}
+        stored = _store_memory_items(owner_id=int(owner_id), items=summary.get("items") or [])
+        memory.mark_stored(stored["stored_items"])
+        return {"ok": stored["ok"], "data": {**summary, **stored}}
+    elif name == "intbrain_memory_search":
+        payload = {
+            "owner_id": args.get("owner_id"),
+            "query": args.get("query"),
+            "limit": args.get("limit", 10),
+            "depth": 1,
+            "source": "intbrain.memory",
+        }
+        if args.get("days") is not None:
+            payload["days"] = args.get("days")
+        if args.get("repo"):
+            payload["repo"] = args.get("repo")
+        code, body = _intbrain_http_json("POST", "context/pack", payload=payload)
+    elif name == "intbrain_memory_recent_work":
+        memory = IntBrainMemory(
+            codex_home=args.get("codex_home"),
+            state_path=args.get("state_path"),
+            scope_roots=_scope_roots(args.get("source_root")),
+        )
+        return {"ok": True, "data": memory.recent_work(days=_as_int(args.get("days"), 7), limit=_as_int(args.get("limit"), 10), repo=args.get("repo"))}
+    elif name == "intbrain_memory_session_brief":
+        memory = IntBrainMemory(
+            codex_home=args.get("codex_home"),
+            state_path=args.get("state_path"),
+            scope_roots=_scope_roots(args.get("source_root")),
+        )
+        brief = memory.session_brief(session_id=str(args.get("session_id")))
+        return {"ok": brief is not None, "data": None if brief is None else asdict(brief)}
+    elif name == "intbrain_memory_import_mempalace":
+        memory = IntBrainMemory(
+            codex_home=args.get("codex_home"),
+            state_path=args.get("state_path"),
+            scope_roots=_scope_roots(None),
+        )
+        summary = memory.import_mempalace(palace_root=str(args.get("palace_root")), limit=args.get("limit"))
+        if args.get("dry_run", True) is not False:
+            return {"ok": True, "data": summary}
+        owner_id = args.get("owner_id")
+        if owner_id is None:
+            return {"ok": False, "error": "owner_id_required"}
+        stored = _store_memory_items(owner_id=int(owner_id), items=summary.get("items") or [])
+        memory.mark_stored(stored["stored_items"])
+        return {"ok": stored["ok"], "data": {**summary, **stored}}
+    elif name == "intbrain_cabinet_inventory":
+        memory = IntBrainMemory(
+            codex_home=args.get("codex_home"),
+            state_path=args.get("state_path"),
+            scope_roots=_scope_roots(None),
+        )
+        summary = memory.inventory_cabinet(cabinet_root=args.get("cabinet_root") or "D:/int/cabinet", limit=args.get("limit"))
+        return {"ok": True, "data": summary}
+    elif name == "intbrain_cabinet_import":
+        memory = IntBrainMemory(
+            codex_home=args.get("codex_home"),
+            state_path=args.get("state_path"),
+            scope_roots=_scope_roots(None),
+        )
+        summary = memory.import_cabinet(cabinet_root=args.get("cabinet_root") or "D:/int/cabinet", limit=args.get("limit"))
+        if args.get("dry_run", True) is not False:
+            return {"ok": True, "data": summary}
+        owner_id = args.get("owner_id")
+        if owner_id is None:
+            return {"ok": False, "error": "owner_id_required"}
+        stored = _store_memory_items(owner_id=int(owner_id), items=summary.get("items") or [])
+        memory.mark_stored(stored["stored_items"])
+        return {"ok": stored["ok"], "data": {**summary, **stored}}
     else:
         raise ValueError(f"unknown intbrain tool: {name}")
 
@@ -973,22 +1125,22 @@ def _call_intbrain(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def _call_tool(profile: str, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
-    if profile == "lockctl":
-        return _call_lockctl(name, arguments)
     if profile == "intbrain":
         return _call_intbrain(name, arguments)
-    if profile == "openspec":
-        return _call_openspec(name, arguments)
-    if profile == "multica":
-        return _call_multica(name, arguments)
-    if profile == "intdata-governance":
+    if profile == "intdata-control":
+        if name.startswith("lockctl_"):
+            return _call_lockctl(name, arguments)
+        if name.startswith("openspec_"):
+            return _call_openspec(name, arguments)
+        if name.startswith("multica_"):
+            return _call_multica(name, arguments)
         return _call_governance(name, arguments)
     if profile == "intdata-runtime":
+        if name in {tool["name"] for tool in VAULT_TOOLS}:
+            return _call_vault(name, arguments)
         return _call_runtime(name, arguments)
     if profile == "intdb":
         return _call_intdb(name, arguments)
-    if profile == "intdata-vault":
-        return _call_vault(name, arguments)
     raise ValueError(f"unknown profile: {profile}")
 
 

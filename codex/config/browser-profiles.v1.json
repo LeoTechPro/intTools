@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "profiles": {
+    "firefox-default": {
+      "capability": "firefox-default",
+      "profile_key": "firefox-default",
+      "start_url": "http://127.0.0.1:8080/",
+      "viewport": "1440x900"
+    },
+    "firefox-assess-client": {
+      "capability": "assess-firefox-client",
+      "profile_key": "assess-client-diagnostics",
+      "start_url": "http://127.0.0.1:8081/",
+      "viewport": "1440x900"
+    },
+    "firefox-assess-specialist-v1": {
+      "capability": "assess-firefox-specialist-v1",
+      "profile_key": "assess-specialist-v1",
+      "start_url": "http://127.0.0.1:8082/",
+      "viewport": "1440x900"
+    },
+    "firefox-assess-specialist-v2": {
+      "capability": "assess-firefox-specialist-v2",
+      "profile_key": "assess-specialist-v2",
+      "start_url": "http://127.0.0.1:8083/",
+      "viewport": "1440x900"
+    },
+    "firefox-assess-admin": {
+      "capability": "assess-firefox-admin",
+      "profile_key": "assess-admin",
+      "start_url": "http://127.0.0.1:8084/",
+      "viewport": "1440x900"
+    },
+    "firefox-assess-specialist-restricted": {
+      "capability": "assess-firefox-specialist-restricted",
+      "profile_key": "assess-specialist-restricted",
+      "start_url": "http://127.0.0.1:8085/",
+      "viewport": "1440x900"
+    }
+  }
+}

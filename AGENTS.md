@@ -157,8 +157,8 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 - Blocked path обязателен при `missing engine`, `missing adapter`, `unsupported platform`, `adapter drift`, `unknown intent` и `ambiguous intent`.
 - Verified skills для high-risk capabilities не могут подменять blocked repo-owned path автоматически; они допустимы только как explicit approved fallback metadata.
 - Актуальный deduplicated MCP surface:
-  - plugin `intdata-governance` заменяет `intdata-routing`, `intdata-delivery`, `gatesctl`;
-  - plugin `intdata-runtime` заменяет `intdata-host`, `intdata-ssh`, `intdata-browser`.
+  - plugin `intdata-control` (`intData Control`) заменяет `lockctl`, `multica`, `openspec`, `intdata-governance`, `intdata-routing`, `intdata-delivery`, `gatesctl`;
+  - plugin `intdata-runtime` заменяет `intdata-host`, `intdata-ssh`, `intdata-browser`, `intdata-vault`.
 - Публичные tool names (без alias-совместимости):
   - governance: `routing_validate`, `routing_resolve`, `sync_gate`, `publish`, `gate_status`, `gate_receipt`, `commit_binding`;
   - runtime: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`, `ssh_resolve`, `ssh_host`, `browser_profile_launch`.
@@ -167,7 +167,7 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
   - publish/deploy family: `delivery/bin`
   - SSH / Firefox / host launchers: `codex/bin`
   - sync gate: `scripts/codex/int_git_sync_gate.py`
-  - lockctl CLI/MCP: `lockctl/lockctl_core.py`, `codex/bin/mcp-intdata-cli.py --profile lockctl`
+  - lockctl CLI/MCP: `lockctl/lockctl_core.py`, `codex/bin/mcp-intdata-cli.py --profile intdata-control`
   - intdb: `intdb/lib/intdb.py`
 
 ## Git и завершение работы

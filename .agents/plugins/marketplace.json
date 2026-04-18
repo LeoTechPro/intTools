@@ -5,18 +5,6 @@
   },
   "plugins": [
     {
-      "name": "lockctl",
-      "source": {
-        "source": "local",
-        "path": "./codex/plugins/lockctl"
-      },
-      "policy": {
-        "installation": "INSTALLED_BY_DEFAULT",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
-    },
-    {
       "name": "intbrain",
       "source": {
         "source": "local",
@@ -26,43 +14,19 @@
         "installation": "INSTALLED_BY_DEFAULT",
         "authentication": "ON_INSTALL"
       },
-      "category": "Productivity"
+      "category": "Developer Tools"
     },
     {
-      "name": "multica",
+      "name": "intdata-control",
       "source": {
         "source": "local",
-        "path": "./codex/plugins/multica"
+        "path": "./codex/plugins/intdata-control"
       },
       "policy": {
         "installation": "INSTALLED_BY_DEFAULT",
         "authentication": "ON_INSTALL"
       },
-      "category": "Productivity"
-    },
-    {
-      "name": "openspec",
-      "source": {
-        "source": "local",
-        "path": "./codex/plugins/openspec"
-      },
-      "policy": {
-        "installation": "INSTALLED_BY_DEFAULT",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
-    },
-    {
-      "name": "intdata-governance",
-      "source": {
-        "source": "local",
-        "path": "./codex/plugins/intdata-governance"
-      },
-      "policy": {
-        "installation": "INSTALLED_BY_DEFAULT",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
+      "category": "Developer Tools"
     },
     {
       "name": "intdb",
@@ -74,7 +38,7 @@
         "installation": "INSTALLED_BY_DEFAULT",
         "authentication": "ON_INSTALL"
       },
-      "category": "Productivity"
+      "category": "Developer Tools"
     },
     {
       "name": "intdata-runtime",
@@ -86,43 +50,7 @@
         "installation": "INSTALLED_BY_DEFAULT",
         "authentication": "ON_INSTALL"
       },
-      "category": "Productivity"
-    },
-    {
-      "name": "intdata-vault",
-      "source": {
-        "source": "local",
-        "path": "./codex/plugins/intdata-vault"
-      },
-      "policy": {
-        "installation": "INSTALLED_BY_DEFAULT",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
-    },
-    {
-      "name": "cabinet",
-      "source": {
-        "source": "local",
-        "path": "./codex/plugins/cabinet"
-      },
-      "policy": {
-        "installation": "INSTALLED_BY_DEFAULT",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
-    },
-    {
-      "name": "mempalace",
-      "source": {
-        "source": "local",
-        "path": "./codex/plugins/mempalace"
-      },
-      "policy": {
-        "installation": "INSTALLED_BY_DEFAULT",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
+      "category": "Developer Tools"
     }
   ]
 }

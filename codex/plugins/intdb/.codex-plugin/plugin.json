@@ -11,7 +11,7 @@
     "shortDescription": "DB doctor, миграции и smoke-проверки",
     "longDescription": "Guarded MCP-обёртка intData DBA над operator CLI intdb.",
     "developerName": "IntData",
-    "category": "Productivity",
+    "category": "Developer Tools",
     "capabilities": ["Read", "Write"]
   }
 }

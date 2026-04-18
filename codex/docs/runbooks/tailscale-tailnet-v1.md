@@ -123,7 +123,7 @@ Operator entrypoints in current workspace:
 ## Process Matrix (tailnet-first vs public)
 
 - tailnet-first + fallback (`INT_SSH_MODE=auto`):
-  - `/int/tools/codex/bin/publish_repo.ps1` and wrappers (`publish_data/assess/...`)
+  - `/int/tools/delivery/bin/publish_repo.py` and repo-specific publish engines
   - `/int/brain/deploy/scripts/publish_dev_vds_intbrain.sh`
   - `/int/probe/probes/roistat_import_probe.py` (ordered hosts: tailnet first, public fallback)
 - public-only (unchanged in v1):

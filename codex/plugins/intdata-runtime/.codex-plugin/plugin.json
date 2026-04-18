@@ -1,17 +1,17 @@
 {
   "name": "intdata-runtime",
   "version": "1.0.0",
-  "description": "Инструменты runtime intData для host, SSH и браузерных операций.",
+  "description": "Инструменты runtime intData для host, SSH, браузерных операций, vault sanitize и runtime GC.",
   "author": {"name": "IntData", "email": "owner@intdata.pro"},
   "license": "Proprietary",
   "skills": "./skills",
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "intData Runtime",
-    "shortDescription": "Host, SSH и браузерные runtime-операции",
-    "longDescription": "Guarded MCP-инструменты для host-диагностики/bootstrap/recovery, резолва SSH-транспорта и запуска Firefox-профилей.",
+    "shortDescription": "Host, SSH, browser, vault и GC",
+    "longDescription": "Guarded MCP-инструменты для host-диагностики/bootstrap/recovery, резолва SSH-транспорта, запуска Firefox-профилей, vault sanitize и runtime GC.",
     "developerName": "IntData",
-    "category": "Productivity",
+    "category": "Developer Tools",
     "capabilities": ["Read", "Write", "Interactive"]
   }
 }

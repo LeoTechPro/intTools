@@ -1,11 +1,11 @@
 ---
 name: intdata-runtime
-description: Выполняй host, SSH и Firefox runtime-операции через MCP-инструменты intData Runtime.
+description: Выполняй host, SSH, Firefox, vault sanitize и runtime GC операции через MCP-инструменты intData Runtime.
 ---
 
 # intData Runtime
 
-Используй этот skill для runtime-диагностики, host verification, SSH transport resolution и запуска dedicated Firefox MCP profiles.
+Используй этот skill для runtime-диагностики, host verification, SSH transport resolution, запуска dedicated Firefox MCP profiles, vault sanitize и runtime GC.
 
 ## Инструменты
 
@@ -16,6 +16,8 @@ description: Выполняй host, SSH и Firefox runtime-операции че
 - `ssh_resolve`
 - `ssh_host`
 - `browser_profile_launch`
+- `intdata_vault_sanitize`
+- `intdata_runtime_vault_gc`
 
 ## Прямой workflow
 
@@ -32,3 +34,4 @@ description: Выполняй host, SSH и Firefox runtime-операции че
 - Browser profile launch является mutating/interactive operation; запускай только по задаче, где browser proof действительно нужен.
 - Owner Chrome не использовать как default fallback; frontend/browser diagnostics идут через dedicated Firefox MCP runtime.
 - Этот plugin заменяет старые `intdata-host`, `intdata-ssh`, `intdata-browser`; не используй удалённые tool names в новых инструкциях.
+- Этот plugin также заменяет old plugin ID `intdata-vault`; не используй его как active install surface.

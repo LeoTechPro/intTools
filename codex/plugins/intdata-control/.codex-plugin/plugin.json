@@ -1,0 +1,17 @@
+{
+  "name": "intdata-control",
+  "version": "1.0.0",
+  "description": "Инструменты intData Control для lockctl, Multica, OpenSpec, routing, gates и publication.",
+  "author": {"name": "IntData", "email": "owner@intdata.pro"},
+  "license": "Proprietary",
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "intData Control",
+    "shortDescription": "Control plane: locks, issues, specs, gates, publish",
+    "longDescription": "Единая MCP-поверхность intData Control для lockctl, Multica, OpenSpec, routing validation, sync gate, publication, gate receipts и commit binding.",
+    "developerName": "IntData",
+    "category": "Developer Tools",
+    "capabilities": ["Read", "Write"]
+  }
+}

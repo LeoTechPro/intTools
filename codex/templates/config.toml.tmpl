@@ -84,6 +84,18 @@ __MCP_OBSIDIAN_ARGS__
 command = "__MCP_BITRIX24_COMMAND__"
 __MCP_BITRIX24_ARGS__
 
-[mcp_servers.lockctl]
-command = "__LOCKCTL_COMMAND__"
-__LOCKCTL_ARGS__
+[mcp_servers.intbrain]
+command = "__INT_ROOT__/tools/codex/bin/mcp-intdata-cli.cmd"
+args = ["--profile", "intbrain"]
+
+[mcp_servers.intdata-control]
+command = "__INT_ROOT__/tools/codex/bin/mcp-intdata-cli.cmd"
+args = ["--profile", "intdata-control"]
+
+[mcp_servers.intdata-runtime]
+command = "__INT_ROOT__/tools/codex/bin/mcp-intdata-cli.cmd"
+args = ["--profile", "intdata-runtime"]
+
+[mcp_servers.intdb]
+command = "__INT_ROOT__/tools/codex/bin/mcp-intdata-cli.cmd"
+args = ["--profile", "intdb"]

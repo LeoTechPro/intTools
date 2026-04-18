@@ -64,7 +64,7 @@ Ambiguity считается значимой только при неяснос
 
 ## Machine-wide lock policy
 - Для любых файловых мутаций через Codex/OpenClaw на этой машине обязателен предварительный `lockctl acquire` по конкретному файлу до начала правки.
-- Источник истины по активным локам: `lockctl` (CLI/MCP). Каноническое ядро лежит в `/int/tools/lockctl/lockctl_core.py`; CLI entrypoints: `/int/tools/lockctl/lockctl.py`, `/int/tools/lockctl/lockctl`, `/int/tools/lockctl/lockctl.ps1`, `/int/tools/lockctl/lockctl.cmd`; MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile lockctl`. Lease-state хранится в локальной SQLite; проектные YAML-ledger не являются runtime truth.
+- Источник истины по активным локам: `lockctl` (CLI/MCP). Каноническое ядро лежит в `/int/tools/lockctl/lockctl_core.py`; CLI entrypoints: `/int/tools/lockctl/lockctl.py`, `/int/tools/lockctl/lockctl`, `/int/tools/lockctl/lockctl.ps1`, `/int/tools/lockctl/lockctl.cmd`; MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile intdata-control`. Lease-state хранится в локальной SQLite; проектные YAML-ledger не являются runtime truth.
 - Лок должен жить только на окно реальной мутации и продлеваться heartbeat'ом, если правка длится дольше одного lease.
 - После завершения правки лок должен сниматься через `lockctl release-path` или `lockctl release-issue` без ожидания окончания всей сессии.
 - Для проектов с issue-discipline owner/agent обязан указывать issue id при `lockctl acquire`.
@@ -95,13 +95,13 @@ Ambiguity считается значимой только при неяснос
 - Resolver CLI `/int/tools/codex/bin/agent_tool_routing.py` обязан возвращать только `resolved` или `blocked` для runtime binding resolution.
 - Blocked repo-owned capability не может неявно переключаться на verified skill; fallback допустим только если он явно перечислен как approved metadata в registry.
 - Актуальный deduplicated MCP surface в `@int-tools`:
-  - `intdata-governance` (вместо `intdata-routing`, `intdata-delivery`, `gatesctl`);
-  - `intdata-runtime` (вместо `intdata-host`, `intdata-ssh`, `intdata-browser`).
+  - `intdata-control` (вместо `lockctl`, `multica`, `openspec`, `intdata-governance`, `intdata-routing`, `intdata-delivery`, `gatesctl`);
+  - `intdata-runtime` (вместо `intdata-host`, `intdata-ssh`, `intdata-browser`, `intdata-vault`).
 - Публичные tool names без alias:
   - governance: `routing_validate`, `routing_resolve`, `sync_gate`, `publish`, `gate_status`, `gate_receipt`, `commit_binding`;
   - runtime: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`, `ssh_resolve`, `ssh_host`, `browser_profile_launch`.
 - Удалённые plugin IDs/tool names запрещено использовать в новых AGENTS/skills/runbooks.
-- Для publish family canonical engine root = `/int/tools/delivery/bin`; `codex/bin/publish_*.ps1` остаются только compatibility adapters.
+- Для publish family canonical engine root = `/int/tools/delivery/bin`; `codex/bin/publish_*.ps1` не являются active compatibility surface.
 - Для Firefox/SSH/host launcher family canonical engine root = `/int/tools/codex/bin`; shell/cmd/PowerShell wrappers не являются source-of-truth.
 
 ## Postgres по умолчанию

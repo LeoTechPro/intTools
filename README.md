@@ -78,7 +78,6 @@
 - `python /int/tools/intdb/lib/intdb.py migrate status --target intdata-dev --repo /int/data` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `/int/data`;
 - `python /int/tools/delivery/bin/publish_repo.py --repo-path /int/data --repo-name data --success-label publish_data --expected-branch main --expected-upstream origin/main --push-remote origin --push-branch main --require-clean --deploy-mode ssh-fast-forward --deploy-host vds-intdata-intdata --deploy-repo-path /int/data --deploy-fetch-ref main --deploy-pull-ref main` — canonical publish engine для `/int/data`;
 - `python /int/tools/delivery/bin/multica_autopilot_report_sidecar.py --target 6053a2d3-682f-48ca-a76a-ba1f09faa5e5=<master_issue_id> --dry-run` — dry-run доставки autopilot hygiene-отчёта в существующий Multica issue + Probe outbox; runtime mapping можно задавать через `AUTOPILOT_REPORT_TARGETS`;
-- `pwsh -File /int/tools/codex/bin/publish_data.ps1` — compatibility wrapper поверх canonical publish engine для `/int/data`;
 - В owner-facing командах `push/publish/выкатывай/публикуй` агент не вправе сам сокращать уже подготовленный состав publication: локальный commit по своему/scope допустим как обычно, но перед самой публикацией выборочно скрывать/откладывать "чужие" правки из publication-state запрещено.
 - `ssh vds-intdata-intdata` — canonical remote shell для IntData deploy/apply/smoke на `vds.intdata.pro`;
 - `ssh vds-intdata-agents` — canonical remote shell для Codex runtime на `vds.intdata.pro`;
@@ -97,10 +96,8 @@
 - `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start --all-repos --root-path /int` — явный legacy-style scan всех top-level repo, когда нужен массовый проход вместо default current-repo режима;
 - `python /int/tools/codex/bin/agent_tool_routing.py validate --strict --json` — validate registry и blocker-rules для V1 high-risk tooling;
 - `python /int/tools/codex/bin/agent_tool_routing.py resolve --intent publish:data --platform windows --json` — machine-readable resolution `logical intent -> canonical engine -> thin adapter`;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile openspec` — MCP server adapter для OpenSpec CLI с guarded lifecycle mutations; agent-facing calls go through the exposed `mcp__openspec__` tools;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile multica` — MCP server adapter для Multica CLI с guarded write/control commands; agent-facing calls go through the exposed `mcp__multica__` tools;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-governance` — MCP wrapper для routing/sync-gate/publish/gate receipts;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-runtime` — MCP wrapper для host/ssh/browser runtime tooling;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control` — MCP wrapper `intData Control` для lockctl, Multica, OpenSpec, routing/sync-gate/publish/gate receipts и commit binding;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-runtime` — MCP wrapper для host/ssh/browser runtime tooling, vault sanitize и runtime GC;
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
 - `bash /int/tools/openclaw/ops/verify.sh` — проверка overlay OpenClaw;
 - `AUTH_TYPE=oauth-personal HOST=127.0.0.1 PORT=11434 npm start` из `gemini-openai-proxy/` — локальный запуск proxy.
@@ -157,6 +154,10 @@
   - `intbrain_pm_health`
   - `intbrain_pm_constraints_validate`
   - `intbrain_import_vault_pm`
+  - `intbrain_memory_sync_sessions`
+  - `intbrain_memory_import_mempalace`
+  - `intbrain_cabinet_inventory`
+  - `intbrain_cabinet_import`
 - Auth задаётся через `INTBRAIN_AGENT_ID` и `INTBRAIN_AGENT_KEY` (env/secret file), без жёсткой привязки к конкретному агенту.
 - Для `intbrain_import_vault_pm` дополнительно нужен `INTBRAIN_CORE_ADMIN_TOKEN`; без него MCP возвращает `config_error` до HTTP-вызова.
 - После обновления профиля `intbrain` в `mcp-intdata-cli.py` требуется перезапуск Codex/OpenClaw (или MCP runtime), чтобы refresh `tools/list` подтянул новый PM toolset.
@@ -166,8 +167,10 @@
 
 - Marketplace source-of-truth: `.agents/plugins/marketplace.json`.
 - Packaged plugins live in `codex/plugins/<plugin>/` and use `INSTALLED_BY_DEFAULT` + `ON_INSTALL`.
-- Core plugins: `lockctl`, `intbrain`, `multica`, `openspec`, `intdata-governance`, `intdb`, `intdata-runtime`, `intdata-vault`.
-- Memory plugins: `cabinet`, `mempalace`.
+- Core plugins: `intbrain`, `intdata-control`, `intdb`, `intdata-runtime`.
+- Active plugin category: `Developer Tools`.
+- Removed active plugin IDs: `lockctl`, `multica`, `openspec`, `intdata-governance`, `intdata-vault`, `mempalace`, `cabinet`.
+- Cabinet is absorbed through IntBrain inventory/import tooling; the standalone local product directory is not deleted until count-check and owner acceptance are recorded in INT-222.
 - CLI-backed plugins use `codex/bin/mcp-intdata-cli.py` through profile launchers. Wrappers accept structured command args only; arbitrary shell strings are not supported.
 - Mutating commands require `confirm_mutation: true` and `issue_context` in `INT-*` format.
 - Hard migration note: old plugin IDs `intdata-routing`, `intdata-delivery`, `gatesctl`, `intdata-host`, `intdata-ssh`, `intdata-browser` removed; tools renamed to consolidated governance/runtime surface without aliases.
@@ -223,7 +226,7 @@
 - `cloud_access.sh` — ленивый доступ к `gdrive`/`yadisk` через `rclone mount` и единый runtime `RCLONE_CONFIG=/int/tools/.runtime/cloud-access/rclone.conf`
 - `install_cloud_access.sh` — развёртывание runtime-каталогов `/int/tools/.runtime/cloud-access`, mountpoints `/int/cloud/*` и user-level symlink units
 - `bin/` — MCP entrypoints и прочие Codex-facing launcher'ы
-- `bin/publish_*.ps1` — compatibility wrappers для контуров `/int/*`; canonical publish engine живёт в `/int/tools/delivery/bin/publish_repo.py`, а `codex/bin/*.ps1` не являются source-of-truth для publish-логики.
+- publish/deploy wrappers for `/int/*` live under `/int/tools/delivery/bin`; `codex/bin/*.ps1` are not source-of-truth for publish logic.
 - `bin/agent_tool_routing.py` + `../config/agent-tool-routing.v1.json` — routing contract для repo-owned high-risk capabilities; blocked path не подменяется verified skill автоматически, fallback допустим только как explicit approved metadata.
 - `tools/` — repo-managed helper trees (`mcp-obsidian-memory`, `obsidian-desktop`, `openspec`)
 - `assets/codex-home/` — versioned `AGENTS.md`, `rules/`, `prompts/`, `skills/`, `version.json` для синхронизации в `~/.codex`
@@ -377,7 +380,7 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 
 - mutating-команды требуют `--approve-target <profile>`;
 - для `WRITE_CLASS=prod` дополнительно обязателен `--force-prod-write`;
-- thin wrappers в `codex/bin/intdb.*` только проксируют вызов в `/int/tools/intdb`.
+- `intdb` is exposed through `/int/tools/intdb` and the `intdb` MCP profile; `codex/bin/intdb.*` compatibility wrappers are not active surfaces.
 
 ### `data/`
 
@@ -1028,7 +1031,7 @@ CLI entrypoints:
 - Linux/macOS wrapper: `/int/tools/lockctl/lockctl`
 - Python CLI: `/int/tools/lockctl/lockctl.py`
 - Windows wrappers: `/int/tools/lockctl/lockctl.ps1`, `/int/tools/lockctl/lockctl.cmd`
-- MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile lockctl`
+- MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile intdata-control`
 
 Do not try to execute the directory `/int/tools/lockctl` itself as a binary.
 

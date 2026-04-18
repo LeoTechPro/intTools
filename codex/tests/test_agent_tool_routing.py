@@ -86,11 +86,11 @@ class AgentToolRoutingTest(unittest.TestCase):
     def test_firefox_capabilities_resolve_to_platform_wrappers(self) -> None:
         for capability_id, expected_windows, expected_linux in (
             ("firefox-default", "codex/bin/mcp-firefox-default.cmd", "codex/bin/mcp-firefox-default"),
-            ("assess-firefox-client", "codex/bin/mcp-firefox-assess-client.cmd", "codex/bin/mcp-firefox-assess-client"),
-            ("assess-firefox-specialist-v1", "codex/bin/mcp-firefox-assess-specialist-v1.cmd", "codex/bin/mcp-firefox-assess-specialist-v1"),
-            ("assess-firefox-specialist-v2", "codex/bin/mcp-firefox-assess-specialist-v2.cmd", "codex/bin/mcp-firefox-assess-specialist-v2"),
-            ("assess-firefox-admin", "codex/bin/mcp-firefox-assess-admin.cmd", "codex/bin/mcp-firefox-assess-admin"),
-            ("assess-firefox-specialist-restricted", "codex/bin/mcp-firefox-assess-specialist-restricted.cmd", "codex/bin/mcp-firefox-assess-specialist-restricted"),
+            ("assess-firefox-client", "codex/bin/firefox_mcp_launcher.py", "codex/bin/firefox_mcp_launcher.py"),
+            ("assess-firefox-specialist-v1", "codex/bin/firefox_mcp_launcher.py", "codex/bin/firefox_mcp_launcher.py"),
+            ("assess-firefox-specialist-v2", "codex/bin/firefox_mcp_launcher.py", "codex/bin/firefox_mcp_launcher.py"),
+            ("assess-firefox-admin", "codex/bin/firefox_mcp_launcher.py", "codex/bin/firefox_mcp_launcher.py"),
+            ("assess-firefox-specialist-restricted", "codex/bin/firefox_mcp_launcher.py", "codex/bin/firefox_mcp_launcher.py"),
         ):
             self.assertEqual(routing.resolve_capability(capability_id, platform="windows")["selected_binding"]["binding_origin"], expected_windows)
             self.assertEqual(routing.resolve_capability(capability_id, platform="linux")["selected_binding"]["binding_origin"], expected_linux)
@@ -159,10 +159,9 @@ class AgentToolRoutingTest(unittest.TestCase):
         int_overlay = json.loads((REPO_ROOT / "codex" / "projects" / "int" / ".mcp.json").read_text(encoding="utf-8"))
         assess_overlay = json.loads((REPO_ROOT / "codex" / "projects" / "assess" / ".mcp.json").read_text(encoding="utf-8"))
         self.assertEqual(int_overlay["mcpServers"]["firefox-default"]["command"], "mcp-firefox-default")
-        self.assertEqual(assess_overlay["mcpServers"]["assess-firefox-client"]["command"], "mcp-firefox-assess-client")
+        self.assertNotIn("assess-firefox-client", assess_overlay["mcpServers"])
         firefox_servers = [
             int_overlay["mcpServers"]["firefox-default"],
-            *assess_overlay["mcpServers"].values(),
         ]
         for server in firefox_servers:
             self.assertNotIn("cmd.exe", server["command"])
