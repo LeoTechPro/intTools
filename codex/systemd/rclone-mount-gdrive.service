@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-Environment=RCLONE_CONFIG=/int/.runtime/cloud-access/rclone.conf
+Environment=RCLONE_CONFIG=/int/tools/.runtime/cloud-access/rclone.conf
 ExecStartPre=/int/tools/codex/cloud_access.sh ensure-dirs
 ExecStart=/int/tools/codex/cloud_access.sh mount gdrive /int/cloud/gdrive
 ExecStop=/int/tools/codex/cloud_access.sh umount /int/cloud/gdrive

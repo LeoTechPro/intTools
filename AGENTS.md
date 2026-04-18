@@ -86,12 +86,12 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 
 - `/int/tools` остаётся `ops-tooling` repo и владеет только reusable ops/process/tooling contour;
 - business product-core и domain ownership остаются в соответствующих product repos;
-- runtime state и реальные секреты живут во внешних host paths, а не в repo.
+- runtime state и реальные секреты живут вне tracked git; для intTools canonical ignored host path — `/int/tools/.runtime/**`.
 
 ## What not to mutate
 
 - не складывать сюда canonical product domains и user-facing product shells;
-- не использовать repo как permanent runtime storage;
+- не использовать tracked repo как permanent runtime storage; ignored `/int/tools/.runtime/**` является локальным host-runtime исключением;
 - не подменять локальные product README/AGENTS процессными копиями в tooling repo.
 
 ## Integration expectations
@@ -100,7 +100,7 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 - product repos подключают этот contour извне через scripts, hooks и documented runbooks;
 - self-authored/versioned Codex tooling и wrapper-скрипты должны жить в `/int/tools/codex/**`, а не в `~/.codex` / `C:\Users\intData\.codex`;
 - reusable browser tooling, Firefox MCP launcher-ы и tracked project overlays живут только в `/int/tools/codex/**`;
-- runtime layout для dedicated Firefox MCP contour документируется и поддерживается только из `/int/tools/codex/**` + `/int/.runtime/firefox-mcp/**`;
+- runtime layout для dedicated Firefox MCP contour документируется и поддерживается только из `/int/tools/codex/**` + `/int/tools/.runtime/firefox-mcp/**`;
 - repo остаётся machine-wide tooling layer, а не отдельным business runtime.
 - прямые кодовые импорты между `/int/tools` и другими top-level root-контурами `/int/*` запрещены; интеграция допустима только через documented scripts/hooks/CLI entrypoints, public APIs/contracts, events или иные явно согласованные boundary contracts.
 

@@ -52,7 +52,7 @@ def default_runtime_root() -> Path:
     explicit = os.environ.get("CODEX_RUNTIME_ROOT", "").strip()
     if explicit:
         return Path(explicit).expanduser().resolve()
-    return (resolve_int_root() / ".runtime").resolve()
+    return (REPO_ROOT / ".runtime").resolve()
 
 
 def default_cloud_root() -> Path:

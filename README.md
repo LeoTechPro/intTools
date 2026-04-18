@@ -50,7 +50,7 @@
 - reusable browser tooling, Firefox MCP launcher-ы и profile-aware wrapper-скрипты живут только в `codex/bin/`;
 - tracked Firefox MCP overlays для конкретных контуров живут только в `codex/projects/*/.mcp.json`;
 - machine-readable routing registry для repo-owned high-risk capabilities живёт в `codex/config/agent-tool-routing.v1.json`, а resolver/validator CLI — в `codex/bin/agent_tool_routing.py`;
-- canonical runtime layout dedicated Firefox MCP: `/int/.runtime/firefox-mcp/profiles/<profile>/`, `/int/.runtime/firefox-mcp/logs/<profile>/`, `/int/.runtime/firefox-mcp/run/<profile>.json`;
+- canonical runtime layout dedicated Firefox MCP: `/int/tools/.runtime/firefox-mcp/profiles/<profile>/`, `/int/tools/.runtime/firefox-mcp/logs/<profile>/`, `/int/tools/.runtime/firefox-mcp/run/<profile>.json`;
 - `codex/tools/mcp-obsidian-memory/` содержит локальный MCP-сервер для vault `/2brain`;
 - `codex/tools/obsidian-desktop/` хранит repo-managed launcher и desktop config для Obsidian;
 - `codex/assets/codex-home/skills/javascript/` хранит repo-managed resources, scripts и templates для JavaScript skill assets;
@@ -193,7 +193,7 @@
 - Managed assets для `~/.codex` живут в `/int/tools/codex/assets/codex-home/`.
 - Project overlays для `~/.codex/projects/*` живут в `/int/tools/codex/projects/` и синхронизируются в runtime автоматически.
 - Runtime/log/tmp/state этого домена живут вне git, в `~/.codex`.
-- Секретные env-файлы MCP живут не в `~/.codex/var`, а в `/int/.runtime/codex-secrets/`; legacy path поддерживается только как fallback.
+- Секретные env-файлы MCP живут не в `~/.codex/var`, а в `/int/tools/.runtime/codex-secrets/`; legacy path поддерживается только как fallback.
 - Любые cron/systemd записи должны ссылаться на файлы из этого каталога, а не на продуктовые репозитории.
 - Канонический cron entrypoint для orphan cleaner: `/int/tools/codex/cleanup_agent_orphans.sh`.
 - `~/.codex/scripts/cleanup-agent-orphans.sh` допустим только как compatibility wrapper для старых вызовов.
@@ -208,16 +208,16 @@
 - OpenClaw runtime: `~/.openclaw/`
 - OpenClaw overlay/runbooks: `/int/tools/openclaw/`
 - прочий Codex runtime/state: `~/.codex/`
-- Codex MCP secrets runtime: `/int/.runtime/codex-secrets/`
-- Cloud runtime: `/int/.runtime/cloud-access/`
+- Codex MCP secrets runtime: `/int/tools/.runtime/codex-secrets/`
+- Cloud runtime: `/int/tools/.runtime/cloud-access/`
 
 ##### Текущие утилиты
 
 - `duplex_bridge.py` — debate-bridge; по умолчанию пишет лог в `~/.codex/log/debate/duplex_bridge.log`
 - `cleanup_agent_orphans.sh` — уборка осиротевших MCP/agent процессов
 - `install_orphan_cleaner_cron.sh` — установка канонической cron-записи на `/int/tools/codex/cleanup_agent_orphans.sh`
-- `cloud_access.sh` — ленивый доступ к `gdrive`/`yadisk` через `rclone mount` и единый runtime `RCLONE_CONFIG=/int/.runtime/cloud-access/rclone.conf`
-- `install_cloud_access.sh` — развёртывание runtime-каталогов `/int/.runtime/cloud-access`, mountpoints `/int/cloud/*` и user-level symlink units
+- `cloud_access.sh` — ленивый доступ к `gdrive`/`yadisk` через `rclone mount` и единый runtime `RCLONE_CONFIG=/int/tools/.runtime/cloud-access/rclone.conf`
+- `install_cloud_access.sh` — развёртывание runtime-каталогов `/int/tools/.runtime/cloud-access`, mountpoints `/int/cloud/*` и user-level symlink units
 - `bin/` — MCP entrypoints и прочие Codex-facing launcher'ы
 - `bin/publish_*.ps1` — compatibility wrappers для контуров `/int/*`; canonical publish engine живёт в `/int/tools/delivery/bin/publish_repo.py`, а `codex/bin/*.ps1` не являются source-of-truth для publish-логики.
 - `bin/agent_tool_routing.py` + `../config/agent-tool-routing.v1.json` — routing contract для repo-owned high-risk capabilities; blocked path не подменяется verified skill автоматически, fallback допустим только как explicit approved metadata.
@@ -235,7 +235,7 @@
 - `~/.codex` должен содержать только Codex-generated runtime/state и синхронизируемые managed-assets.
 - Наши wrapper'ы, templates и policy остаются в `/int/tools/codex`.
 - Самописные publish/helper scripts для Codex не храним в `~/.codex/scripts`; home-контур допускается только для native tools и обязательных runtime instructions/compat wrappers, если их нельзя вынести из home-layout.
-- Живые секреты для MCP храним в `/int/.runtime/codex-secrets/`.
+- Живые секреты для MCP храним в `/int/tools/.runtime/codex-secrets/`.
 - `OpenClaw` runtime живёт в `~/.openclaw`, а versioned overlay остаётся в `/int/tools/openclaw`.
 - Секретный слой OpenClaw для recovery bundle берётся из `~/.openclaw/secrets/`.
 - `sync_runtime_from_repo.sh` теперь синхронизирует не только `assets/codex-home`, но и tracked `projects/`.
@@ -254,9 +254,9 @@
 - Канонические unit-файлы лежат в `/int/tools/codex/systemd/` и подключаются в `~/.config/systemd/user/` через symlink.
 - Исключение для этого контура согласовано отдельно: runtime mountpoints и `rclone` config живут внутри `/int`, а не в `~/.codex`, чтобы Codex/OpenClaw работали с облаками через уже разрешённый файловый корень.
 - Основной runtime:
-  - config: `/int/.runtime/cloud-access/rclone.conf`
-  - cache: `/int/.runtime/cloud-access/cache`
-  - logs: `/int/.runtime/cloud-access/log`
+  - config: `/int/tools/.runtime/cloud-access/rclone.conf`
+  - cache: `/int/tools/.runtime/cloud-access/cache`
+  - logs: `/int/tools/.runtime/cloud-access/log`
   - mounts: `/int/cloud/gdrive`, `/int/cloud/yadisk`
 - После настройки remotes используйте:
   - `/int/tools/codex/cloud_access.sh config`
@@ -285,7 +285,7 @@
 - этот каталог — канонический источник project overlays вместо ручных файлов в `~/.codex/projects/*`;
 - синхронизация в runtime выполняется через `/int/tools/codex/sync_runtime_from_repo.sh`;
 - в tracked overlay не храним секреты;
-- реальные env-файлы живут в `/int/.runtime/codex-secrets/`.
+- реальные env-файлы живут в `/int/tools/.runtime/codex-secrets/`.
 - browser-proof overlays для dedicated Firefox MCP обязаны вызывать только repo-managed wrapper'ы из `/int/tools/codex/bin/**`, а не raw `npx`.
 
 ### `codex/tools/mcp-obsidian-memory/`

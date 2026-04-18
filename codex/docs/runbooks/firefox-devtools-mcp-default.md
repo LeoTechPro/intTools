@@ -13,9 +13,9 @@
 
 ## Runtime layout
 
-- profiles: `/int/.runtime/firefox-mcp/profiles/<profile>/`
-- logs: `/int/.runtime/firefox-mcp/logs/<profile>/`
-- run meta: `/int/.runtime/firefox-mcp/run/<profile>.json`
+- profiles: `/int/tools/.runtime/firefox-mcp/profiles/<profile>/`
+- logs: `/int/tools/.runtime/firefox-mcp/logs/<profile>/`
+- run meta: `/int/tools/.runtime/firefox-mcp/run/<profile>.json`
 
 ## Wrapper contract
 
@@ -37,15 +37,15 @@
 
 ## Логи и диагностика
 
-- stderr launcher-а и upstream MCP сервера пишутся в `/int/.runtime/firefox-mcp/logs/<profile>/stderr.log`
-- активный launcher отмечается файлом `/int/.runtime/firefox-mcp/run/<profile>.json`
+- stderr launcher-а и upstream MCP сервера пишутся в `/int/tools/.runtime/firefox-mcp/logs/<profile>/stderr.log`
+- активный launcher отмечается файлом `/int/tools/.runtime/firefox-mcp/run/<profile>.json`
 - повторный запуск того же profile-key поверх живого launcher-а запрещён
 
 ## Reset одного profile
 
 1. Убедиться, что run-meta для profile отсутствует.
 2. При необходимости закрыть активный MCP session.
-3. Удалить только `/int/.runtime/firefox-mcp/profiles/<profile>/`.
+3. Удалить только `/int/tools/.runtime/firefox-mcp/profiles/<profile>/`.
 4. Не трогать соседние role-профили и общие логи.
 
 ## Fallback в owner Chrome

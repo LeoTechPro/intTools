@@ -372,8 +372,7 @@ def _load_intbrain_env_once() -> None:
         return
 
     codex_home = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
-    int_root = ROOT_DIR.parent
-    runtime_root = Path(os.environ.get("CODEX_RUNTIME_ROOT", int_root / ".runtime"))
+    runtime_root = Path(os.environ.get("CODEX_RUNTIME_ROOT", ROOT_DIR / ".runtime"))
     secrets_root = Path(os.environ.get("CODEX_SECRETS_ROOT", runtime_root / "codex-secrets"))
     legacy_root = Path(os.environ.get("LEGACY_CODEX_VAR_ROOT", codex_home / "var"))
     _parse_env_file(secrets_root / INTBRAIN_ENV_NAME)

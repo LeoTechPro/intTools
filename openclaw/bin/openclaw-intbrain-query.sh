@@ -27,7 +27,7 @@ if [[ -z "$OWNER_ID" ]]; then
 fi
 
 if [[ -z "${INTBRAIN_AGENT_ID:-}" || -z "${INTBRAIN_AGENT_KEY:-}" ]]; then
-  ENV_FILE="${INTBRAIN_ENV_FILE:-/int/.runtime/codex-secrets/intbrain-agent.env}"
+  ENV_FILE="${INTBRAIN_ENV_FILE:-/int/tools/.runtime/codex-secrets/intbrain-agent.env}"
   if [[ -f "$ENV_FILE" ]]; then
     set -a
     # shellcheck disable=SC1090

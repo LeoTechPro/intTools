@@ -51,7 +51,7 @@ def default_runtime_root() -> Path:
     explicit = os.environ.get("CODEX_RUNTIME_ROOT", "").strip()
     if explicit:
         return Path(explicit).expanduser().resolve()
-    return (resolve_int_root() / ".runtime").resolve()
+    return (Path(__file__).resolve().parents[2] / ".runtime").resolve()
 
 
 def default_cloud_root() -> Path:
@@ -113,12 +113,12 @@ def export_bundle(bundle_path: Path) -> None:
 
     with tempfile.TemporaryDirectory() as temp_dir_raw:
         temp_dir = Path(temp_dir_raw)
-        (temp_dir / "int/.runtime").mkdir(parents=True, exist_ok=True)
+        (temp_dir / "int/tools/.runtime").mkdir(parents=True, exist_ok=True)
         (temp_dir / "home/.openclaw").mkdir(parents=True, exist_ok=True)
-        merge_copy(secrets_root, temp_dir / "int/.runtime/codex-secrets")
+        merge_copy(secrets_root, temp_dir / "int/tools/.runtime/codex-secrets")
         cloud_config = cloud_access_root / "rclone.conf"
         if cloud_config.exists():
-            merge_copy(cloud_config.parent, temp_dir / "int/.runtime/cloud-access")
+            merge_copy(cloud_config.parent, temp_dir / "int/tools/.runtime/cloud-access")
         merge_copy(openclaw_secrets_root, temp_dir / "home/.openclaw/secrets")
         manifest_path = temp_dir / "manifest.json"
         manifest_path.write_text(
@@ -126,8 +126,8 @@ def export_bundle(bundle_path: Path) -> None:
                 {
                     "created_at_utc": datetime.now(timezone.utc).isoformat(),
                     "paths": [
-                        "/int/.runtime/codex-secrets/",
-                        "/int/.runtime/cloud-access/rclone.conf",
+                        "/int/tools/.runtime/codex-secrets/",
+                        "/int/tools/.runtime/cloud-access/rclone.conf",
                         "~/.openclaw/secrets/",
                     ],
                 },
@@ -191,8 +191,8 @@ def import_bundle(bundle_path: Path) -> None:
 
         secrets_root.mkdir(parents=True, exist_ok=True)
         openclaw_secrets_root.mkdir(parents=True, exist_ok=True)
-        merge_copy(temp_dir / "int/.runtime/codex-secrets", secrets_root)
-        cloud_config = temp_dir / "int/.runtime/cloud-access"
+        merge_copy(temp_dir / "int/tools/.runtime/codex-secrets", secrets_root)
+        cloud_config = temp_dir / "int/tools/.runtime/cloud-access"
         if cloud_config.exists():
             cloud_access_root.mkdir(parents=True, exist_ok=True)
             merge_copy(cloud_config, cloud_access_root)

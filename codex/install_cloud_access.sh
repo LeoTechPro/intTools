@@ -5,7 +5,7 @@ SCRIPT_ROOT="/int/tools/codex"
 SYSTEMD_ROOT="$HOME/.config/systemd/user"
 CANONICAL_SYSTEMD="$SCRIPT_ROOT/systemd"
 
-mkdir -p "$SYSTEMD_ROOT" /int/.runtime/cloud-access/cache /int/.runtime/cloud-access/log /int/cloud/gdrive /int/cloud/yadisk
+mkdir -p "$SYSTEMD_ROOT" /int/tools/.runtime/cloud-access/cache /int/tools/.runtime/cloud-access/log /int/cloud/gdrive /int/cloud/yadisk
 
 ln -sfn "$CANONICAL_SYSTEMD/rclone-mount-gdrive.service" "$SYSTEMD_ROOT/rclone-mount-gdrive.service"
 ln -sfn "$CANONICAL_SYSTEMD/rclone-mount-yadisk.service" "$SYSTEMD_ROOT/rclone-mount-yadisk.service"

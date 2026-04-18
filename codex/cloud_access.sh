@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-RUNTIME_ROOT="${CLOUD_ACCESS_ROOT:-/int/.runtime/cloud-access}"
+RUNTIME_ROOT="${CLOUD_ACCESS_ROOT:-/int/tools/.runtime/cloud-access}"
 RCLONE_CONFIG="${RCLONE_CONFIG:-$RUNTIME_ROOT/rclone.conf}"
 CACHE_DIR="${CLOUD_ACCESS_CACHE_DIR:-$RUNTIME_ROOT/cache}"
 LOG_DIR="${CLOUD_ACCESS_LOG_DIR:-$RUNTIME_ROOT/log}"
@@ -31,7 +31,7 @@ ensure_dirs() {
   if [[ ! -e "$RCLONE_CONFIG" ]]; then
     cat >"$RCLONE_CONFIG" <<'EOF'
 # Managed by /int/tools/codex/cloud_access.sh
-# Run `RCLONE_CONFIG=/int/.runtime/cloud-access/rclone.conf rclone config`
+# Run `RCLONE_CONFIG=/int/tools/.runtime/cloud-access/rclone.conf rclone config`
 # to create the `gdrive` and `yadisk` remotes with headless OAuth.
 EOF
   fi

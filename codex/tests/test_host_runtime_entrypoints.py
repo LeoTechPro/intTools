@@ -80,9 +80,9 @@ class HostRuntimeEntrypointsTest(unittest.TestCase):
                 os.environ["INT_ROOT"] = str(temp_root / "sandbox" / "int")
                 os.environ.pop("CODEX_RUNTIME_ROOT", None)
                 os.environ.pop("CLOUD_ROOT", None)
-                self.assertEqual(host_bootstrap.default_runtime_root(), temp_root / "sandbox" / "int" / ".runtime")
-                self.assertEqual(host_verify.default_runtime_root(), temp_root / "sandbox" / "int" / ".runtime")
-                self.assertEqual(recovery_bundle.default_runtime_root(), temp_root / "sandbox" / "int" / ".runtime")
+                self.assertEqual(host_bootstrap.default_runtime_root(), temp_root / "sandbox" / "int" / "tools" / ".runtime")
+                self.assertEqual(host_verify.default_runtime_root(), temp_root / "sandbox" / "int" / "tools" / ".runtime")
+                self.assertEqual(recovery_bundle.default_runtime_root(), temp_root / "sandbox" / "int" / "tools" / ".runtime")
             finally:
                 host_bootstrap.REPO_ROOT = original_repo_root
                 host_bootstrap.ROOT_DIR = original_root_dir
