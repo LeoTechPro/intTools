@@ -55,8 +55,6 @@
     "codex/bin/mcp-github-from-gh.sh",
     "codex/bin/mcp-postgres-from-backend-env.sh",
     "codex/bin/mcp-obsidian-memory.sh",
-    "codex/bin/mcp-timeweb.sh",
-    "codex/bin/mcp-timeweb-readonly.sh",
     "codex/bin/mcp-bitrix24.sh",
     "codex/bin/mcp-intdata-cli.py",
     "codex/bin/mcp-intdata-cli.cmd",

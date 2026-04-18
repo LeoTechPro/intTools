@@ -124,8 +124,6 @@ def verify_config(issues: list[str]) -> None:
             "github": ("bash", [f"{tools_root}/codex/bin/mcp-github-from-gh.sh"]),
             "postgres": ("bash", [f"{tools_root}/codex/bin/mcp-postgres-from-backend-env.sh"]),
             "obsidian_memory": ("bash", [f"{tools_root}/codex/bin/mcp-obsidian-memory.sh"]),
-            "timeweb": ("bash", [f"{tools_root}/codex/bin/mcp-timeweb.sh"]),
-            "timeweb_readonly": ("bash", [f"{tools_root}/codex/bin/mcp-timeweb-readonly.sh"]),
             "bitrix24": ("bash", [f"{tools_root}/codex/bin/mcp-bitrix24.sh"]),
             "lockctl": ("python", [f"{tools_root}/codex/bin/mcp-lockctl.py"]),
         }
@@ -134,8 +132,6 @@ def verify_config(issues: list[str]) -> None:
             "github": (f"{tools_root}/codex/bin/mcp-github-from-gh.sh", []),
             "postgres": (f"{tools_root}/codex/bin/mcp-postgres-from-backend-env.sh", []),
             "obsidian_memory": (f"{tools_root}/codex/bin/mcp-obsidian-memory.sh", []),
-            "timeweb": (f"{tools_root}/codex/bin/mcp-timeweb.sh", []),
-            "timeweb_readonly": (f"{tools_root}/codex/bin/mcp-timeweb-readonly.sh", []),
             "bitrix24": (f"{tools_root}/codex/bin/mcp-bitrix24.sh", []),
             "lockctl": (f"{tools_root}/codex/bin/mcp-lockctl.sh", []),
         }

@@ -8,8 +8,8 @@ web_search = "live"
 suppress_unstable_features_warning = true
 [features]
 unified_exec = true
-shell_snapshot = true
-multi_agent = false
+shell_snapshot = __SHELL_SNAPSHOT__
+multi_agent = true
 steer = true
 
 
@@ -36,7 +36,7 @@ model = "gpt-5-codex"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 unified_exec = true
-shell_snapshot = true
+shell_snapshot = __SHELL_SNAPSHOT__
 
 web_search = "live"
 [notice]
@@ -79,14 +79,6 @@ url = "https://mcp.figma.com/mcp"
 [mcp_servers.obsidian_memory]
 command = "__MCP_OBSIDIAN_COMMAND__"
 __MCP_OBSIDIAN_ARGS__
-
-[mcp_servers.timeweb]
-command = "__MCP_TIMEWEB_COMMAND__"
-__MCP_TIMEWEB_ARGS__
-
-[mcp_servers.timeweb_readonly]
-command = "__MCP_TIMEWEB_RO_COMMAND__"
-__MCP_TIMEWEB_RO_ARGS__
 
 [mcp_servers.bitrix24]
 command = "__MCP_BITRIX24_COMMAND__"

@@ -115,6 +115,7 @@ def render_config_template(template_text: str, *, codex_home: Path) -> str:
         "__HOME_ROOT__": home_root,
         "__CLOUD_ROOT__": cloud_root,
         "__BRAIN_ROOT__": brain_root,
+        "__SHELL_SNAPSHOT__": "false" if current_platform() == "windows" else "true",
     }
 
     if current_platform() == "windows":
@@ -126,10 +127,6 @@ def render_config_template(template_text: str, *, codex_home: Path) -> str:
                 "__MCP_POSTGRES_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-postgres-from-backend-env.sh"]',
                 "__MCP_OBSIDIAN_COMMAND__": "bash",
                 "__MCP_OBSIDIAN_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-obsidian-memory.sh"]',
-                "__MCP_TIMEWEB_COMMAND__": "bash",
-                "__MCP_TIMEWEB_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-timeweb.sh"]',
-                "__MCP_TIMEWEB_RO_COMMAND__": "bash",
-                "__MCP_TIMEWEB_RO_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-timeweb-readonly.sh"]',
                 "__MCP_BITRIX24_COMMAND__": "bash",
                 "__MCP_BITRIX24_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-bitrix24.sh"]',
                 "__LOCKCTL_COMMAND__": "python",
@@ -145,10 +142,6 @@ def render_config_template(template_text: str, *, codex_home: Path) -> str:
                 "__MCP_POSTGRES_ARGS__": "",
                 "__MCP_OBSIDIAN_COMMAND__": f"{tools_root}/codex/bin/mcp-obsidian-memory.sh",
                 "__MCP_OBSIDIAN_ARGS__": "",
-                "__MCP_TIMEWEB_COMMAND__": f"{tools_root}/codex/bin/mcp-timeweb.sh",
-                "__MCP_TIMEWEB_ARGS__": "",
-                "__MCP_TIMEWEB_RO_COMMAND__": f"{tools_root}/codex/bin/mcp-timeweb-readonly.sh",
-                "__MCP_TIMEWEB_RO_ARGS__": "",
                 "__MCP_BITRIX24_COMMAND__": f"{tools_root}/codex/bin/mcp-bitrix24.sh",
                 "__MCP_BITRIX24_ARGS__": "",
                 "__LOCKCTL_COMMAND__": f"{tools_root}/codex/bin/mcp-lockctl.sh",

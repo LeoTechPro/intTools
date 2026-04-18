@@ -10,6 +10,7 @@ Catalog cards for active `int-tools` plugins currently use English descriptions,
   - root `description`
   - interface `shortDescription`
   - interface `longDescription`
+- Replace pointer-only plugin skill bodies with direct, self-contained Russian operational instructions for the plugin tools.
 - Keep technical identifiers and runtime behavior unchanged:
   - `name` (plugin IDs)
   - `displayName`
@@ -19,3 +20,4 @@ Catalog cards for active `int-tools` plugins currently use English descriptions,
 ## Scope
 
 - Active plugin manifests in `codex/plugins/*/.codex-plugin/plugin.json`.
+- Active plugin skill files in `codex/plugins/*/skills/SKILL.md`.
