@@ -1,24 +1,31 @@
 {
   "name": "intdata-runtime",
   "version": "1.0.0",
-  "description": "Инструменты runtime intData для host, SSH, браузерных операций, vault sanitize и runtime GC.",
-  "author": {"name": "IntData", "email": "owner@intdata.pro"},
+  "description": "Инструменты runtime intData для host diagnostics, SSH, Firefox profiles, vault sanitize и runtime GC.",
+  "author": {
+    "name": "IntData",
+    "email": "owner@intdata.pro"
+  },
   "license": "Proprietary",
   "skills": "./skills",
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "intData Runtime",
-    "shortDescription": "Host, SSH, browser, vault и GC",
-    "longDescription": "Guarded MCP-инструменты для host-диагностики/bootstrap/recovery, резолва SSH-транспорта, запуска Firefox-профилей, vault sanitize и runtime GC.",
+    "shortDescription": "Host, SSH, Firefox, vault и GC",
+    "longDescription": "Guarded MCP-инструменты runtime intData для host-preflight/bootstrap/recovery, резолва SSH, запуска dedicated Firefox MCP profiles, vault sanitize и runtime GC.",
     "developerName": "IntData",
     "category": "Developer Tools",
-    "capabilities": ["Read", "Write", "Interactive"],
+    "capabilities": [
+      "Read",
+      "Write",
+      "Interactive"
+    ],
     "brandColor": "#0F766E",
     "websiteURL": "https://intdata.pro/",
     "defaultPrompt": [
-      "Run host and SSH diagnostics.",
-      "Launch a dedicated Firefox MCP profile.",
-      "Dry-run vault maintenance checks."
+      "Проверить host readiness и SSH route.",
+      "Запустить dedicated Firefox MCP profile только с approval.",
+      "Сделать dry-run vault maintenance."
     ]
   }
 }

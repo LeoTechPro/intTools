@@ -42,6 +42,12 @@ Cabinet absorption is owned by `INT-225` outside this change. This change MUST N
 - **THEN** validation or policy rejects the request
 - **AND** the tool is not included in neutral plane discovery
 
+#### Scenario: IntBrain plugin is discovered in Codex App
+- **WHEN** the active `intbrain` MCP profile is initialized and `tools/list` is called
+- **THEN** the profile exposes `27` tools
+- **AND** no active tool name contains `cabinet`
+- **AND** active plugin metadata and active skills do not advertise Cabinet workflows
+
 ### Requirement: Guarded calls MUST require approval
 
 Mutating, destructive, runtime-sensitive, or high-risk calls MUST be rejected unless the request carries explicit approval metadata.
@@ -63,3 +69,16 @@ The repository MUST provide minimal client surfaces for Codex App, OpenClaw, and
 - **THEN** it calls the localhost HTTP endpoint
 - **WHEN** Agno/local harness runs
 - **THEN** it calls the same localhost HTTP endpoint
+
+### Requirement: int-tools plugin guidance MUST be actionable for Codex App
+
+The repository MUST provide Russian-facing plugin metadata and capability skills for `intbrain`, `intdata-control`, `intdata-runtime`, and `intdb`. Each active MCP tool MUST have exactly one canonical tool-card inside its assigned capability skill.
+
+#### Scenario: Skill guidance is verified
+- **WHEN** `scripts/codex/verify_int_tools_plugins.py --report-json` runs
+- **THEN** the report includes a `profile/tool -> skill -> missing_guidance` matrix
+- **AND** every active tool-card includes `Когда`, `Required inputs`, `Optional/schema inputs`, `Режим`, `Approval / issue requirements`, `Не использовать когда`, `Пример вызова`, and `Fallback/blocker`
+- **AND** every required argument from the MCP schema is listed in the tool-card
+- **AND** guarded or mutating tools mention owner approval, `confirm_mutation`, and `issue_context`
+- **AND** read-only tools are explicitly marked read-only
+- **AND** the active MCP counts are `intbrain=27`, `intdata-control=35`, `intdata-runtime=9`, and `intdb=1`

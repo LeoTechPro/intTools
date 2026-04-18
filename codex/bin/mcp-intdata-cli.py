@@ -288,8 +288,6 @@ INTBRAIN_TOOLS = [
     _tool("intbrain_memory_recent_work", "Summarize recent in-scope local Codex/OpenClaw sessions.", {"codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}, "days": {"type": "integer"}, "limit": {"type": "integer"}, "repo": {"type": "string"}}, []),
     _tool("intbrain_memory_session_brief", "Build a concise brief for one Codex/OpenClaw session.", {"session_id": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}}, ["session_id"]),
     _tool("intbrain_memory_import_mempalace", "Inventory or import MemPalace palace data into IntBrain.", {**_mutation_props(), "owner_id": {"type": "integer"}, "palace_root": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "limit": {"type": "integer"}, "dry_run": {"type": "boolean"}}, ["palace_root"]),
-    _tool("intbrain_cabinet_inventory", "Inventory Cabinet workspace/runtime data before IntBrain absorption.", {"cabinet_root": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "limit": {"type": "integer"}}, []),
-    _tool("intbrain_cabinet_import", "Import Cabinet workspace/runtime data into IntBrain.", {**_mutation_props(), "owner_id": {"type": "integer"}, "cabinet_root": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "limit": {"type": "integer"}, "dry_run": {"type": "boolean"}}, []),
 ]
 
 RUNTIME_TOOLS.extend(VAULT_TOOLS)
@@ -316,7 +314,6 @@ INTBRAIN_ALWAYS_MUTATING = {
 INTBRAIN_DRY_RUN_IMPORTS = {
     "intbrain_memory_sync_sessions",
     "intbrain_memory_import_mempalace",
-    "intbrain_cabinet_import",
 }
 
 READ_ONLY_MULTICA: dict[str, set[str]] = {
@@ -1106,29 +1103,6 @@ def _call_intbrain(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             scope_roots=_scope_roots(None),
         )
         summary = memory.import_mempalace(palace_root=str(args.get("palace_root")), limit=args.get("limit"))
-        if args.get("dry_run", True) is not False:
-            return {"ok": True, "data": summary}
-        owner_id = args.get("owner_id")
-        if owner_id is None:
-            return {"ok": False, "error": "owner_id_required"}
-        stored = _store_memory_items(owner_id=int(owner_id), items=summary.get("items") or [])
-        memory.mark_stored(stored["stored_items"])
-        return {"ok": stored["ok"], "data": {**summary, **stored}}
-    elif name == "intbrain_cabinet_inventory":
-        memory = IntBrainMemory(
-            codex_home=args.get("codex_home"),
-            state_path=args.get("state_path"),
-            scope_roots=_scope_roots(None),
-        )
-        summary = memory.inventory_cabinet(cabinet_root=args.get("cabinet_root") or "D:/int/cabinet", limit=args.get("limit"))
-        return {"ok": True, "data": summary}
-    elif name == "intbrain_cabinet_import":
-        memory = IntBrainMemory(
-            codex_home=args.get("codex_home"),
-            state_path=args.get("state_path"),
-            scope_roots=_scope_roots(None),
-        )
-        summary = memory.import_cabinet(cabinet_root=args.get("cabinet_root") or "D:/int/cabinet", limit=args.get("limit"))
         if args.get("dry_run", True) is not False:
             return {"ok": True, "data": summary}
         owner_id = args.get("owner_id")

@@ -1,33 +1,17 @@
----
-name: intdb-sql-apply
-description: Use for owner-gated SQL execution, file apply, dump, restore, clone, and copy operations through intdb.
----
+# intDB SQL/apply
 
-# intdb: SQL Apply
+- `intdata_cli` является command-router; выбирай subcommand по этой карточке, а не угадывай shell-команду.
+- Use only for planning SQL/apply. Live apply is forbidden unattended.
 
-Use this only for explicit SQL/apply/dump/restore/clone/copy tasks.
+## Tool cards
 
-## Tools
-
-- `intdata_cli`
-
-## Rules
-
-- Treat SQL execution, file apply, dump, restore, clone, and copy as high-risk.
-- Require `confirm_mutation=true`, `issue_context="INT-*"`, explicit target profile, and owner approval.
-- Never guess credentials, profile, host, or env.
-
-## Blockers
-
-- Missing approved SQL/source file.
-- Missing profile or secret.
-- No rollback/backup plan for destructive operation.
-
-## Fallback
-
-No direct SQL shell fallback without owner approval.
-
-## Examples
-
-- Plan only: `intdata_cli(command="intdb", args=["sql", "--help"])`
-- Apply file: `intdata_cli(command="intdb", args=["apply", "path/to/file.sql"], confirm_mutation=true, issue_context="INT-226")`
+### intdata_cli
+    - Когда: нужно выполнить intdb command-router subcommand.
+    - Required inputs: `command`
+    - Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `args`
+    - Режим: read-only by default
+    - Approval / issue requirements: Read-only subcommands без approval; apply/dump/restore/local-test требуют owner approval, `issue_context=INT-*` и безопасный disposable/local target.
+    - Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+    - Пример вызова: `{"name":"intdata_cli","arguments":{"command": "intdb", "args": ["doctor", "status"]}}`
+    - Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
+- Subcommand cards: `doctor/status` read-only; `migrate status` read-only; `migrate apply`, SQL apply, dump/restore/clone/copy/local-test mutating и запрещены unattended.

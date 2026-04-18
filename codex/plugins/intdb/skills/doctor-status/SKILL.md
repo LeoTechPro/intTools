@@ -1,33 +1,18 @@
----
-name: intdb-doctor-status
-description: Use for read-only intdb help, doctor, and status diagnostics through the intData DBA MCP wrapper.
----
+# intDB doctor/status
 
-# intdb: Doctor and Status
+- Используй эту capability-группу только когда задача совпадает с trigger ниже.
+- Каждый raw MCP tool описан отдельной карточкой; не вызывай tools, которых нет в карточках.
+- Read-only subcommands: `--help`, `doctor`, `status`, `migrate status`.
 
-Use this for safe DB diagnostics before any migration or SQL work.
+## Tool cards
 
-## Tools
-
-- `intdata_cli`
-
-## Rules
-
-- Always call with `command="intdb"`.
-- Safe examples include `args=["--help"]`, `args=["doctor", ...]`, and status/read-only commands.
-- Do not call `intdb.py`, `.ps1`, or `.cmd` directly while MCP is available.
-
-## Blockers
-
-- Unknown DB profile, host, env, or credentials.
-- Command is not clearly read-only.
-
-## Fallback
-
-Direct intdb wrappers require MCP blocker and owner approval.
-
-## Examples
-
-- Help: `intdata_cli(command="intdb", args=["--help"])`
-- Doctor: `intdata_cli(command="intdb", args=["doctor"])`
-- Status: `intdata_cli(command="intdb", args=["migrate", "status"])`
+### intdata_cli
+    - Когда: нужно выполнить intdb command-router subcommand.
+    - Required inputs: `command`
+    - Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `args`
+    - Режим: read-only by default
+    - Approval / issue requirements: Read-only subcommands без approval; apply/dump/restore/local-test требуют owner approval, `issue_context=INT-*` и безопасный disposable/local target.
+    - Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+    - Пример вызова: `{"name":"intdata_cli","arguments":{"command": "intdb", "args": ["doctor", "status"]}}`
+    - Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
+- Subcommand cards: `doctor/status` read-only; `migrate status` read-only; `migrate apply`, SQL apply, dump/restore/clone/copy/local-test mutating и запрещены unattended.

@@ -1,31 +1,23 @@
----
-name: intdata-control
-description: intData Control tools for lockctl, Multica, OpenSpec, routing, gates, commit binding, sync gates, and publication.
----
+# Маршрутизатор intData Control
 
-# intData Control
-
-Use the `intdata-control` plugin for governed `/int/tools` control-plane work:
-locks, Multica issues, OpenSpec lifecycle, routing validation, sync gates,
-publication, gate receipts, and commit binding.
+- Используй этот skill как входную точку для lockctl, OpenSpec, Multica, routing, sync-gate, publish и gate receipts.
+- Перед tracked-правками в `/int/tools` бери lockctl lock на каждый файл и работай только в рамках INT-* issue.
+- Mutating tools без `confirm_mutation=true`, `issue_context=INT-*` и owner approval не вызывать.
 
 ## Capability skills
 
-- `intdata-control-lockctl`: file locks and lock cleanup.
-- `intdata-control-openspec-read`: read-only OpenSpec discovery and validation.
-- `intdata-control-openspec-mutation`: OpenSpec lifecycle mutations.
-- `intdata-control-multica`: issue/worklog/project/runtime coordination.
-- `intdata-control-routing`: high-risk routing registry validation and resolve.
-- `intdata-control-sync-gate-publish`: sync gate and publication flows.
-- `intdata-control-gate-receipts-commit-binding`: gate receipts and commit binding.
+- `lockctl`: lockctl: locks для tracked-правок.
+- `openspec-read`: OpenSpec read-only discovery.
+- `openspec-mutation`: OpenSpec lifecycle mutations.
+- `multica-issue-workflow`: Multica issue workflow.
+- `multica-entities-config`: Multica entities и config.
+- `multica-daemon-auth-attachments`: Multica daemon, auth и attachments.
+- `routing`: Routing registry validation.
+- `sync-gate-publish`: Sync gate и publication.
+- `gate-receipts-commit-binding`: Gate receipts и commit binding.
 
-## Rules
+## Общие правила
 
-- Keep OpenSpec as requirements/spec/acceptance source-of-truth.
-- Keep Multica as execution/worklog/status/blockers/closure source-of-truth.
-- Use full `INT-*` issue identifiers for issue-bound mutations.
-- Mutating tools require explicit mutation context unless the runtime is running
-  in owner-approved YOLO mode.
-- Do not fall back to removed plugin IDs `lockctl`, `multica`, `openspec`, or
-  `intdata-governance`.
-- If a task touches files in `/int/tools`, use the lockctl skill before editing.
+- Сначала выбирай capability skill, затем конкретную tool-card.
+- Не вызывай mutating/high-risk tools без owner approval, `confirm_mutation=true` и `issue_context=INT-*`.
+- Если required args неизвестны, остановись как blocker и не подменяй MCP прямым shell fallback.

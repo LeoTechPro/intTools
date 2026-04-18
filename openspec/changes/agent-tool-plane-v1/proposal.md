@@ -13,11 +13,14 @@ Agno, OpenClaw, and Codex App need to call intData tools as equal clients instea
 - Add an audit/state schema `agent_plane` for PostgreSQL, with JSONL fallback for local development.
 - Add minimal clients for Codex App MCP, OpenClaw shell wrapper, and Agno/local harness.
 - Fix the `ssh_resolve` preflight mismatch by using canonical capability `int_ssh_resolve`.
+- Harden int-tools plugin guidance for Codex App: Russian plugin metadata, Russian capability skills, and a required tool-card for every active MCP tool.
+- Exclude Cabinet from the active IntBrain tool surface; the active IntBrain MCP count becomes `27`.
 
 ## Scope Boundaries
 
 - Cabinet absorption is owned by `INT-225` outside this change.
 - This change MUST NOT add `cabinet_*` public tools, aliases, compatibility APIs, product shells, or `/int/brain` changes.
+- Cabinet MUST NOT appear in active plugin metadata, active skills, or MCP `tools/list`.
 - Canonical memory/context remains in IntBrain; `agent_plane.memory_refs` stores provenance references only.
 - Canonical issue/spec/lock/runtime engines remain existing MCP profiles and CLI engines.
 - PostgreSQL migration is delivered but not applied automatically.
@@ -37,3 +40,6 @@ Owning Multica issue: `INT-226`.
 - Codex MCP client lists and calls the neutral plane surface.
 - Agno/local harness and OpenClaw wrapper can call the localhost service without changing Telegram/runtime config.
 - Routing validation passes and fresh `ssh_resolve` uses `int_ssh_resolve`.
+- Plugin manifests and skills are Russian-facing where possible while technical tool names and schema fields remain stable.
+- Active MCP counts are `intbrain=27`, `intdata-control=35`, `intdata-runtime=9`, and `intdb=1`.
+- `scripts/codex/verify_int_tools_plugins.py --report-json` reports `ok=true` with zero missing guidance.

@@ -1,33 +1,19 @@
----
-name: intbrain
-description: Работай с intData Brain через MCP-инструменты плагина: контекст, память, Cabinet import, PM/PARA и runtime jobs.
----
+# Маршрутизатор intData Brain
 
-# intData Brain
-
-Используй этот skill, когда задача явно относится к intData Brain: контекст-паки, agent memory, Cabinet absorption/import, импорт данных из vault, синхронизация runtime jobs, подготовка PM/PARA контекста или перенос runtime-состояния в IntBrain.
+- Используй этот skill как входную точку для IntBrain MCP: контекст, память, граф людей, политики, jobs и PM.
+- Для записи в IntBrain требуются `confirm_mutation=true`, `issue_context=INT-*` и явное owner approval.
 
 ## Capability skills
 
-- `intbrain-context-memory`: context pack/search/store and graph links.
-- `intbrain-people-graph-policies`: people, graph, Telegram and group policy tools.
-- `intbrain-jobs-pm`: jobs, PM dashboard, task and constraint tools.
-- `intbrain-memory-imports`: Codex/OpenClaw session and MemPalace imports.
-- `intbrain-cabinet-absorption`: Cabinet inventory/import into IntBrain.
+- `context-memory`: IntBrain context и memory.
+- `people-graph-policies`: IntBrain people, graph и policies.
+- `jobs-runtime`: IntBrain jobs runtime.
+- `pm-dashboard-tasks`: IntBrain PM dashboard и tasks.
+- `session-memory`: IntBrain session memory.
+- `external-imports`: IntBrain external imports.
 
-## Инструменты
+## Общие правила
 
-- `intbrain_import_vault_pm`: импортирует PM/PARA данные из vault. Требует `owner_id`, `source_root`; `timezone` указывай явно, если она важна для дат.
-- `intbrain_jobs_sync_runtime`: синхронизирует runtime jobs в IntBrain. Требует `owner_id`; `runtime_url` и `source_root` задавай только когда они известны из задачи или локального контекста.
-- `intbrain_memory_sync_sessions`: dry-run/import Codex/OpenClaw session JSONL memory into IntBrain.
-- `intbrain_memory_import_mempalace`: dry-run/import MemPalace palace data into IntBrain.
-- `intbrain_cabinet_inventory`: count-check Cabinet workspace/runtime data before product absorption.
-- `intbrain_cabinet_import`: dry-run/import Cabinet workspace/runtime data into IntBrain.
-
-## Правила выполнения
-
-- Не вызывай локальные CLI или скрипты напрямую, если доступен MCP-инструмент этого плагина.
-- Перед импортом или синхронизацией проверь owner/task context и не подставляй `owner_id` по догадке.
-- Операции импорта и синхронизации считаются изменяющими состояние: выполняй их только при явном запросе владельца или в рамках подтверждённого Multica issue.
-- Если не хватает `owner_id`, `source_root` или runtime source, остановись и зафиксируй конкретный blocker.
-- Cabinet больше не должен подключаться как отдельный active plugin surface; используйте IntBrain Cabinet tools.
+- Сначала выбирай capability skill, затем конкретную tool-card.
+- Не вызывай mutating/high-risk tools без owner approval, `confirm_mutation=true` и `issue_context=INT-*`.
+- Если required args неизвестны, остановись как blocker и не подменяй MCP прямым shell fallback.

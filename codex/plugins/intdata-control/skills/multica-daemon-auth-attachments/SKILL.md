@@ -1,36 +1,46 @@
-# Gate receipts и commit binding
+# Multica daemon, auth и attachments
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.
 - Каждый raw MCP tool описан отдельной карточкой; не вызывай tools, которых нет в карточках.
 
 ## Tool cards
 
-### gate_status
-- Когда: нужно read-only посмотреть receipts/bindings/approvals.
-- Required inputs: нет
-- Optional/schema inputs: `cwd`, `timeout_sec`, `repo_root`, `issue`, `receipt_id`, `commit`, `gate`, `owner`, `format`
+### multica_daemon
+- Когда: Run structured `multica daemon` commands. Control commands require confirmation.
+- Required inputs: `command`
+- Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `args`
 - Режим: read-only
 - Approval / issue requirements: Не требуется для read-only вызова. Если команда превращается в запись, остановиться и получить owner approval.
 - Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-- Пример вызова: `{"name":"gate_status","arguments":{}}`
+- Пример вызова: `{"name":"multica_daemon","arguments":{"command": "status"}}`
 - Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-### gate_receipt
-- Когда: нужно read-only открыть конкретный gate receipt.
-- Required inputs: нет
-- Optional/schema inputs: `cwd`, `timeout_sec`, `repo_root`, `receipt_id`, `commit`, `format`
+### multica_attachment
+- Когда: Run structured `multica attachment` commands.
+- Required inputs: `command`
+- Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `args`
 - Режим: read-only
 - Approval / issue requirements: Не требуется для read-only вызова. Если команда превращается в запись, остановиться и получить owner approval.
 - Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-- Пример вызова: `{"name":"gate_receipt","arguments":{}}`
+- Пример вызова: `{"name":"multica_attachment","arguments":{"command": "status"}}`
 - Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-### commit_binding
-- Когда: нужно привязать commit к gate/issue metadata.
-- Required inputs: `confirm_mutation`, `issue_context`, `commit_sha`
-- Optional/schema inputs: `cwd`, `timeout_sec`, `repo_root`, `issue`, `receipt_id`, `repo`, `post_issue`, `format`
-- Режим: mutating
-- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
+### multica_auth
+- Когда: Run structured `multica auth/login/setup` commands. Mutating auth setup requires confirmation.
+- Required inputs: `command`
+- Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `args`
+- Режим: read-only
+- Approval / issue requirements: Не требуется для read-only вызова. Если команда превращается в запись, остановиться и получить owner approval.
 - Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-- Пример вызова: `{"name":"commit_binding","arguments":{"confirm_mutation": true, "issue_context": "INT-226", "commit_sha": "0000000000000000000000000000000000000000"}}`
+- Пример вызова: `{"name":"multica_auth","arguments":{"command": "status"}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
+
+### multica_exec
+- Когда: Run a structured Multica CLI command. Mutating commands require confirmation.
+- Required inputs: `args`
+- Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`
+- Режим: read-only
+- Approval / issue requirements: Не требуется для read-only вызова. Если команда превращается в запись, остановиться и получить owner approval.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"multica_exec","arguments":{"args": ["--help"]}}`
 - Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.

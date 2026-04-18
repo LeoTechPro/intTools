@@ -26,6 +26,15 @@
 - [x] 3.6 Run OpenSpec strict validation and routing validation.
 - [x] 3.7 Verify fresh `ssh_resolve` process path.
 
+## 4. Plugin Skill Guidance Hardening
+
+- [x] 4.1 Russian-localize active plugin metadata and default prompts.
+- [x] 4.2 Remove Cabinet from active IntBrain metadata, skills, and MCP `tools/list`.
+- [x] 4.3 Split overloaded capability skills: Multica, IntBrain jobs/PM, and IntBrain session/import guidance.
+- [x] 4.4 Add one tool-card per active MCP tool with trigger, required inputs, mode, approval rules, example, and blocker language.
+- [x] 4.5 Extend verifier with `--report-json`, required-arg checks, guard wording checks, read-only markers, matrix output, and Cabinet leak detection.
+- [x] 4.6 Verify active counts: `intbrain=27`, `intdata-control=35`, `intdata-runtime=9`, `intdb=1`.
+
 ## Exceptions
 
 - Owner approved continuing over the existing dirty/ahead checkout without reverting unrelated work.

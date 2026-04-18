@@ -1,37 +1,46 @@
----
-name: intdata-runtime-host-diagnostics
-description: Use for intData Runtime host preflight, host verification, bootstrap, and recovery bundle workflows.
----
+# Runtime host diagnostics
 
-# intData Runtime: Host Diagnostics
+- Используй эту capability-группу только когда задача совпадает с trigger ниже.
+- Каждый raw MCP tool описан отдельной карточкой; не вызывай tools, которых нет в карточках.
 
-Use this for local Codex host/runtime health checks and guarded recovery.
+## Tool cards
 
-## Tools
+### host_preflight
+- Когда: нужно проверить локальную runtime readiness.
+- Required inputs: нет
+- Optional/schema inputs: `cwd`, `timeout_sec`, `json`
+- Режим: read-only
+- Approval / issue requirements: Не требуется для read-only вызова. Если команда превращается в запись, остановиться и получить owner approval.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"host_preflight","arguments":{}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-- `host_preflight`
-- `host_verify`
-- `host_bootstrap`
-- `recovery_bundle`
+### host_verify
+- Когда: нужно проверить host helper contour.
+- Required inputs: нет
+- Optional/schema inputs: `cwd`, `timeout_sec`, `args`
+- Режим: read-only
+- Approval / issue requirements: Не требуется для read-only вызова. Если команда превращается в запись, остановиться и получить owner approval.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"host_verify","arguments":{}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-## Rules
+### host_bootstrap
+- Когда: нужно установить/обновить host tooling.
+- Required inputs: `confirm_mutation`, `issue_context`
+- Optional/schema inputs: `cwd`, `timeout_sec`, `args`
+- Режим: mutating
+- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"host_bootstrap","arguments":{"confirm_mutation": true, "issue_context": "INT-226"}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-- `host_preflight` and `host_verify` are the default read-only diagnostics.
-- `host_bootstrap` and `recovery_bundle` are mutating and require `confirm_mutation=true` and `issue_context="INT-*"`.
-- Use structured `args`; do not call shell wrappers directly while MCP is available.
-
-## Blockers
-
-- Missing issue for bootstrap or recovery.
-- Unknown host/runtime target.
-- MCP tool missing from model context; request it through tool discovery.
-
-## Fallback
-
-Direct wrappers require recorded MCP blocker and owner approval.
-
-## Examples
-
-- Preflight: `host_preflight(cwd="D:/int/tools", json=true)`
-- Verify: `host_verify(cwd="D:/int/tools", args=["--json"])`
-- Guarded bootstrap: `host_bootstrap(cwd="D:/int/tools", confirm_mutation=true, issue_context="INT-226")`
+### recovery_bundle
+- Когда: нужно собрать recovery bundle.
+- Required inputs: `confirm_mutation`, `issue_context`
+- Optional/schema inputs: `cwd`, `timeout_sec`, `args`
+- Режим: mutating
+- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"recovery_bundle","arguments":{"confirm_mutation": true, "issue_context": "INT-226"}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.

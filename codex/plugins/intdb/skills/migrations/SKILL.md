@@ -1,33 +1,17 @@
----
-name: intdb-migrations
-description: Use for intdb migration status, planning, and owner-gated migration apply workflows.
----
+# intDB migrations
 
-# intdb: Migrations
+- `intdata_cli` является command-router; выбирай subcommand по этой карточке, а не угадывай shell-команду.
+- Use for migration review/status. `migrate apply` is mutating and requires approval.
 
-Use this for migration status and approved migration application.
+## Tool cards
 
-## Tools
-
-- `intdata_cli`
-
-## Rules
-
-- Status/read-only migration commands may run without mutation confirmation.
-- Migration apply is mutating/high-risk: require `confirm_mutation=true`, `issue_context="INT-*"`, and explicit owner approval.
-- For `/int/data`, migration changes must match approved OpenSpec/source-of-truth.
-
-## Blockers
-
-- Missing profile/secret.
-- Target is production and owner did not explicitly approve.
-- Spec/source-of-truth is absent or contradictory.
-
-## Fallback
-
-Direct intdb CLI requires MCP blocker and owner approval.
-
-## Examples
-
-- Status: `intdata_cli(command="intdb", args=["migrate", "status"])`
-- Apply: `intdata_cli(command="intdb", args=["migrate", "apply"], confirm_mutation=true, issue_context="INT-226")`
+### intdata_cli
+    - Когда: нужно выполнить intdb command-router subcommand.
+    - Required inputs: `command`
+    - Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `args`
+    - Режим: read-only by default
+    - Approval / issue requirements: Read-only subcommands без approval; apply/dump/restore/local-test требуют owner approval, `issue_context=INT-*` и безопасный disposable/local target.
+    - Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+    - Пример вызова: `{"name":"intdata_cli","arguments":{"command": "intdb", "args": ["doctor", "status"]}}`
+    - Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
+- Subcommand cards: `doctor/status` read-only; `migrate status` read-only; `migrate apply`, SQL apply, dump/restore/clone/copy/local-test mutating и запрещены unattended.

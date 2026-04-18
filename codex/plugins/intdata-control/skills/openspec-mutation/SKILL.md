@@ -1,39 +1,56 @@
----
-name: intdata-control-openspec-mutation
-description: Use for owner-approved OpenSpec lifecycle mutations: new changes, change/spec edits, archive, and mutating OpenSpec commands.
----
+# OpenSpec lifecycle mutations
 
-# intData Control: OpenSpec Mutation
+- Используй эту capability-группу только когда задача совпадает с trigger ниже.
+- Каждый raw MCP tool описан отдельной карточкой; не вызывай tools, которых нет в карточках.
 
-Use this only when the owner approved lifecycle mutation or an existing active change must be updated for the current scope.
+## Tool cards
 
-## Tools
+### openspec_archive
+- Когда: нужно архивировать завершённый approved change.
+- Required inputs: `confirm_mutation`, `issue_context`, `change_name`
+- Optional/schema inputs: `cwd`, `timeout_sec`, `args`
+- Режим: mutating
+- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"openspec_archive","arguments":{"confirm_mutation": true, "issue_context": "INT-226", "change_name": "agent-tool-plane-v1"}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-- `openspec_new`
-- `openspec_change`
-- `openspec_spec`
-- `openspec_archive`
-- `openspec_exec`
+### openspec_change
+- Когда: нужно выполнить structured `openspec change` subcommand.
+- Required inputs: `subcommand`
+- Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `args`
+- Режим: read-only by default
+- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"openspec_change","arguments":{"subcommand": "show"}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-## Rules
+### openspec_spec
+- Когда: нужно выполнить structured `openspec spec` subcommand.
+- Required inputs: `subcommand`
+- Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `args`
+- Режим: read-only by default
+- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"openspec_spec","arguments":{"subcommand": "show"}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-- Mutating calls require `confirm_mutation=true` and `issue_context="INT-*"`.
-- Create or update `proposal.md`, `tasks.md`, and spec deltas before code changes.
-- Prefer updating an existing relevant change over creating a parallel change.
-- Validate the change after edits.
+### openspec_new
+- Когда: нужно создать новый OpenSpec change после owner approval.
+- Required inputs: `confirm_mutation`, `issue_context`
+- Optional/schema inputs: `cwd`, `timeout_sec`, `args`
+- Режим: mutating
+- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"openspec_new","arguments":{"confirm_mutation": true, "issue_context": "INT-226"}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-## Blockers
-
-- Missing owner approval for spec lifecycle mutation.
-- Missing or unverifiable `INT-*`.
-- Ambiguous source-of-truth.
-
-## Fallback
-
-No direct CLI fallback without explicit owner approval after MCP failure.
-
-## Examples
-
-- New change: `openspec_new(cwd="D:/int/tools", issue_context="INT-226", confirm_mutation=true, args=["agent-tool-plane-v1"])`
-- Archive: `openspec_archive(cwd="D:/int/tools", issue_context="INT-226", confirm_mutation=true, change_name="agent-tool-plane-v1")`
-- Guard check: call without `confirm_mutation` should fail.
+### openspec_exec
+- Когда: нужен редкий structured OpenSpec fallback через allowlisted args.
+- Required inputs: `args`
+- Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`
+- Режим: read-only by default
+- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"openspec_exec","arguments":{"args": ["--help"]}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.

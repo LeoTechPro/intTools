@@ -1,40 +1,66 @@
----
-name: intdata-control-lockctl
-description: Use for `/int/tools` file lock workflows with intData Control: acquire, renew, release, status, and expired-lock cleanup.
----
+# lockctl: locks для tracked-правок
 
-# intData Control: lockctl
+- Используй эту capability-группу только когда задача совпадает с trigger ниже.
+- Каждый raw MCP tool описан отдельной карточкой; не вызывай tools, которых нет в карточках.
 
-Use this before any tracked file mutation in `/int/tools` and when inspecting lock conflicts.
+## Tool cards
 
-## Tools
+### lockctl_acquire
+- Когда: нужно взять lease-lock перед tracked-правкой файла.
+- Required inputs: `repo_root`, `path`, `owner`
+- Optional/schema inputs: `issue`, `reason`, `lease_sec`
+- Режим: mutating
+- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"lockctl_acquire","arguments":{"repo_root": "D:/int/tools", "path": "codex/plugins/intbrain/skills/SKILL.md", "owner": "codex"}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-- `lockctl_status`: read active or expired locks.
-- `lockctl_acquire`: acquire or renew a file lock.
-- `lockctl_renew`: renew by `lock_id`.
-- `lockctl_release_path`: release one path lock.
-- `lockctl_release_issue`: release all locks for an `INT-*` issue.
-- `lockctl_gc`: delete expired locks.
+### lockctl_renew
+- Когда: нужно продлить уже активный lock по `lock_id`.
+- Required inputs: `lock_id`
+- Optional/schema inputs: `lease_sec`
+- Режим: mutating
+- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"lockctl_renew","arguments":{"lock_id": "<lock-id>"}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-## Rules
+### lockctl_release_path
+- Когда: нужно снять lock по конкретному пути после завершения работы.
+- Required inputs: `repo_root`, `path`, `owner`
+- Optional/schema inputs: нет
+- Режим: mutating
+- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"lockctl_release_path","arguments":{"repo_root": "D:/int/tools", "path": "codex/plugins/intbrain/skills/SKILL.md", "owner": "codex"}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-- Required inputs for path operations: `repo_root`, `path`, `owner`.
-- Use full `INT-*` in `issue` for issue-bound work.
-- Do not edit a tracked file if another active owner holds its lock.
-- Release locks after finishing or when handing off.
+### lockctl_release_issue
+- Когда: нужно снять все locks текущего `INT-*` после завершения scope.
+- Required inputs: `repo_root`, `issue`
+- Optional/schema inputs: нет
+- Режим: mutating
+- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"lockctl_release_issue","arguments":{"repo_root": "D:/int/tools", "issue": "INT-226"}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-## Blockers
+### lockctl_status
+- Когда: нужно read-only посмотреть active/expired locks.
+- Required inputs: `repo_root`
+- Optional/schema inputs: `path`, `owner`, `issue`
+- Режим: read-only
+- Approval / issue requirements: Не требуется для read-only вызова. Если команда превращается в запись, остановиться и получить owner approval.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"lockctl_status","arguments":{"repo_root": "D:/int/tools"}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
-- Unknown repo root or target path.
-- Active lock owned by someone else.
-- Missing Multica issue for non-trivial `/int/tools` implementation.
-
-## Fallback
-
-Use direct lockctl CLI only after recording the MCP blocker and owner approval.
-
-## Examples
-
-- Status: `lockctl_status(repo_root="D:/int/tools", path="codex/plugins/intbrain/skills/SKILL.md")`
-- Acquire: `lockctl_acquire(repo_root="D:/int/tools", path="...", owner="codex", issue="INT-226")`
-- Release issue: `lockctl_release_issue(repo_root="D:/int/tools", issue="INT-226")`
+### lockctl_gc
+- Когда: нужно очистить expired runtime locks; это mutating maintenance.
+- Required inputs: нет
+- Optional/schema inputs: нет
+- Режим: mutating
+- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
+- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
+- Пример вызова: `{"name":"lockctl_gc","arguments":{}}`
+- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
