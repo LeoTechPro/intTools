@@ -42,6 +42,8 @@
   - `tasks.md`
   - релевантный `spec.md` delta в `specs/**`
   - `design.md`, если меняется архитектура enforcement/runtime/resolver.
+- Каждый active OpenSpec package должен быть связан с Multica issue: в change указываем `Multica issue: INT-*`, а в Multica issue/worklog указываем `OpenSpec change: openspec/changes/<change-id>/`.
+- OpenSpec является source-of-truth по requirements/spec/acceptance; Multica является source-of-truth по execution/worklog/status/blockers/closure. В Multica не дублируем полный OpenSpec, только short summary и ссылки/пути.
 - `AGENTS.md`, `README.md` и managed governance docs в этом repo должны обновляться только вместе с соответствующим OpenSpec change, а не отдельно от него.
 
 ## Codex и OpenClaw
