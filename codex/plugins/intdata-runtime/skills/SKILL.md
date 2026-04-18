@@ -7,6 +7,13 @@ description: Выполняй host, SSH, Firefox, vault sanitize и runtime GC �
 
 Используй этот skill для runtime-диагностики, host verification, SSH transport resolution, запуска dedicated Firefox MCP profiles, vault sanitize и runtime GC.
 
+## Capability skills
+
+- `intdata-runtime-host-diagnostics`: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`.
+- `intdata-runtime-ssh`: `ssh_resolve`, `ssh_host`.
+- `intdata-runtime-firefox-browser-profiles`: dedicated Firefox MCP profile launch.
+- `intdata-runtime-vault-maintenance`: vault sanitize and runtime vault GC.
+
 ## Инструменты
 
 - `host_preflight`

@@ -15,6 +15,13 @@
     "longDescription": "Интеграция MCP intData Brain для контекст-паков, памяти, Cabinet workspace import, поиска по графу людей, каталога чатов, политик задач и PM-инструментов на базе IntBrain Core API.",
     "developerName": "IntData",
     "category": "Developer Tools",
-    "capabilities": ["Read", "Write"]
+    "capabilities": ["Read", "Write"],
+    "brandColor": "#7C3AED",
+    "websiteURL": "https://intdata.pro/",
+    "defaultPrompt": [
+      "Retrieve an IntBrain context pack.",
+      "Search imported agent memory.",
+      "Dry-run Cabinet absorption inventory."
+    ]
   }
 }

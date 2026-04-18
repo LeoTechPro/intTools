@@ -12,6 +12,13 @@
     "longDescription": "Guarded MCP-обёртка intData DBA над operator CLI intdb.",
     "developerName": "IntData",
     "category": "Developer Tools",
-    "capabilities": ["Read", "Write"]
+    "capabilities": ["Read", "Write"],
+    "brandColor": "#334155",
+    "websiteURL": "https://intdata.pro/",
+    "defaultPrompt": [
+      "Run intdb doctor safely.",
+      "Check migration status.",
+      "Plan a local Supabase smoke run."
+    ]
   }
 }

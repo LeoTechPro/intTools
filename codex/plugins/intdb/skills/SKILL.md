@@ -7,6 +7,13 @@ description: Выполняй intData DBA doctor, migration и smoke workflows �
 
 Используй этот skill для DB diagnostics, migration status, SQL/apply/smoke и owner-gated local Supabase workflows.
 
+## Capability skills
+
+- `intdb-doctor-status`: help, doctor, and read-only status checks.
+- `intdb-migrations`: migration status and owner-gated migration apply.
+- `intdb-sql-apply`: SQL execution, file apply, dump/restore/clone/copy.
+- `intdb-local-smoke`: owner-gated disposable local Supabase smoke workflows.
+
 ## Инструмент
 
 - `intdata_cli`: guarded MCP wrapper над intdb. В `command` передавай `intdb`; фактическую intdb-команду передавай первым элементом `args`.

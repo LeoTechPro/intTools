@@ -265,31 +265,31 @@ INTBRAIN_TOOLS = [
     _tool("intbrain_people_resolve", "Resolve people by query.", {"owner_id": {"type": "integer"}, "q": {"type": "string"}, "limit": {"type": "integer"}}, ["owner_id", "q"]),
     _tool("intbrain_people_get", "Get person profile by entity id.", {"owner_id": {"type": "integer"}, "entity_id": {"type": "integer"}}, ["owner_id", "entity_id"]),
     _tool("intbrain_graph_neighbors", "Get graph neighbors for entity.", {"owner_id": {"type": "integer"}, "entity_id": {"type": "integer"}, "depth": {"type": "integer"}, "limit": {"type": "integer"}, "link_type": {"type": "string"}}, ["owner_id", "entity_id"]),
-    _tool("intbrain_context_store", "Store context item (write scope required).", {"owner_id": {"type": "integer"}, "kind": {"type": "string"}, "title": {"type": "string"}, "text_content": {"type": "string"}, "entity_id": {"type": "integer"}, "source_path": {"type": "string"}, "source_hash": {"type": "string"}, "chunk_kind": {"type": "string"}, "tags": {"type": "array", "items": {"type": "string"}}, "source": {"type": "string"}, "priority": {"type": "integer"}}, ["owner_id", "kind", "title", "text_content"]),
-    _tool("intbrain_graph_link", "Create/update typed graph edge (write scope required).", {"owner_id": {"type": "integer"}, "from_entity_id": {"type": "integer"}, "to_entity_id": {"type": "integer"}, "link_type": {"type": "string"}, "weight": {"type": "number"}, "confidence": {"type": "number"}, "source": {"type": "string"}, "source_path": {"type": "string"}, "metadata": {"type": "object"}}, ["owner_id", "from_entity_id", "to_entity_id", "link_type"]),
+    _tool("intbrain_context_store", "Store context item (write scope required).", {**_mutation_props(), "owner_id": {"type": "integer"}, "kind": {"type": "string"}, "title": {"type": "string"}, "text_content": {"type": "string"}, "entity_id": {"type": "integer"}, "source_path": {"type": "string"}, "source_hash": {"type": "string"}, "chunk_kind": {"type": "string"}, "tags": {"type": "array", "items": {"type": "string"}}, "source": {"type": "string"}, "priority": {"type": "integer"}}, ["confirm_mutation", "issue_context", "owner_id", "kind", "title", "text_content"]),
+    _tool("intbrain_graph_link", "Create/update typed graph edge (write scope required).", {**_mutation_props(), "owner_id": {"type": "integer"}, "from_entity_id": {"type": "integer"}, "to_entity_id": {"type": "integer"}, "link_type": {"type": "string"}, "weight": {"type": "number"}, "confidence": {"type": "number"}, "source": {"type": "string"}, "source_path": {"type": "string"}, "metadata": {"type": "object"}}, ["confirm_mutation", "issue_context", "owner_id", "from_entity_id", "to_entity_id", "link_type"]),
     _tool("intbrain_people_policy_tg_get", "Get effective Telegram policy for person by tg_user_id.", {"owner_id": {"type": "integer"}, "tg_user_id": {"type": "integer"}, "chat_id": {"type": "string"}}, ["owner_id", "tg_user_id"]),
     _tool("intbrain_group_policy_get", "Get group policy by chat_id.", {"owner_id": {"type": "integer"}, "chat_id": {"type": "string"}}, ["owner_id", "chat_id"]),
-    _tool("intbrain_group_policy_upsert", "Create/update group policy (write scope required).", {"owner_id": {"type": "integer"}, "chat_id": {"type": "string"}, "name": {"type": "string"}, "respond_mode": {"type": "string"}, "access_mode": {"type": "string"}, "tools_policy": {"type": "string"}, "project_scope": {"type": "string"}, "notes": {"type": "string"}, "metadata": {"type": "object"}}, ["owner_id", "chat_id", "respond_mode", "access_mode", "tools_policy"]),
+    _tool("intbrain_group_policy_upsert", "Create/update group policy (write scope required).", {**_mutation_props(), "owner_id": {"type": "integer"}, "chat_id": {"type": "string"}, "name": {"type": "string"}, "respond_mode": {"type": "string"}, "access_mode": {"type": "string"}, "tools_policy": {"type": "string"}, "project_scope": {"type": "string"}, "notes": {"type": "string"}, "metadata": {"type": "object"}}, ["confirm_mutation", "issue_context", "owner_id", "chat_id", "respond_mode", "access_mode", "tools_policy"]),
     _tool("intbrain_jobs_list", "List jobs with optional filters.", {"owner_id": {"type": "integer"}, "enabled": {"type": "boolean"}, "kind": {"type": "string"}, "limit": {"type": "integer"}}, ["owner_id"]),
     _tool("intbrain_jobs_get", "Get job details by job_id.", {"owner_id": {"type": "integer"}, "job_id": {"type": "string"}}, ["owner_id", "job_id"]),
-    _tool("intbrain_job_policy_upsert", "Create/update job policy override (write scope required).", {"owner_id": {"type": "integer"}, "job_id": {"type": "string"}, "policy_mode": {"type": "string"}, "notes": {"type": "string"}, "metadata": {"type": "object"}}, ["owner_id", "job_id", "policy_mode"]),
-    _tool("intbrain_jobs_sync_runtime", "Sync runtime jobs into intbrain (import scope required).", {"owner_id": {"type": "integer"}, "source_root": {"type": "string"}, "runtime_url": {"type": "string"}}, ["owner_id"]),
+    _tool("intbrain_job_policy_upsert", "Create/update job policy override (write scope required).", {**_mutation_props(), "owner_id": {"type": "integer"}, "job_id": {"type": "string"}, "policy_mode": {"type": "string"}, "notes": {"type": "string"}, "metadata": {"type": "object"}}, ["confirm_mutation", "issue_context", "owner_id", "job_id", "policy_mode"]),
+    _tool("intbrain_jobs_sync_runtime", "Sync runtime jobs into intbrain (import scope required).", {**_mutation_props(), "owner_id": {"type": "integer"}, "source_root": {"type": "string"}, "runtime_url": {"type": "string"}}, ["confirm_mutation", "issue_context", "owner_id"]),
     _tool("intbrain_policy_events_list", "List append-only policy events/provenance.", {"owner_id": {"type": "integer"}, "since": {"type": "string"}, "limit": {"type": "integer"}}, ["owner_id"]),
     _tool("intbrain_pm_dashboard", "Get PM dashboard with 5-9 constraint evaluation.", {"owner_id": {"type": "integer"}, "date": {"type": "string"}, "timezone": {"type": "string"}}, ["owner_id"]),
     _tool("intbrain_pm_tasks", "List PM tasks by view (today, week, backlog).", {"owner_id": {"type": "integer"}, "view": {"type": "string", "enum": ["today", "week", "backlog"]}, "date": {"type": "string"}, "timezone": {"type": "string"}, "limit": {"type": "integer"}}, ["owner_id"]),
-    _tool("intbrain_pm_task_create", "Create PM task with PARA/OKR links and constraints.", {"owner_id": {"type": "integer"}, "title": {"type": "string"}, "due_at": {"type": "string"}, "priority": {"type": "integer"}, "energy_cost": {"type": "integer"}, "project_entity_id": {"type": "integer"}, "area_entity_id": {"type": "integer"}, "goal_entity_id": {"type": "integer"}, "okr_entity_id": {"type": "integer"}, "key_result_entity_id": {"type": "integer"}, "source_path": {"type": "string"}, "source_hash": {"type": "string"}, "active_pin": {"type": "boolean"}, "timezone": {"type": "string"}}, ["owner_id", "title"]),
-    _tool("intbrain_pm_task_patch", "Patch PM task fields and status.", {"task_id": {"type": "integer"}, "owner_id": {"type": "integer"}, "title": {"type": "string"}, "status": {"type": "string", "enum": ["open", "done", "archived"]}, "due_at": {"type": "string"}, "priority": {"type": "integer"}, "energy_cost": {"type": "integer"}, "project_entity_id": {"type": "integer"}, "area_entity_id": {"type": "integer"}, "goal_entity_id": {"type": "integer"}, "okr_entity_id": {"type": "integer"}, "key_result_entity_id": {"type": "integer"}, "active_pin": {"type": "boolean"}, "archive": {"type": "boolean"}, "timezone": {"type": "string"}}, ["task_id", "owner_id"]),
+    _tool("intbrain_pm_task_create", "Create PM task with PARA/OKR links and constraints.", {**_mutation_props(), "owner_id": {"type": "integer"}, "title": {"type": "string"}, "due_at": {"type": "string"}, "priority": {"type": "integer"}, "energy_cost": {"type": "integer"}, "project_entity_id": {"type": "integer"}, "area_entity_id": {"type": "integer"}, "goal_entity_id": {"type": "integer"}, "okr_entity_id": {"type": "integer"}, "key_result_entity_id": {"type": "integer"}, "source_path": {"type": "string"}, "source_hash": {"type": "string"}, "active_pin": {"type": "boolean"}, "timezone": {"type": "string"}}, ["confirm_mutation", "issue_context", "owner_id", "title"]),
+    _tool("intbrain_pm_task_patch", "Patch PM task fields and status.", {**_mutation_props(), "task_id": {"type": "integer"}, "owner_id": {"type": "integer"}, "title": {"type": "string"}, "status": {"type": "string", "enum": ["open", "done", "archived"]}, "due_at": {"type": "string"}, "priority": {"type": "integer"}, "energy_cost": {"type": "integer"}, "project_entity_id": {"type": "integer"}, "area_entity_id": {"type": "integer"}, "goal_entity_id": {"type": "integer"}, "okr_entity_id": {"type": "integer"}, "key_result_entity_id": {"type": "integer"}, "active_pin": {"type": "boolean"}, "archive": {"type": "boolean"}, "timezone": {"type": "string"}}, ["confirm_mutation", "issue_context", "task_id", "owner_id"]),
     _tool("intbrain_pm_para", "Get PARA map (projects/areas/resources/archive) for owner.", {"owner_id": {"type": "integer"}}, ["owner_id"]),
     _tool("intbrain_pm_health", "Get PM health metrics and constraint summary.", {"owner_id": {"type": "integer"}, "date": {"type": "string"}, "timezone": {"type": "string"}}, ["owner_id"]),
     _tool("intbrain_pm_constraints_validate", "Validate PM 5-9 constraints for owner/date/timezone.", {"owner_id": {"type": "integer"}, "date": {"type": "string"}, "timezone": {"type": "string"}}, ["owner_id"]),
-    _tool("intbrain_import_vault_pm", "Import PM/PARA data from 2brain vault (admin token required).", {"owner_id": {"type": "integer"}, "source_root": {"type": "string"}, "timezone": {"type": "string"}}, ["owner_id", "source_root"]),
-    _tool("intbrain_memory_sync_sessions", "Import Codex/OpenClaw session memory into IntBrain.", {"owner_id": {"type": "integer"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}, "since": {"type": "string"}, "file": {"type": "string"}, "incremental": {"type": "boolean"}, "dry_run": {"type": "boolean"}}, []),
+    _tool("intbrain_import_vault_pm", "Import PM/PARA data from 2brain vault (admin token required).", {**_mutation_props(), "owner_id": {"type": "integer"}, "source_root": {"type": "string"}, "timezone": {"type": "string"}}, ["confirm_mutation", "issue_context", "owner_id", "source_root"]),
+    _tool("intbrain_memory_sync_sessions", "Import Codex/OpenClaw session memory into IntBrain.", {**_mutation_props(), "owner_id": {"type": "integer"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}, "since": {"type": "string"}, "file": {"type": "string"}, "incremental": {"type": "boolean"}, "dry_run": {"type": "boolean"}}, []),
     _tool("intbrain_memory_search", "Search previously imported IntBrain memory items.", {"owner_id": {"type": "integer"}, "query": {"type": "string"}, "limit": {"type": "integer"}, "days": {"type": "integer"}, "repo": {"type": "string"}}, ["owner_id", "query"]),
     _tool("intbrain_memory_recent_work", "Summarize recent in-scope local Codex/OpenClaw sessions.", {"codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}, "days": {"type": "integer"}, "limit": {"type": "integer"}, "repo": {"type": "string"}}, []),
     _tool("intbrain_memory_session_brief", "Build a concise brief for one Codex/OpenClaw session.", {"session_id": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}}, ["session_id"]),
-    _tool("intbrain_memory_import_mempalace", "Inventory or import MemPalace palace data into IntBrain.", {"owner_id": {"type": "integer"}, "palace_root": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "limit": {"type": "integer"}, "dry_run": {"type": "boolean"}}, ["palace_root"]),
+    _tool("intbrain_memory_import_mempalace", "Inventory or import MemPalace palace data into IntBrain.", {**_mutation_props(), "owner_id": {"type": "integer"}, "palace_root": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "limit": {"type": "integer"}, "dry_run": {"type": "boolean"}}, ["palace_root"]),
     _tool("intbrain_cabinet_inventory", "Inventory Cabinet workspace/runtime data before IntBrain absorption.", {"cabinet_root": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "limit": {"type": "integer"}}, []),
-    _tool("intbrain_cabinet_import", "Import Cabinet workspace/runtime data into IntBrain.", {"owner_id": {"type": "integer"}, "cabinet_root": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "limit": {"type": "integer"}, "dry_run": {"type": "boolean"}}, []),
+    _tool("intbrain_cabinet_import", "Import Cabinet workspace/runtime data into IntBrain.", {**_mutation_props(), "owner_id": {"type": "integer"}, "cabinet_root": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "limit": {"type": "integer"}, "dry_run": {"type": "boolean"}}, []),
 ]
 
 RUNTIME_TOOLS.extend(VAULT_TOOLS)
@@ -300,6 +300,23 @@ PROFILE_TOOLS: dict[str, list[dict[str, Any]]] = {
     "intdata-control": CONTROL_TOOLS,
     "intdata-runtime": RUNTIME_TOOLS,
     "intdb": INTDB_TOOLS,
+}
+
+INTBRAIN_ALWAYS_MUTATING = {
+    "intbrain_context_store",
+    "intbrain_graph_link",
+    "intbrain_group_policy_upsert",
+    "intbrain_job_policy_upsert",
+    "intbrain_jobs_sync_runtime",
+    "intbrain_pm_task_create",
+    "intbrain_pm_task_patch",
+    "intbrain_import_vault_pm",
+}
+
+INTBRAIN_DRY_RUN_IMPORTS = {
+    "intbrain_memory_sync_sessions",
+    "intbrain_memory_import_mempalace",
+    "intbrain_cabinet_import",
 }
 
 READ_ONLY_MULTICA: dict[str, set[str]] = {
@@ -951,6 +968,10 @@ def _store_memory_items(*, owner_id: int, items: list[dict[str, Any]]) -> dict[s
 def _call_intbrain(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     args = _coerce_pm_date_args(name, dict(arguments))
     core_admin_token = os.environ.get("INTBRAIN_CORE_ADMIN_TOKEN", "").strip()
+    if name in INTBRAIN_ALWAYS_MUTATING:
+        _require_mutation(args)
+    if name in INTBRAIN_DRY_RUN_IMPORTS and args.get("dry_run", True) is False:
+        _require_mutation(args)
 
     if name == "intbrain_context_pack":
         code, body = _intbrain_http_json("POST", "context/pack", payload=args)

@@ -12,6 +12,13 @@
     "longDescription": "Guarded MCP-инструменты для host-диагностики/bootstrap/recovery, резолва SSH-транспорта, запуска Firefox-профилей, vault sanitize и runtime GC.",
     "developerName": "IntData",
     "category": "Developer Tools",
-    "capabilities": ["Read", "Write", "Interactive"]
+    "capabilities": ["Read", "Write", "Interactive"],
+    "brandColor": "#0F766E",
+    "websiteURL": "https://intdata.pro/",
+    "defaultPrompt": [
+      "Run host and SSH diagnostics.",
+      "Launch a dedicated Firefox MCP profile.",
+      "Dry-run vault maintenance checks."
+    ]
   }
 }

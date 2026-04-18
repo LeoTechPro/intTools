@@ -12,6 +12,13 @@
     "longDescription": "Единая MCP-поверхность intData Control для lockctl, Multica, OpenSpec, routing validation, sync gate, publication, gate receipts и commit binding.",
     "developerName": "IntData",
     "category": "Developer Tools",
-    "capabilities": ["Read", "Write"]
+    "capabilities": ["Read", "Write"],
+    "brandColor": "#2563EB",
+    "websiteURL": "https://intdata.pro/",
+    "defaultPrompt": [
+      "Check OpenSpec and Multica status for this task.",
+      "Acquire locks and verify routing before editing.",
+      "Run int-tools plugin verification."
+    ]
   }
 }

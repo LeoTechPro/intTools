@@ -7,6 +7,14 @@ description: Работай с intData Brain через MCP-инструмент
 
 Используй этот skill, когда задача явно относится к intData Brain: контекст-паки, agent memory, Cabinet absorption/import, импорт данных из vault, синхронизация runtime jobs, подготовка PM/PARA контекста или перенос runtime-состояния в IntBrain.
 
+## Capability skills
+
+- `intbrain-context-memory`: context pack/search/store and graph links.
+- `intbrain-people-graph-policies`: people, graph, Telegram and group policy tools.
+- `intbrain-jobs-pm`: jobs, PM dashboard, task and constraint tools.
+- `intbrain-memory-imports`: Codex/OpenClaw session and MemPalace imports.
+- `intbrain-cabinet-absorption`: Cabinet inventory/import into IntBrain.
+
 ## Инструменты
 
 - `intbrain_import_vault_pm`: импортирует PM/PARA данные из vault. Требует `owner_id`, `source_root`; `timezone` указывай явно, если она важна для дат.
