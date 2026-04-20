@@ -19,8 +19,95 @@ from typing import Any
 import yaml
 
 
-DEFAULT_STATE_DIR = Path.home() / ".codex" / "memories" / "gatesctl"
-STATE_DIR = Path(os.environ.get("GATESCTL_STATE_DIR", str(DEFAULT_STATE_DIR))).expanduser().resolve()
+LEGACY_MIGRATION_MARKER = ".codex-memories-migration-v1.done"
+
+
+def _resolve_home_dir() -> Path:
+    if os.environ.get("USERPROFILE", "").strip():
+        return Path(os.environ["USERPROFILE"]).expanduser()
+    if os.environ.get("HOME", "").strip():
+        return Path(os.environ["HOME"]).expanduser()
+    return Path.home()
+
+
+def _resolve_int_tools_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
+def resolve_state_dir() -> Path:
+    explicit_state = os.environ.get("GATESCTL_STATE_DIR", "").strip()
+    if explicit_state:
+        return Path(explicit_state).expanduser().resolve()
+    return (_resolve_int_tools_root() / ".runtime" / "gatesctl").resolve()
+
+
+def _legacy_state_candidates() -> list[Path]:
+    raw_candidates = []
+    legacy_override = os.environ.get("GATESCTL_LEGACY_STATE_DIR", "").strip()
+    if legacy_override:
+        raw_candidates.append(Path(legacy_override).expanduser())
+    codex_home = os.environ.get("CODEX_HOME", "").strip()
+    if codex_home:
+        raw_candidates.append(Path(codex_home).expanduser() / "memories" / "gatesctl")
+    raw_candidates.append(_resolve_home_dir() / ".codex" / "memories" / "gatesctl")
+
+    candidates: list[Path] = []
+    seen: set[str] = set()
+    for candidate in raw_candidates:
+        resolved = candidate.resolve()
+        key = str(resolved).casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        candidates.append(resolved)
+    return candidates
+
+
+def _copy_tree_merge(source: Path, destination: Path) -> None:
+    if not destination.exists():
+        shutil.copytree(source, destination)
+        return
+    for item in source.rglob("*"):
+        rel = item.relative_to(source)
+        target = destination / rel
+        if item.is_dir():
+            target.mkdir(parents=True, exist_ok=True)
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if not target.exists():
+            shutil.copy2(item, target)
+
+
+def maybe_migrate_legacy_state(state_dir: Path) -> None:
+    if os.environ.get("GATESCTL_SKIP_LEGACY_MIGRATION", "").strip() == "1":
+        return
+    marker = state_dir / LEGACY_MIGRATION_MARKER
+    if marker.exists():
+        return
+
+    migrated_from: list[str] = []
+    state_dir.mkdir(parents=True, exist_ok=True)
+    for legacy_dir in _legacy_state_candidates():
+        if legacy_dir == state_dir or not legacy_dir.exists():
+            continue
+        _copy_tree_merge(legacy_dir, state_dir)
+        migrated_from.append(str(legacy_dir))
+    marker.write_text(
+        json.dumps(
+            {
+                "legacy_dirs": migrated_from,
+                "migrated_utc": iso_utc(utc_now()),
+            },
+            ensure_ascii=True,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+DEFAULT_STATE_DIR = (_resolve_int_tools_root() / ".runtime" / "gatesctl").resolve()
+STATE_DIR = resolve_state_dir()
 DB_PATH = STATE_DIR / "gates.sqlite"
 EVENTS_PATH = STATE_DIR / "events.jsonl"
 ISO_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
@@ -79,6 +166,7 @@ def iso_utc(value: datetime) -> str:
 
 
 def ensure_state_dir() -> None:
+    maybe_migrate_legacy_state(STATE_DIR)
     STATE_DIR.mkdir(parents=True, exist_ok=True)
 
 

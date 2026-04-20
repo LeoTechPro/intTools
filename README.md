@@ -761,9 +761,15 @@ gatesctl help verify
 Runtime files:
 
 - `GATESCTL_STATE_DIR` (если явно задан)
-- иначе `~/.codex/memories/gatesctl`
+- иначе `/int/tools/.runtime/gatesctl` на Linux/VDS и `D:\int\tools\.runtime\gatesctl` на Windows
 - SQLite: `<state_dir>/gates.sqlite`
 - Event log: `<state_dir>/events.jsonl`
+
+Legacy migration:
+
+- Старый state из `$CODEX_HOME/memories/gatesctl` или `~/.codex/memories/gatesctl` используется только как non-destructive migration source.
+- При первом запуске недостающие файлы копируются в `/int/tools/.runtime/gatesctl`; старый каталог не удаляется.
+- На `vds.intdata.pro` `/int/tools/.runtime/gatesctl` является machine-local runtime и не синхронизируется через `/2brain`.
 
 ##### Common examples
 
@@ -1047,16 +1053,15 @@ Do not try to execute the directory `/int/tools/lockctl` itself as a binary.
 Runtime files:
 
 - `LOCKCTL_STATE_DIR` (если явно задан)
-- иначе `$CODEX_HOME/memories/lockctl`
-- иначе platform default:
-  - Linux: `~/.codex/memories/lockctl`
-  - Windows: `%USERPROFILE%\.codex\memories\lockctl`
+- иначе `/int/tools/.runtime/lockctl` на Linux/VDS и `D:\int\tools\.runtime\lockctl` на Windows
 - SQLite: `<state_dir>/locks.sqlite`
 - Event log: `<state_dir>/events.jsonl`
 
-Windows migration note:
+Legacy migration note:
 
-- При обнаружении legacy state `D:\home\leon\.codex\memories\lockctl` выполняется one-time migration в canonical `%USERPROFILE%\.codex\memories\lockctl` с backup и marker-файлом `.legacy-migration-v1.done`.
+- Старый state из `$CODEX_HOME/memories/lockctl`, `~/.codex/memories/lockctl` или legacy Windows path `D:\home\leon\.codex\memories\lockctl` используется только как non-destructive migration source.
+- При первом запуске недостающие файлы копируются в `/int/tools/.runtime/lockctl`; старые каталоги не удаляются.
+- На `vds.intdata.pro` `/int/tools/.runtime/lockctl` является machine-local runtime и не синхронизируется через `/2brain`.
 
 ##### Common examples
 

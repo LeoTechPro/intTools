@@ -22,7 +22,8 @@ MAX_LEASE_SEC = 3600
 EXIT_OK = 0
 EXIT_COMMAND_ERROR = 2
 LEGACY_WINDOWS_STATE_DIR_DEFAULT = Path(r"D:\home\leon\.codex\memories\lockctl")
-WINDOWS_MIGRATION_MARKER = ".legacy-migration-v1.done"
+LEGACY_MIGRATION_MARKER = ".codex-memories-migration-v1.done"
+WINDOWS_MIGRATION_MARKER = LEGACY_MIGRATION_MARKER
 
 
 class LockCtlError(Exception):
@@ -76,6 +77,10 @@ def _resolve_home_dir() -> Path:
     return Path.home()
 
 
+def _resolve_int_tools_root() -> Path:
+    return Path(__file__).resolve().parents[1]
+
+
 def _windows_drive_candidates() -> list[str]:
     raw_candidates = [
         Path(__file__).resolve().drive,
@@ -113,11 +118,30 @@ def resolve_state_dir() -> Path:
     if explicit_state:
         return Path(explicit_state).expanduser().resolve()
 
+    return (_resolve_int_tools_root() / ".runtime" / "lockctl").resolve()
+
+
+def _legacy_state_candidates() -> list[Path]:
+    raw_candidates = []
+    legacy_override = os.environ.get("LOCKCTL_LEGACY_WINDOWS_STATE_DIR", "").strip()
+    if legacy_override:
+        raw_candidates.append(Path(legacy_override).expanduser())
     codex_home = os.environ.get("CODEX_HOME", "").strip()
     if codex_home:
-        return (Path(codex_home).expanduser() / "memories" / "lockctl").resolve()
+        raw_candidates.append(Path(codex_home).expanduser() / "memories" / "lockctl")
+    raw_candidates.append(_resolve_home_dir() / ".codex" / "memories" / "lockctl")
+    raw_candidates.append(LEGACY_WINDOWS_STATE_DIR_DEFAULT)
 
-    return (_resolve_home_dir() / ".codex" / "memories" / "lockctl").resolve()
+    candidates: list[Path] = []
+    seen: set[str] = set()
+    for candidate in raw_candidates:
+        resolved = candidate.resolve()
+        key = str(resolved).casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        candidates.append(resolved)
+    return candidates
 
 
 def _copy_tree_merge(source: Path, destination: Path) -> None:
@@ -135,34 +159,25 @@ def _copy_tree_merge(source: Path, destination: Path) -> None:
             shutil.copy2(item, target)
 
 
-def _maybe_migrate_windows_legacy_state(state_dir: Path) -> None:
-    if os.name != "nt":
-        return
+def _maybe_migrate_legacy_state(state_dir: Path) -> None:
     if os.environ.get("LOCKCTL_SKIP_WINDOWS_MIGRATION", "").strip() == "1":
         return
 
-    marker = state_dir / WINDOWS_MIGRATION_MARKER
+    marker = state_dir / LEGACY_MIGRATION_MARKER
     if marker.exists():
         return
 
-    legacy_override = os.environ.get("LOCKCTL_LEGACY_WINDOWS_STATE_DIR", "").strip()
-    legacy_dir = Path(legacy_override).expanduser().resolve() if legacy_override else LEGACY_WINDOWS_STATE_DIR_DEFAULT.resolve()
-    if not legacy_dir.exists() or legacy_dir == state_dir:
-        state_dir.mkdir(parents=True, exist_ok=True)
-        marker.write_text("no-legacy-or-already-canonical\n", encoding="utf-8")
-        return
-
-    state_dir.parent.mkdir(parents=True, exist_ok=True)
-    timestamp = utc_now().strftime("%Y%m%dT%H%M%SZ")
-    backup_dir = state_dir.parent / f"lockctl-legacy-backup-{timestamp}"
-
-    _copy_tree_merge(legacy_dir, state_dir)
-    shutil.move(str(legacy_dir), str(backup_dir))
+    migrated_from: list[str] = []
+    state_dir.mkdir(parents=True, exist_ok=True)
+    for legacy_dir in _legacy_state_candidates():
+        if legacy_dir == state_dir or not legacy_dir.exists():
+            continue
+        _copy_tree_merge(legacy_dir, state_dir)
+        migrated_from.append(str(legacy_dir))
     marker.write_text(
         json.dumps(
             {
-                "backup_dir": str(backup_dir),
-                "legacy_dir": str(legacy_dir),
+                "legacy_dirs": migrated_from,
                 "migrated_utc": iso_utc(utc_now()),
             },
             ensure_ascii=True,
@@ -173,6 +188,10 @@ def _maybe_migrate_windows_legacy_state(state_dir: Path) -> None:
     )
 
 
+def _maybe_migrate_windows_legacy_state(state_dir: Path) -> None:
+    _maybe_migrate_legacy_state(state_dir)
+
+
 STATE_DIR = resolve_state_dir()
 DB_PATH = STATE_DIR / "locks.sqlite"
 EVENTS_PATH = STATE_DIR / "events.jsonl"
@@ -180,7 +199,7 @@ EVENTS_PATH = STATE_DIR / "events.jsonl"
 
 def ensure_state_dir() -> None:
     STATE_DIR.parent.mkdir(parents=True, exist_ok=True)
-    _maybe_migrate_windows_legacy_state(STATE_DIR)
+    _maybe_migrate_legacy_state(STATE_DIR)
     STATE_DIR.mkdir(parents=True, exist_ok=True)
 
 
