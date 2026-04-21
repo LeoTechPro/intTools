@@ -85,7 +85,7 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 
 - `ops-tooling` contour для machine-wide automation;
 - machine-wide ops/process/tooling, hooks, bootstrap scripts и shared runbooks;
-- machine-wide delivery/publish automation для top-level repo contours `/int/*`;
+- machine-wide delivery/process automation для top-level repo contours `/int/*`;
 - внешние tooling contours для `intdata`, `crm`, `probe`, `codex` и соседних repos;
 - repo-level docs по reusable tooling и host helpers.
 
@@ -162,12 +162,11 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
   - plugin `intdata-control` (`intData Control`) заменяет `lockctl`, `openspec`, `intdata-governance`, `intdata-routing`, `intdata-delivery`, `gatesctl`;
   - plugin `intdata-runtime` заменяет `intdata-host`, `intdata-ssh`, `intdata-browser`, `intdata-vault`.
 - Публичные tool names (без alias-совместимости):
-  - governance: `routing_validate`, `routing_resolve`, `sync_gate_start`, `sync_gate_finish`, `publish`, `gate_status`, `gate_receipt`, `commit_binding`;
+  - governance: `routing_validate`, `routing_resolve`, `sync_gate_start`, `sync_gate_finish`, `gate_status`, `gate_receipt`, `commit_binding`;
   - OpenSpec: `openspec_list`, `openspec_show`, `openspec_validate`, `openspec_status`, `openspec_instructions`, `openspec_new`, `openspec_archive`, `openspec_change_mutate`, `openspec_spec_mutate`, `openspec_exec_mutate`;
   - runtime: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`, `ssh_resolve`, `ssh_host`, `browser_profile_launch`.
 - Старые plugin IDs/tool names из удалённых шести плагинов не использовать в AGENTS/skills/runbooks.
 - Canonical engine roots:
-  - publish/deploy family: `delivery/bin`
   - SSH / Firefox / host launchers: `codex/bin`
   - sync gate: `scripts/codex/int_git_sync_gate.py`
   - lockctl CLI/MCP: `lockctl/lockctl_core.py`, `codex/bin/mcp-intdata-cli.py --profile intdata-control`
@@ -193,7 +192,7 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 - Для каждого checkout/worktree обязателен локальный bootstrap `git config core.hooksPath .githooks`; tracked `.githooks/pre-push` включает этот guardrail только после такой настройки и не ограничивает push в `dev` или другие non-main branches.
 - `git push` и прочие remote-операции остаются отдельным шагом и не выполняются автоматически без owner approval или явного требования локального процесса.
 - Локальный `git add`/`git commit` по умолчанию остаётся дисциплиной согласованного scope: агент коммитит свои/согласованные правки, если владелец явно не указал включить больше.
-- Если владелец явно командует `push/publish/выкатывай/публикуй`, агент обязан либо выполнить canonical publication по уже подготовленному publication-state, либо остановиться и спросить, что делать дальше при блокере/неоднозначности.
+- Если владелец явно командует `push/publish/выкатывай/публикуй`, агент обязан либо выполнить явные native git/deploy команды по текущему documented process целевого repo, либо остановиться и спросить, что делать дальше при блокере/неоднозначности.
 - При explicit owner-команде на publication запрещено по собственной инициативе дофильтровывать уже подготовленное publication-state: stash'ить, откатывать, скрывать или откладывать чужие/неатрибутированные изменения перед push/deploy.
 
 ## Env Policy (Strict)

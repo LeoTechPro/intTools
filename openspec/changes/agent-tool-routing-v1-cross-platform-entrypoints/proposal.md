@@ -4,9 +4,8 @@
 
 Сейчас agent-facing tooling для `/int/*` частично маршрутизируется через случайные shell-specific entrypoints и project-local hardcodes вместо одного capability contract:
 
-- high-risk intents (`publish/deploy`, `remote access`, `DB diagnostics`, `browser verify/attach`, `lock/sync gate`) не имеют общего routing source-of-truth;
-- часть publish/deploy path всё ещё завязана на PowerShell wrappers в `D:/int/tools/codex/bin/*` как на фактический primary implementation;
-- SSH routing split между `int_ssh_resolve.ps1`, `int_ssh_host.sh` и локальной логикой в `publish_repo.py`;
+- high-risk intents (`remote access`, `DB diagnostics`, `browser verify/attach`, `lock/sync gate`) не имеют общего routing source-of-truth;
+- SSH routing split между `int_ssh_resolve.ps1` и `int_ssh_host.sh`;
 - Firefox MCP overlays в `D:/int/tools/codex/projects/*/.mcp.json` содержат Windows-only launcher assumptions;
 - verified skills остаются полезными, но сейчас их легко превратить в неявный ad-hoc workaround для blocked repo-owned high-risk capability.
 
@@ -17,20 +16,10 @@
 - Добавляется новый capability-spec `agent-tool-routing`.
 - В change явно фиксируется cross-platform entrypoint policy для repo-owned runtime-critical capabilities.
 - В registry V1 source-of-truth становится logical capability binding, а не конкретный `.ps1`/`.sh` файл.
-- Для delivery-capabilities canonical engine root закрепляется в `D:/int/tools/delivery/bin`.
 - Для non-delivery high-risk capabilities canonical engine root остаётся в `D:/int/tools/codex` или в repo-owned tool directory, если capability уже self-contained.
 - Verified skill tools остаются разрешёнными, но только как explicit approved fallback там, где это заранее описано в registry.
 
 ## V1 Inventory To Canonize
-
-### Publish / deploy
-- `publish_data`
-- `publish_assess`
-- `publish_crm`
-- `publish_id`
-- `publish_nexus`
-- `publish_bundle_dint`
-- `publish_brain_dev`
 
 ### Lock / sync gate
 - `int_git_sync_gate`

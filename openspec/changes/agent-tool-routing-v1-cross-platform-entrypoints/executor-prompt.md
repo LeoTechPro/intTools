@@ -11,23 +11,7 @@
 
 ## Обязательный V1 inventory
 
-### Publish / deploy
-- `D:/int/tools/delivery/bin/publish_repo.py`
-- `D:/int/tools/delivery/bin/publish_data.py`
-- `D:/int/tools/codex/bin/publish_repo.ps1`
-- `D:/int/tools/codex/bin/publish_data.ps1`
-- `D:/int/tools/codex/bin/publish_assess.ps1`
-- `D:/int/tools/codex/bin/publish_crm.ps1`
-- `D:/int/tools/codex/bin/publish_id.ps1`
-- `D:/int/tools/codex/bin/publish_nexus.ps1`
-- `D:/int/tools/codex/bin/publish_bundle_dint.ps1`
-- `agents@vds.intdata.pro:/int/brain/deploy/scripts/publish_dev_vds_intbrain.sh`
-
-Требование:
-- canonical engine root для delivery-capabilities = `D:/int/tools/delivery/bin`;
-- старые `publish_*.ps1` в `D:/int/tools/codex/bin` после cutover не должны оставаться source-of-truth;
-- добавь Linux adapters с тем же CLI surface и exit semantics;
-- `publish_brain_dev` включи в тот же routing inventory.
+Publish/deploy inventory removed by `remove-local-delivery-publish-surface`: do not add local delivery publish wrappers back to this routing inventory.
 
 ### Lock / sync gate
 - `D:/int/tools/scripts/codex/int_git_sync_gate.py`
@@ -44,7 +28,6 @@
 ### Remote access
 - `D:/int/tools/codex/bin/int_ssh_resolve.ps1`
 - `D:/int/tools/codex/bin/int_ssh_host.sh`
-- duplicated SSH resolve/probe/fallback logic в `D:/int/tools/delivery/bin/publish_repo.py`
 
 Требование:
 - выдели один общий SSH resolver engine;
@@ -131,7 +114,7 @@
 
 1. Все V1 high-risk repo-owned capabilities описаны в registry и capability spec.
 2. Ни один primary binding не остаётся shell-specific source-of-truth без canonical engine.
-3. Publish layer больше не зависит от `D:/int/tools/codex/bin/publish_*.ps1` как от canonical implementation.
+3. Local delivery publish wrapper layer remains removed and is not reintroduced as a routing binding.
 4. SSH routing и Firefox launcher имеют cross-platform engine/adapter contract.
 5. `int_git_sync_gate` и `lockctl` остаются рабочими reference-patterns без регрессии.
 6. Verified skills остаются допустимыми, но не могут неявно подменять blocked repo-owned high-risk capability.

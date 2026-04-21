@@ -151,12 +151,6 @@ GOVERNANCE_TOOLS = [
         ["confirm_mutation", "issue_context"],
     ),
     _tool(
-        "publish",
-        "Run a canonical publish wrapper. Mutating; requires confirmation.",
-        {**COMMON_RUN_PROPS, **_mutation_props(), "target": {"type": "string"}, "no_push": {"type": "boolean"}, "no_deploy": {"type": "boolean"}, "args": _args_prop()},
-        ["confirm_mutation", "issue_context", "target"],
-    ),
-    _tool(
         "gate_status",
         "Show gate receipts/bindings/approvals status.",
         {**COMMON_RUN_PROPS, "repo_root": {"type": "string"}, "issue": {"type": "string"}, "receipt_id": {"type": "string"}, "commit": {"type": "string"}, "gate": {"type": "string"}, "owner": {"type": "string"}, "format": {"type": "string", "enum": ["json", "text"]}},
@@ -696,21 +690,6 @@ def _call_governance(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if arguments.get("root_path"):
             argv.extend(["--root-path", str(arguments["root_path"])])
         return _run(argv, cwd=cwd, timeout_sec=timeout)
-    if name == "publish":
-        _require_mutation(arguments)
-        target = str(arguments["target"])
-        script = ROOT_DIR / "delivery" / "bin" / f"publish_{target}.py"
-        if target == "bundle-dint":
-            script = ROOT_DIR / "delivery" / "bin" / "publish_bundle_dint.py"
-        if not script.exists():
-            raise ValueError(f"unknown publish target: {target}")
-        argv = ["python", str(script)]
-        if arguments.get("no_push"):
-            argv.append("--no-push")
-        if arguments.get("no_deploy"):
-            argv.append("--no-deploy")
-        argv.extend(_safe_args(arguments.get("args")))
-        return _run(argv, cwd=cwd, timeout_sec=timeout or 300)
     if name == "gate_status":
         argv = ["python", str(ROOT_DIR / "gatesctl" / "gatesctl.py"), "status"]
         if arguments.get("repo_root"):

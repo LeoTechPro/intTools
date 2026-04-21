@@ -18,33 +18,10 @@
 - У каждой runtime-critical capability ровно один canonical engine на platform-neutral runtime (`python`, `node`, `.mjs` или иной neutral runtime).
 - Shell-specific `.ps1`, `.sh`, `.cmd` допустимы только как thin adapters.
 - Registry хранит logical capability и runtime bindings, а не hardcoded wrapper как единственный primary source-of-truth.
-- Для delivery/publish capabilities canonical engine root закрепляется в `D:/int/tools/delivery/bin`.
 - Для SSH/browser/host-runtime canonical engine root закрепляется в `D:/int/tools/codex`.
 - Для self-contained tools допустим repo-owned engine outside `tools/codex`, если capability уже изолирована и кроссплатформенна, как `D:/int/tools/intdb/lib/intdb.py` или `D:/int/tools/lockctl/lockctl_core.py`.
 
 ## V1 capability inventory and canonicalization target
-
-### Publish / deploy
-
-Current repo-owned tools:
-
-- `D:/int/tools/delivery/bin/publish_repo.py`
-- `D:/int/tools/delivery/bin/publish_data.py`
-- `D:/int/tools/codex/bin/publish_repo.ps1`
-- `D:/int/tools/codex/bin/publish_data.ps1`
-- `D:/int/tools/codex/bin/publish_assess.ps1`
-- `D:/int/tools/codex/bin/publish_crm.ps1`
-- `D:/int/tools/codex/bin/publish_id.ps1`
-- `D:/int/tools/codex/bin/publish_nexus.ps1`
-- `D:/int/tools/codex/bin/publish_bundle_dint.ps1`
-- `agents@vds.intdata.pro:/int/brain/deploy/scripts/publish_dev_vds_intbrain.sh`
-
-Decision:
-
-- `publish_repo.py` становится canonical shared engine для delivery-style publish capabilities.
-- Repo-specific publish capabilities получают thin Windows/Linux adapters рядом с engine, а не новые source-of-truth в `D:/int/tools/codex/bin`.
-- Старые `publish_*.ps1` в `D:/int/tools/codex/bin` выводятся из роли canonical binding и должны быть удалены после cutover callers.
-- `publish_brain_dev` входит в тот же V1 inventory и обязан использовать общий SSH resolver contract, даже если его engine остаётся repo-local до отдельной унификации.
 
 ### Lock / sync gate
 
@@ -73,7 +50,6 @@ Current repo-owned tools:
 
 - `D:/int/tools/codex/bin/int_ssh_resolve.ps1`
 - `D:/int/tools/codex/bin/int_ssh_host.sh`
-- duplicated SSH resolve/probe/fallback logic inside `D:/int/tools/delivery/bin/publish_repo.py`
 
 Decision:
 

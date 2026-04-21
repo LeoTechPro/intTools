@@ -32,14 +32,6 @@ The system MUST block routing if the current platform has no supported binding, 
 - **THEN** routing returns `blocked`
 - **AND** the agent does not improvise a new path outside the registry
 
-### Requirement: Publish and deploy capabilities MUST resolve to delivery-owned canonical engines
-The system MUST route repo-owned publish and deploy capabilities through canonical engines under `D:/int/tools/delivery/bin`, with shell-specific wrappers treated only as adapters.
-
-#### Scenario: Publish capability is resolved
-- **WHEN** the intent maps to `publish_data`, `publish_assess`, `publish_crm`, `publish_id`, `publish_nexus`, `publish_bundle_dint`, or `publish_brain_dev`
-- **THEN** the routing contract resolves to a delivery-owned canonical engine or an explicitly documented repo-local exception
-- **AND** old PowerShell wrappers in `D:/int/tools/codex/bin` are not treated as the source-of-truth
-
 ### Requirement: Remote access routing MUST resolve through one shared SSH resolver engine
 The system MUST route remote access capabilities through one shared canonical SSH resolver engine and MUST return the same metadata contract on Windows and Linux.
 

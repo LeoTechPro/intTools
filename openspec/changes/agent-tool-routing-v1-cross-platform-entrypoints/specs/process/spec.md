@@ -4,7 +4,7 @@
 The system MUST route high-risk agent intents for `/int/*` through an approved logical capability binding before runtime execution starts.
 
 #### Scenario: High-risk intent is requested
-- **WHEN** an agent is about to execute `publish/deploy`, `remote access`, `DB apply/smoke/migration diagnostics`, `browser verify/fallback attach`, or `lock/sync gate`
+- **WHEN** an agent is about to execute `remote access`, `DB apply/smoke/migration diagnostics`, `browser verify/fallback attach`, or `lock/sync gate`
 - **THEN** the agent first resolves the request through the approved routing registry
 - **AND** execution does not start from an ad-hoc wrapper path chosen without registry resolution
 

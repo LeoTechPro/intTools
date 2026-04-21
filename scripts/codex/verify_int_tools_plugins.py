@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 MCP_SERVER = ROOT / "codex" / "bin" / "mcp-intdata-cli.py"
 EXPECTED_COUNTS = {
     "intbrain": 27,
-    "intdata-control": 24,
+    "intdata-control": 23,
     "intdata-runtime": 9,
     "intdb": 1,
 }
@@ -45,9 +45,8 @@ TOOL_SKILLS = {
         "openspec_exec_mutate": "openspec-mutation",
         "routing_validate": "routing",
         "routing_resolve": "routing",
-        "sync_gate_start": "sync-gate-publish",
-        "sync_gate_finish": "sync-gate-publish",
-        "publish": "sync-gate-publish",
+        "sync_gate_start": "sync-gate",
+        "sync_gate_finish": "sync-gate",
         "gate_status": "gate-receipts-commit-binding",
         "gate_receipt": "gate-receipts-commit-binding",
         "commit_binding": "gate-receipts-commit-binding",
@@ -111,7 +110,7 @@ REQUIRED_CARD_MARKERS = [
 GUARDED_TOOLS = {
     "lockctl_acquire", "lockctl_renew", "lockctl_release_path", "lockctl_release_issue", "lockctl_gc",
     "openspec_archive", "openspec_change_mutate", "openspec_spec_mutate", "openspec_new", "openspec_exec_mutate",
-    "sync_gate_finish", "publish", "commit_binding",
+    "sync_gate_finish", "commit_binding",
     "host_bootstrap", "recovery_bundle", "ssh_host", "browser_profile_launch",
     "intdata_vault_sanitize", "intdata_runtime_vault_gc",
     "intbrain_context_store", "intbrain_graph_link", "intbrain_group_policy_upsert", "intbrain_jobs_sync_runtime",
@@ -132,12 +131,17 @@ REMOVED_INTDATA_CONTROL_TOOLS = {
     "multica_runtime_write", "multica_config_read", "multica_config_write", "multica_daemon_read",
     "multica_daemon_control", "multica_auth_read", "multica_auth_write", "multica_attachment_download",
     "multica_repo_checkout", "openspec_change", "openspec_spec", "openspec_exec", "sync_gate",
+    "publish_repo.py", "publish_data.py", "publish_assess.py", "publish_crm.py", "publish_id.py",
+    "publish_nexus.py", "publish_bundle_dint.py", "publish_brain_dev.py",
+    "publish_repo.ps1", "publish_data.ps1", "publish_assess.ps1", "publish_crm.ps1", "publish_id.ps1",
+    "publish_nexus.ps1", "publish_bundle_dint.ps1", "publish_brain_dev.ps1",
 }
 
 ACTIVE_DOC_GUARD_PATHS = [
     ROOT / "AGENTS.md",
     ROOT / "openspec" / "changes" / "require-agent-plugin-tool-access" / "specs" / "process" / "spec.md",
     ROOT / "openspec" / "changes" / "remove-intdata-control-multica-surface" / "specs" / "process" / "spec.md",
+    ROOT / "openspec" / "changes" / "remove-local-delivery-publish-surface" / "specs" / "process" / "spec.md",
 ]
 
 REMOVED_ACTIVE_DOC_REFS = {
@@ -336,7 +340,6 @@ def verify_guard_cases(profile: str) -> None:
         "intdata-control": [
             ("openspec_archive", {"change_name": "guard-negative"}),
             ("openspec_change_mutate", {"subcommand": "set", "args": ["guard-negative"]}),
-            ("publish", {"target": "tools"}),
             ("commit_binding", {"commit_sha": "0" * 40}),
             ("sync_gate_finish", {}),
         ],

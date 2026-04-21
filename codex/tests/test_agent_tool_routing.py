@@ -14,13 +14,6 @@ if str(ROUTER_ROOT) not in __import__("sys").path:
 
 import agent_tool_routing as routing  # noqa: E402
 EXPECTED_V1_CAPABILITIES = {
-    "publish_data",
-    "publish_assess",
-    "publish_crm",
-    "publish_id",
-    "publish_nexus",
-    "publish_bundle_dint",
-    "publish_brain_dev",
     "int_git_sync_gate",
     "lockctl-cli",
     "lockctl-mcp",
@@ -61,10 +54,6 @@ class AgentToolRoutingTest(unittest.TestCase):
         declared = {item["capability_id"] for item in payload["capabilities"]}
         self.assertEqual(declared, EXPECTED_V1_CAPABILITIES)
 
-    def test_resolve_publish_data_windows_selects_delivery_adapter(self) -> None:
-        payload = routing.resolve_capability("publish_data", platform="windows")
-        self.assertEqual(payload["selected_binding"]["binding_origin"], "delivery/bin/publish_data.ps1")
-
     def test_resolve_sync_gate_uses_python_engine(self) -> None:
         payload = routing.resolve_capability("sync-gate:start", platform="linux")
         self.assertEqual(payload["selected_binding"]["binding_origin"], "scripts/codex/int_git_sync_gate.py")
@@ -98,50 +87,50 @@ class AgentToolRoutingTest(unittest.TestCase):
     def test_missing_engine_blocks(self) -> None:
         payload = self._load_registry()
         for capability in payload["capabilities"]:
-            if capability["capability_id"] == "publish_data":
-                capability["canonical_engine"] = "delivery/bin/missing_publish_data.py"
+            if capability["capability_id"] == "codex-host-bootstrap":
+                capability["canonical_engine"] = "codex/bin/missing_codex_host_bootstrap.py"
                 for binding in capability["runtime_bindings"]:
                     if binding["binding_kind"] == "engine":
-                        binding["binding_origin"] = "delivery/bin/missing_publish_data.py"
-                    elif binding["adapter_targets_engine"] == "delivery/bin/publish_data.py":
-                        binding["adapter_targets_engine"] = "delivery/bin/missing_publish_data.py"
+                        binding["binding_origin"] = "codex/bin/missing_codex_host_bootstrap.py"
+                    elif binding["adapter_targets_engine"] == "codex/bin/codex_host_bootstrap.py":
+                        binding["adapter_targets_engine"] = "codex/bin/missing_codex_host_bootstrap.py"
         registry_path = self._write_temp_registry(payload)
         with self.assertRaises(routing.RoutingError) as ctx:
-            routing.resolve_capability("publish_data", platform="windows", registry_path=registry_path)
+            routing.resolve_capability("codex-host-bootstrap", platform="windows", registry_path=registry_path)
         self.assertEqual(ctx.exception.code, "MISSING_ENGINE")
 
     def test_missing_adapter_blocks(self) -> None:
         payload = self._load_registry()
         for capability in payload["capabilities"]:
-            if capability["capability_id"] == "publish_assess":
+            if capability["capability_id"] == "codex-host-bootstrap":
                 for binding in capability["runtime_bindings"]:
-                    if binding["binding_origin"] == "delivery/bin/publish_assess.ps1":
-                        binding["binding_origin"] = "delivery/bin/publish_assess_missing.ps1"
+                    if binding["binding_origin"] == "codex/bin/codex-host-bootstrap.cmd":
+                        binding["binding_origin"] = "codex/bin/missing-codex-host-bootstrap.cmd"
         registry_path = self._write_temp_registry(payload)
         with self.assertRaises(routing.RoutingError) as ctx:
-            routing.resolve_capability("publish_assess", platform="windows", registry_path=registry_path)
+            routing.resolve_capability("codex-host-bootstrap", platform="windows", registry_path=registry_path)
         self.assertEqual(ctx.exception.code, "MISSING_ADAPTER")
 
     def test_adapter_drift_blocks(self) -> None:
         payload = self._load_registry()
         for capability in payload["capabilities"]:
-            if capability["capability_id"] == "publish_nexus":
+            if capability["capability_id"] == "codex-host-bootstrap":
                 for binding in capability["runtime_bindings"]:
-                    if binding["binding_origin"] == "delivery/bin/publish_nexus.ps1":
-                        binding["adapter_targets_engine"] = "delivery/bin/publish_data.py"
+                    if binding["binding_origin"] == "codex/bin/codex-host-bootstrap.cmd":
+                        binding["adapter_targets_engine"] = "codex/bin/codex_host_verify.py"
         registry_path = self._write_temp_registry(payload)
         with self.assertRaises(routing.RoutingError) as ctx:
-            routing.resolve_capability("publish_nexus", platform="windows", registry_path=registry_path)
+            routing.resolve_capability("codex-host-bootstrap", platform="windows", registry_path=registry_path)
         self.assertEqual(ctx.exception.code, "ADAPTER_DRIFT")
 
     def test_ambiguous_intent_blocks(self) -> None:
         payload = self._load_registry()
         for capability in payload["capabilities"]:
-            if capability["capability_id"] == "publish_id":
-                capability["logical_intents"].append("publish:data")
+            if capability["capability_id"] == "codex-host-verify":
+                capability["logical_intents"].append("host:bootstrap")
         registry_path = self._write_temp_registry(payload)
         with self.assertRaises(routing.RoutingError) as ctx:
-            routing.resolve_capability("publish:data", platform="windows", registry_path=registry_path)
+            routing.resolve_capability("host:bootstrap", platform="windows", registry_path=registry_path)
         self.assertEqual(ctx.exception.code, "AMBIGUOUS_INTENT")
 
     def test_fallbacks_are_reported_but_not_executed(self) -> None:

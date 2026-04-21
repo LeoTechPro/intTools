@@ -86,7 +86,7 @@ Ambiguity считается значимой только при неяснос
 - Перед любым локальным commit обязательно добавить в индекс новые файлы текущего scope и повторно выполнить `git add` для уже staged путей после каждой дополнительной правки; commit по устаревшему состоянию индекса запрещён.
 - В `FINISH` `git push` выполняй только по явному разрешению владельца или по обязательному явному шагу процесса (например, `issue:push:done`).
 - Локальный `git add`/`git commit` по умолчанию остаётся дисциплиной согласованного scope: агент коммитит свои/согласованные правки, если владелец явно не указал включить больше.
-- Если владелец явно велит `push/publish/выкатывай/публикуй`, агент обязан либо публиковать уже подготовленное publication-state как есть, либо остановиться и запросить инструкцию при блокере/неоднозначности.
+- Если владелец явно велит `push/publish/выкатывай/публикуй`, агент обязан либо выполнить явные native git/deploy команды по текущему documented process целевого repo, либо остановиться и запросить инструкцию при блокере/неоднозначности.
 - При такой owner-команде запрещено самостоятельно решать, какие чужие или "не свои" правки скрыть, stash'нуть, откатить или отложить, если они уже входят в publication-state.
 - Для этого приватного репозитория `.codex` хранение `env`/секретов в git разрешено явным решением владельца; ограничение относится к публикации секретов во внешние публичные контуры.
 
@@ -98,10 +98,10 @@ Ambiguity считается значимой только при неяснос
   - `intdata-control` (вместо `lockctl`, `multica`, `openspec`, `intdata-governance`, `intdata-routing`, `intdata-delivery`, `gatesctl`);
   - `intdata-runtime` (вместо `intdata-host`, `intdata-ssh`, `intdata-browser`, `intdata-vault`).
 - Публичные tool names без alias:
-  - governance: `routing_validate`, `routing_resolve`, `sync_gate`, `publish`, `gate_status`, `gate_receipt`, `commit_binding`;
+  - governance: `routing_validate`, `routing_resolve`, `sync_gate_start`, `sync_gate_finish`, `gate_status`, `gate_receipt`, `commit_binding`;
   - runtime: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`, `ssh_resolve`, `ssh_host`, `browser_profile_launch`.
 - Удалённые plugin IDs/tool names запрещено использовать в новых AGENTS/skills/runbooks.
-- Для publish family canonical engine root = `/int/tools/delivery/bin`; `codex/bin/publish_*.ps1` не являются active compatibility surface.
+- Local delivery publish wrappers are removed; do not use `/int/tools/delivery/bin/publish_*`, `/int/tools/codex/bin/publish_*.ps1`, or `mcp__intdata_control__.publish`.
 - Для Firefox/SSH/host launcher family canonical engine root = `/int/tools/codex/bin`; shell/cmd/PowerShell wrappers не являются source-of-truth.
 
 ## Postgres по умолчанию

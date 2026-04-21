@@ -56,14 +56,4 @@ for line in "${main_push_lines[@]}"; do
   fi
 done
 
-# PUBLISH WRAPPER SMOKE GATE
-if command -v python >/dev/null 2>&1; then
-  python -m unittest discover -s delivery/tests -p test_publish_repo.py -q
-elif command -v python3 >/dev/null 2>&1; then
-  python3 -m unittest discover -s delivery/tests -p test_publish_repo.py -q
-else
-  echo "Python interpreter is required to run delivery publish smoke for pushes to main." >&2
-  exit 1
-fi
-
 exit 0

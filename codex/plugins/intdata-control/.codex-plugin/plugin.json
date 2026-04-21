@@ -1,7 +1,7 @@
 {
   "name": "intdata-control",
   "version": "1.0.2",
-  "description": "Инструменты intData Control для lockctl, OpenSpec, routing, gates и publication.",
+  "description": "Инструменты intData Control для lockctl, OpenSpec, routing и gates.",
   "author": {
     "name": "IntData",
     "email": "owner@intdata.pro"
@@ -11,8 +11,8 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "intData Control",
-    "shortDescription": "Locks, specs, gates и publish",
-    "longDescription": "Единая MCP-поверхность intData Control для lockctl, OpenSpec, routing validation, sync gate, publication, gate receipts, commit binding и review workflows с явными approval/issue правилами. Multica issue state ведётся через официальный multica CLI или официальный Multica MCP plugin, если он установлен.",
+    "shortDescription": "Locks, specs, routing и gates",
+    "longDescription": "Единая MCP-поверхность intData Control для lockctl, OpenSpec, routing validation, sync gate, gate receipts, commit binding и review workflows с явными approval/issue правилами. Multica issue state ведётся через официальный multica CLI или официальный Multica MCP plugin, если он установлен. Local delivery publish wrappers removed/forbidden.",
     "developerName": "IntData",
     "category": "Developer Tools",
     "capabilities": [

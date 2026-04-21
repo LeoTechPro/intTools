@@ -1,12 +1,13 @@
 ---
 name: intdata-control
-description: Internal int-tools skill entrypoint for the intdata-control plugin. Use as the router for lockctl, OpenSpec, routing, sync gate, publish, gate receipts, commit binding, and review workflows.
+description: Internal int-tools skill entrypoint for the intdata-control plugin. Use as the router for lockctl, OpenSpec, routing, sync gate, gate receipts, commit binding, and review workflows.
 ---
 
 # Маршрутизатор intData Control
 
-- Используй этот skill как входную точку для lockctl, OpenSpec, routing, sync-gate, publish и gate receipts.
+- Используй этот skill как входную точку для lockctl, OpenSpec, routing, sync-gate и gate receipts.
 - Для Multica используй официальный `multica` CLI или официальный Multica MCP plugin, если он установлен; `intdata-control` Multica tools removed/forbidden.
+- Local delivery publish wrappers removed/forbidden: do not use `/int/tools/delivery/bin/publish_*`, `/int/tools/codex/bin/publish_*.ps1`, or an `intdata-control` `publish` tool.
 - Перед tracked-правками в `/int/tools` бери lockctl lock на каждый файл и работай только в рамках INT-* issue.
 - Mutating tools без `confirm_mutation=true`, `issue_context=INT-*` и owner approval не вызывать.
 
@@ -16,7 +17,7 @@ description: Internal int-tools skill entrypoint for the intdata-control plugin.
 - `openspec-read`: OpenSpec read-only discovery.
 - `openspec-mutation`: OpenSpec lifecycle mutations.
 - `routing`: Routing registry validation.
-- `sync-gate-publish`: Sync gate и publication.
+- `sync-gate`: Sync gate.
 - `gate-receipts-commit-binding`: Gate receipts и commit binding.
 - `review-find`: hostile-аудит предыдущего результата агента по реальному текущему состоянию.
 - `review-fix`: перепроверка внешних findings и исправление только подтверждённых пунктов.
