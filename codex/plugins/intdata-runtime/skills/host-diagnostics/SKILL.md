@@ -1,3 +1,8 @@
+---
+name: host-diagnostics
+description: Runtime host diagnostics. Используйте для host_preflight, host_verify, bootstrap и recovery bundle проверок runtime окружения.
+---
+
 # Runtime host diagnostics
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

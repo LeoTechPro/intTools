@@ -1,6 +1,6 @@
 {
   "name": "intbrain",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Инструменты MCP intData Brain для контекста, памяти, графа людей, политик, задач и PM.",
   "author": {
     "name": "IntData",

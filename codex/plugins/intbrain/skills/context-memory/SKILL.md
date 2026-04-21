@@ -1,3 +1,8 @@
+---
+name: context-memory
+description: IntBrain context и memory. Используйте для context packs, memory search/store и graph links через canonical IntBrain tools.
+---
+
 # IntBrain context и memory
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

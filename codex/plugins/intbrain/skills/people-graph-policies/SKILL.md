@@ -1,3 +1,8 @@
+---
+name: people-graph-policies
+description: IntBrain people, graph и policies. Используйте для people resolve/get, graph neighbors и policy reads/upserts.
+---
+
 # IntBrain people, graph и policies
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

@@ -51,6 +51,10 @@ def _args_prop(description: str = "Structured command arguments.") -> dict[str, 
     return {"type": "array", "items": {"type": "string"}, "description": description}
 
 
+def _action_prop(actions: list[str], description: str = "Allowlisted action.") -> dict[str, Any]:
+    return {"type": "string", "enum": actions, "description": description}
+
+
 def _mutation_props() -> dict[str, Any]:
     return {
         "confirm_mutation": {"type": "boolean"},
@@ -102,16 +106,16 @@ OPEN_SPEC_TOOLS = [
         ["confirm_mutation", "issue_context", "change_name"],
     ),
     _tool(
-        "openspec_change",
-        "Run an allowlisted `openspec change` subcommand. Mutating subcommands require confirmation.",
+        "openspec_change_mutate",
+        "Run a mutating `openspec change` subcommand. Requires confirmation and issue context.",
         {**COMMON_RUN_PROPS, **_mutation_props(), "subcommand": {"type": "string"}, "args": _args_prop()},
-        ["subcommand"],
+        ["confirm_mutation", "issue_context", "subcommand"],
     ),
     _tool(
-        "openspec_spec",
-        "Run an allowlisted `openspec spec` subcommand. Mutating subcommands require confirmation.",
+        "openspec_spec_mutate",
+        "Run a mutating `openspec spec` subcommand. Requires confirmation and issue context.",
         {**COMMON_RUN_PROPS, **_mutation_props(), "subcommand": {"type": "string"}, "args": _args_prop()},
-        ["subcommand"],
+        ["confirm_mutation", "issue_context", "subcommand"],
     ),
     _tool(
         "openspec_new",
@@ -120,26 +124,11 @@ OPEN_SPEC_TOOLS = [
         ["confirm_mutation", "issue_context"],
     ),
     _tool(
-        "openspec_exec",
-        "Run a structured OpenSpec CLI command. Mutating commands require confirmation.",
+        "openspec_exec_mutate",
+        "Run a mutating structured OpenSpec CLI command. Requires confirmation and issue context.",
         {**COMMON_RUN_PROPS, **_mutation_props(), "args": _args_prop("Arguments after the openspec executable.")},
-        ["args"],
+        ["confirm_mutation", "issue_context", "args"],
     ),
-]
-
-MULTICA_TOOLS = [
-    _tool("multica_issue", "Run structured `multica issue` commands.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
-    _tool("multica_project", "Run structured `multica project` commands.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
-    _tool("multica_agent", "Run structured `multica agent` commands.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
-    _tool("multica_workspace", "Run structured `multica workspace` commands.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
-    _tool("multica_repo", "Run structured `multica repo` commands.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
-    _tool("multica_skill", "Run structured `multica skill` commands.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
-    _tool("multica_runtime", "Run structured `multica runtime` commands.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
-    _tool("multica_daemon", "Run structured `multica daemon` commands. Control commands require confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
-    _tool("multica_attachment", "Run structured `multica attachment` commands.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
-    _tool("multica_auth", "Run structured `multica auth/login/setup` commands. Mutating auth setup requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
-    _tool("multica_config", "Run structured `multica config` commands.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
-    _tool("multica_exec", "Run a structured Multica CLI command. Mutating commands require confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "args": _args_prop("Arguments after the multica executable.")}, ["args"]),
 ]
 
 GOVERNANCE_TOOLS = [
@@ -151,10 +140,15 @@ GOVERNANCE_TOOLS = [
         ["intent"],
     ),
     _tool(
-        "sync_gate",
-        "Run int git sync gate. Finish/push modes require confirmation.",
-        {**COMMON_RUN_PROPS, **_mutation_props(), "stage": {"type": "string", "enum": ["start", "finish"]}, "push": {"type": "boolean"}, "all_repos": {"type": "boolean"}, "root_path": {"type": "string"}},
-        ["stage"],
+        "sync_gate_start",
+        "Run int git sync gate start for the current checkout.",
+        {**COMMON_RUN_PROPS, "all_repos": {"type": "boolean"}, "root_path": {"type": "string"}},
+    ),
+    _tool(
+        "sync_gate_finish",
+        "Run int git sync gate finish. Push mode requires confirmation.",
+        {**COMMON_RUN_PROPS, **_mutation_props(), "push": {"type": "boolean"}, "all_repos": {"type": "boolean"}, "root_path": {"type": "string"}},
+        ["confirm_mutation", "issue_context"],
     ),
     _tool(
         "publish",
@@ -291,7 +285,7 @@ INTBRAIN_TOOLS = [
 ]
 
 RUNTIME_TOOLS.extend(VAULT_TOOLS)
-CONTROL_TOOLS = [*LOCKCTL_TOOLS, *OPEN_SPEC_TOOLS, *MULTICA_TOOLS, *GOVERNANCE_TOOLS]
+CONTROL_TOOLS = [*LOCKCTL_TOOLS, *OPEN_SPEC_TOOLS, *GOVERNANCE_TOOLS]
 
 PROFILE_TOOLS: dict[str, list[dict[str, Any]]] = {
     "intbrain": INTBRAIN_TOOLS,
@@ -645,46 +639,27 @@ def _call_openspec(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     elif name == "openspec_archive":
         _require_mutation(arguments)
         args = ["archive", str(arguments["change_name"]), *_safe_args(arguments.get("args"))]
-    elif name == "openspec_change":
+    elif name == "openspec_change_mutate":
+        _require_mutation(arguments)
         args = ["change", str(arguments["subcommand"]), *_safe_args(arguments.get("args"))]
-        if _is_openspec_mutating(args):
-            _require_mutation(arguments)
-    elif name == "openspec_spec":
+        if not _is_openspec_mutating(args):
+            raise ValueError("openspec_change_mutate cannot run read-only subcommands")
+    elif name == "openspec_spec_mutate":
+        _require_mutation(arguments)
         args = ["spec", str(arguments["subcommand"]), *_safe_args(arguments.get("args"))]
-        if _is_openspec_mutating(args):
-            _require_mutation(arguments)
+        if not _is_openspec_mutating(args):
+            raise ValueError("openspec_spec_mutate cannot run read-only subcommands")
     elif name == "openspec_new":
         _require_mutation(arguments)
         args = ["new", *_safe_args(arguments.get("args"))]
-    elif name == "openspec_exec":
+    elif name == "openspec_exec_mutate":
+        _require_mutation(arguments)
         args = _safe_args(arguments.get("args"))
-        if _is_openspec_mutating(args):
-            _require_mutation(arguments)
+        if not _is_openspec_mutating(args):
+            raise ValueError("openspec_exec_mutate cannot run read-only commands")
     else:
         raise ValueError(f"unknown openspec tool: {name}")
     return _run([*_openspec_base(), *args], cwd=cwd, timeout_sec=timeout)
-
-
-def _is_multica_mutating(domain: str, command: str) -> bool:
-    return command not in READ_ONLY_MULTICA.get(domain, set())
-
-
-def _call_multica(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
-    cwd = _cwd(arguments.get("cwd"))
-    timeout = arguments.get("timeout_sec")
-    if name == "multica_exec":
-        args = _safe_args(arguments.get("args"))
-        if args and _is_multica_mutating(args[0], args[1] if len(args) > 1 else ""):
-            _require_mutation(arguments)
-        return _run(["multica", *args], cwd=cwd, timeout_sec=timeout)
-    domain = name.removeprefix("multica_")
-    command = str(arguments["command"])
-    if _is_multica_mutating(domain, command):
-        _require_mutation(arguments)
-    if domain == "auth" and command in {"login", "setup"}:
-        _require_mutation(arguments)
-        return _run(["multica", command, *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout)
-    return _run(["multica", domain, command, *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout)
 
 
 def _call_governance(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
@@ -704,13 +679,18 @@ def _call_governance(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if arguments.get("json"):
             argv.append("--json")
         return _run(argv, cwd=cwd, timeout_sec=timeout)
-    if name == "sync_gate":
-        argv = ["python", str(ROOT_DIR / "scripts" / "codex" / "int_git_sync_gate.py"), "--stage", str(arguments["stage"])]
+    if name == "sync_gate_start":
+        argv = ["python", str(ROOT_DIR / "scripts" / "codex" / "int_git_sync_gate.py"), "--stage", "start"]
+        if arguments.get("all_repos"):
+            argv.append("--all-repos")
+        if arguments.get("root_path"):
+            argv.extend(["--root-path", str(arguments["root_path"])])
+        return _run(argv, cwd=cwd, timeout_sec=timeout)
+    if name == "sync_gate_finish":
+        _require_mutation(arguments)
+        argv = ["python", str(ROOT_DIR / "scripts" / "codex" / "int_git_sync_gate.py"), "--stage", "finish"]
         if arguments.get("push"):
-            _require_mutation(arguments)
             argv.append("--push")
-        if arguments.get("stage") == "finish":
-            _require_mutation(arguments)
         if arguments.get("all_repos"):
             argv.append("--all-repos")
         if arguments.get("root_path"):
@@ -1127,8 +1107,6 @@ def _call_tool(profile: str, name: str, arguments: dict[str, Any]) -> dict[str, 
             return _call_lockctl(name, arguments)
         if name.startswith("openspec_"):
             return _call_openspec(name, arguments)
-        if name.startswith("multica_"):
-            return _call_multica(name, arguments)
         return _call_governance(name, arguments)
     if profile == "intdata-runtime":
         if name in {tool["name"] for tool in VAULT_TOOLS}:

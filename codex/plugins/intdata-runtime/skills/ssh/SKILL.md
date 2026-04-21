@@ -1,3 +1,8 @@
+---
+name: ssh
+description: Runtime SSH routes. Используйте для ssh_resolve и ssh_host через canonical intData Runtime transport.
+---
+
 # Runtime SSH routes
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

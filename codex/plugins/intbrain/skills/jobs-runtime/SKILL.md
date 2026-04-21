@@ -1,3 +1,8 @@
+---
+name: jobs-runtime
+description: IntBrain jobs runtime. Используйте для read-only просмотра jobs, job policies и runtime sync операций IntBrain.
+---
+
 # IntBrain jobs runtime
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

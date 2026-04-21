@@ -33,11 +33,10 @@ Initial candidates:
 
 - `openspec_status`: read-only status for an approved change.
 - `openspec_show`: read-only spec/change fetch.
-- `multica_issue_get`: read-only issue lookup by `INT-*`.
 - `routing_validate`: read-only high-risk routing registry validation.
 - `lockctl_status`: read-only lock inspection.
 
-Do not expose publish, sync-gate finish, daemon control, DB apply, browser launch, or vault non-dry-run in v1.
+Do not expose publish, sync-gate finish, Multica operations, daemon control, DB apply, browser launch, or vault non-dry-run in v1. Multica remains available through the official `multica` CLI or official Multica MCP plugin when installed, not through this intData Control surface.
 
 ## Annotations
 

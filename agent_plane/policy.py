@@ -5,9 +5,6 @@ from uuid import uuid4
 from .models import PolicyDecision, ToolCallRequest
 
 
-READ_ONLY_MULTICA_COMMANDS = {"get", "list", "search", "runs", "run-messages"}
-READ_ONLY_MULTICA_COMMENT_COMMANDS = {"list"}
-
 MUTATING_TOOLS = {
     "intbrain_context_store",
     "intbrain_graph_link",
@@ -46,18 +43,6 @@ class PolicyEngine:
     def is_guarded(self, request: ToolCallRequest) -> bool:
         if request.tool in MUTATING_TOOLS:
             return True
-        if request.tool.startswith("multica_"):
-            return not self._is_read_only_multica(request)
-        return False
-
-    def _is_read_only_multica(self, request: ToolCallRequest) -> bool:
-        command = str(request.args.get("command") or "").strip()
-        if request.tool == "multica_issue":
-            return command in READ_ONLY_MULTICA_COMMANDS
-        if request.tool == "multica_attachment":
-            return command in {"list"}
-        if request.tool == "multica_issue_comment":
-            return command in READ_ONLY_MULTICA_COMMENT_COMMANDS
         return False
 
     def _reject(self, reason: str) -> PolicyDecision:

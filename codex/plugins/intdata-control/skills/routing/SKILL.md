@@ -1,3 +1,8 @@
+---
+name: routing
+description: Routing registry validation. Используйте для проверки и резолва high-risk agent tool routing через canonical registry и blocked-path правила.
+---
+
 # Routing registry validation
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

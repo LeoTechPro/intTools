@@ -10,48 +10,14 @@ if [[ "${1:-}" == "--dry-run" ]]; then
   DRY_RUN=1
 fi
 
-if [[ ! -f "$ASSETS_ROOT/AGENTS.md" ]]; then
-  echo "missing managed assets root: $ASSETS_ROOT" >&2
-  exit 1
-fi
-
-"$SCRIPT_DIR/sync_runtime_from_repo.sh" "${1:-}"
-
-for forbidden in \
-  auth.json \
-  config.toml \
-  history.jsonl \
-  internal_storage.json \
-  session_index.jsonl \
-  var \
-  tools \
-  tools/openclaw/openclaw.json \
-  tools/openclaw/secrets/telegram.token; do
-  if [[ -e "$ASSETS_ROOT/$forbidden" ]]; then
-    echo "forbidden runtime payload in managed assets: $forbidden" >&2
-    exit 1
-  fi
-done
-
 if (( DRY_RUN == 1 )); then
-  echo "dry-run: ~/.codex git would be detached"
+  if [[ -d "$CODEX_HOME/.git" ]]; then
+    echo "dry-run: Codex home git detach is retired; git directory exists at $CODEX_HOME/.git"
+  else
+    echo "dry-run: Codex home git detach is retired; no git directory found at $CODEX_HOME/.git"
+  fi
   exit 0
 fi
 
-if [[ ! -d "$CODEX_HOME/.git" ]]; then
-  echo "~/.codex git is already detached"
-  exit 0
-fi
-
-STAMP="$(date -u +%Y%m%dT%H%M%SZ)"
-BACKUP_DIR="$CODEX_HOME/.git.detached-$STAMP"
-
-mv "$CODEX_HOME/.git" "$BACKUP_DIR"
-cat >"$CODEX_HOME/.git-detached" <<EOF
-detached_at_utc=$STAMP
-assets_root=$ASSETS_ROOT
-git_backup=$BACKUP_DIR
-note=edit managed assets in /int/tools/codex/assets/codex-home and refresh runtime via /int/tools/codex/sync_runtime_from_repo.sh
-EOF
-
-echo "detached ~/.codex git into $BACKUP_DIR"
+echo "Codex home git detach is retired; use native Codex state management or explicit manual owner action." >&2
+exit 1

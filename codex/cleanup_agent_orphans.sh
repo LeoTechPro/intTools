@@ -2,9 +2,9 @@
 set -euo pipefail
 
 MIN_AGE_SECONDS="${MIN_AGE_SECONDS:-900}"
-CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-LOCK_FILE="${CODEX_HOME}/tmp/probe-agent-orphan-cleaner.lock"
-LOG_FILE="${CODEX_HOME}/log/probe-agent-orphan-cleaner.log"
+CODEX_RUNTIME_ROOT="${CODEX_RUNTIME_ROOT:-/int/tools/.runtime}"
+LOCK_FILE="${CODEX_ORPHAN_CLEANER_LOCK_FILE:-$CODEX_RUNTIME_ROOT/codex/tmp/probe-agent-orphan-cleaner.lock}"
+LOG_FILE="${CODEX_ORPHAN_CLEANER_LOG_FILE:-$CODEX_RUNTIME_ROOT/codex/log/probe-agent-orphan-cleaner.log}"
 DRY_RUN=0
 
 if [[ "${1:-}" == "--dry-run" ]]; then

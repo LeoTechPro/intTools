@@ -1,0 +1,44 @@
+{
+  "schema": "intdata.codex_automation_report.v1",
+  "automation": "gate-brief-int-2",
+  "run_utc": "2026-04-20T05:00:00Z",
+  "status": "attention",
+  "summary": "INT repo set: probe/assess/data clean; tools dirty+ahead; brain ahead",
+  "items": [
+    "D:\\int\\probe clean and aligned with upstream",
+    "D:\\int\\assess clean and aligned with upstream",
+    "D:\\int\\data clean and aligned with upstream",
+    "D:\\int\\tools dirty and ahead by 6; expired locks only; OpenSpec specs intdb and process; gate receipts empty",
+    "D:\\int\\brain ahead by 7; gate receipts empty"
+  ],
+  "next_actions": [
+    "Review the dirty and ahead state in D:\\int\\tools before any publish path",
+    "Confirm whether the ahead commits in D:\\int\\brain are expected or need reconciliation"
+  ],
+  "context": {
+    "routing_validate": "ok",
+    "git_statuses": {
+      "probe": "clean",
+      "assess": "clean",
+      "data": "clean",
+      "tools": "dirty+ahead6",
+      "brain": "ahead7"
+    },
+    "locks": {
+      "tools": {
+        "active": 0,
+        "expired": 9
+      }
+    },
+    "openspec": {
+      "tools": [
+        "intdb",
+        "process"
+      ]
+    },
+    "gates": {
+      "tools": 0,
+      "brain": 0
+    }
+  }
+}

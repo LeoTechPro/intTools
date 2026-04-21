@@ -34,7 +34,7 @@ Canonical memory/content remains in IntBrain. `memory_refs` stores provenance li
 
 ## MVP Tool Surface
 - IntBrain context/search/policy tools.
-- Read-only Multica issue/worklog reads.
+- Multica issue/worklog state remains outside the local `intdata-control` surface; agents use official Multica interfaces.
 - `lockctl_status`.
 - Guarded `lockctl_acquire` and `lockctl_release`.
 - Guarded OpenSpec/routing/runtime tools.

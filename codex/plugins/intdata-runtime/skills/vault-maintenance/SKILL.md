@@ -1,3 +1,8 @@
+---
+name: vault-maintenance
+description: Runtime vault maintenance. Используйте для vault sanitize и runtime vault GC workflows без вывода секретов.
+---
+
 # Runtime vault maintenance
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

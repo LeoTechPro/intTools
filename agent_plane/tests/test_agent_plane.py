@@ -42,6 +42,13 @@ class AgentPlaneTest(unittest.TestCase):
         self.assertNotIn("intbrain_cabinet_import", names)
         self.assertNotIn("intbrain_cabinet_import", dispatcher.tool_to_profile)
 
+    def test_runtime_dispatcher_exposes_no_intdata_control_multica_tools(self) -> None:
+        dispatcher = ToolDispatcher()
+
+        names = {tool["name"] for tool in dispatcher.list_tools()}
+
+        self.assertFalse([name for name in names if name.startswith("multica_")])
+
     def test_guarded_tool_requires_approval_and_is_audited(self) -> None:
         audit = MemoryAuditStore()
         dispatcher = StaticDispatcher()

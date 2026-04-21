@@ -1,7 +1,7 @@
 {
   "name": "intdata-control",
-  "version": "1.0.0",
-  "description": "Инструменты intData Control для lockctl, Multica, OpenSpec, routing, gates и publication.",
+  "version": "1.0.2",
+  "description": "Инструменты intData Control для lockctl, OpenSpec, routing, gates и publication.",
   "author": {
     "name": "IntData",
     "email": "owner@intdata.pro"
@@ -11,8 +11,8 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "intData Control",
-    "shortDescription": "Locks, issues, specs, gates и publish",
-    "longDescription": "Единая MCP-поверхность intData Control для lockctl, Multica, OpenSpec, routing validation, sync gate, publication, gate receipts и commit binding с явными approval/issue правилами.",
+    "shortDescription": "Locks, specs, gates и publish",
+    "longDescription": "Единая MCP-поверхность intData Control для lockctl, OpenSpec, routing validation, sync gate, publication, gate receipts, commit binding и review workflows с явными approval/issue правилами. Multica issue state ведётся через официальный multica CLI или официальный Multica MCP plugin, если он установлен.",
     "developerName": "IntData",
     "category": "Developer Tools",
     "capabilities": [
@@ -22,8 +22,9 @@
     "brandColor": "#2563EB",
     "websiteURL": "https://intdata.pro/",
     "defaultPrompt": [
-      "Проверить OpenSpec и Multica status для текущей задачи.",
+      "Проверить OpenSpec status и lock state для текущей задачи.",
       "Взять lockctl locks перед tracked-правками.",
+      "Для недоверенного ревью использовать review-find/review-fix и проверять claims по ground truth.",
       "Проверить routing/gates перед завершением."
     ]
   }

@@ -29,7 +29,8 @@
 - `python` или `py` в `PATH`;
 - `psql`, `pg_dump`, `pg_restore` в `PATH` или в стандартном каталоге `C:\Program Files\PostgreSQL\<version>\bin`;
 - сетевой доступ до нужных PostgreSQL endpoint'ов;
-- для `migrate *`: либо sibling checkout `..\..\data`, либо явный `--repo`, либо `INTDB_DATA_REPO`;
+- для `migrate *`: на Windows локальный `D:\int\data` не является default; dev backend work выполняется через `agents@vds.intdata.pro:/int/data`, а disposable/local flow требует явный `--repo` или `INTDB_DATA_REPO`;
+- на Linux remote host допускается sibling checkout `/int/data`;
 - для `migrate data --mode incremental`: `bash` из Git for Windows или иной совместимый `bash`.
 
 ## Профили
@@ -79,6 +80,7 @@ python /int/tools/intdb/bin/pg-dev-migrate.py --path /path/to/change.sql --write
 - Wrappers должны использовать только custom роли.
 - Raw `psql` с ad-hoc DSN для agent workflow запрещен process-policy.
 - `vds.intdata.pro` больше не используется как disposable test contour для `/int/data`; live remote contour остаётся только `intdata`.
+- Для dev backend intdata не используйте локальный `D:\int\data`; заходите в `agents@vds.intdata.pro:/int/data` и запускайте owner flow там.
 
 ## Local disposable Supabase runner
 
@@ -93,7 +95,7 @@ pwsh -File D:\int\tools\intdb\intdb.ps1 local-test run --confirm-owner-control I
 - нужен Docker;
 - нужен Supabase CLI (`supabase`) или fallback через `npx supabase`;
 - workspace создаётся в ignored `intdb/.tmp/local-supabase/<stamp>`;
-- после `supabase start` tool применяет `/int/data/init/010_supabase_migrate.sh apply`, затем `init/seed.sql`;
+- после `supabase start` tool применяет owner scripts из явно переданного локального repo (`--repo`/`INTDB_DATA_REPO`), затем `init/seed.sql`;
 - SQL smoke можно передать через `--smoke-file`;
 - по умолчанию runtime останавливается сам; для ручной диагностики используйте `--keep-running` и затем `local-test stop`.
 

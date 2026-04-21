@@ -234,18 +234,11 @@ def main() -> int:
     args = build_parser().parse_args()
     assert_binding("codex-host-bootstrap", args.binding_origin)
 
-    codex_home = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex")).expanduser()
     runtime_root = default_runtime_root()
     secrets_root = Path(os.environ.get("CODEX_SECRETS_ROOT", runtime_root / "codex-secrets")).expanduser()
-    template_path = Path(os.environ.get("TEMPLATE_PATH", ROOT_DIR / "templates" / "config.toml.tmpl")).expanduser()
 
-    codex_home.mkdir(parents=True, exist_ok=True)
+    runtime_root.mkdir(parents=True, exist_ok=True)
     secrets_root.mkdir(parents=True, exist_ok=True)
-
-    run_checked(build_repo_step_command("codex/sync_runtime_from_repo.sh", "codex/sync_runtime_from_repo.ps1"))
-
-    config_text = render_config_template(template_path.read_text(encoding="utf-8"), codex_home=codex_home)
-    (codex_home / "config.toml").write_text(config_text, encoding="utf-8")
 
     if not args.verify_only:
         if not args.skip_tools:
@@ -263,7 +256,8 @@ def main() -> int:
     run_verify_engine()
 
     print("codex host bootstrap: ok")
-    print(f"- codex home: {codex_home}")
+    print("- codex home: unchanged")
+    print(f"- runtime root: {runtime_root}")
     print(f"- secrets root: {secrets_root}")
     print("")
     print("If auth.json is absent, run:")

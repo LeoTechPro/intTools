@@ -1,7 +1,13 @@
+---
+name: migrations
+description: intDB migrations. Используйте только для gated migration workflows, readiness checks и owner-approved apply paths.
+---
+
 # intDB migrations
 
 - `intdata_cli` является command-router; выбирай subcommand по этой карточке, а не угадывай shell-команду.
 - Use for migration review/status. `migrate apply` is mutating and requires approval.
+- Для dev backend intdata с локальной Windows-машины не используйте `D:\int\data`; рабочий checkout находится на `agents@vds.intdata.pro:/int/data`.
 
 ## Tool cards
 

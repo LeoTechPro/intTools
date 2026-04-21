@@ -1,3 +1,8 @@
+---
+name: pm-dashboard-tasks
+description: IntBrain PM dashboard и tasks. Используйте для PM dashboard, tasks, PARA, health и constraints validation через IntBrain.
+---
+
 # IntBrain PM dashboard и tasks
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

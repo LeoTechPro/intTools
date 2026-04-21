@@ -1,3 +1,8 @@
+---
+name: intdb
+description: Internal int-tools skill entrypoint for the intdb plugin. Use as the router for intDB doctor/status, read-only SQL smoke, migrations, and controlled SQL apply workflows.
+---
+
 # Маршрутизатор intData DBA
 
 - Используй этот skill для DB doctor/status, migration review, SQL/apply planning и disposable local smoke.

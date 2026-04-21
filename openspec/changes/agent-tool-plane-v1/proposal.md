@@ -15,6 +15,7 @@ Agno, OpenClaw, and Codex App need to call intData tools as equal clients instea
 - Fix the `ssh_resolve` preflight mismatch by using canonical capability `int_ssh_resolve`.
 - Harden int-tools plugin guidance for Codex App: Russian plugin metadata, Russian capability skills, and a required tool-card for every active MCP tool.
 - Exclude Cabinet from the active IntBrain tool surface; the active IntBrain MCP count becomes `27`.
+- Harden Codex home handling: retire repo-owned overlay/config writers into `CODEX_HOME` and move allowed runtime logs/tmp/downloads under `/int/tools/.runtime/**`.
 
 ## Scope Boundaries
 
@@ -41,5 +42,6 @@ Owning Multica issue: `INT-226`.
 - Agno/local harness and OpenClaw wrapper can call the localhost service without changing Telegram/runtime config.
 - Routing validation passes and fresh `ssh_resolve` uses `int_ssh_resolve`.
 - Plugin manifests and skills are Russian-facing where possible while technical tool names and schema fields remain stable.
-- Active MCP counts are `intbrain=27`, `intdata-control=35`, `intdata-runtime=9`, and `intdb=1`.
+- Active MCP counts are `intbrain=27`, `intdata-control=24`, `intdata-runtime=9`, and `intdb=1`; Multica is no longer exposed through `intdata-control`.
 - `scripts/codex/verify_int_tools_plugins.py --report-json` reports `ok=true` with zero missing guidance.
+- `sync_runtime_from_repo.*`, `detach_home_git.sh`, and `codex-host-bootstrap` do not mutate Codex home; repo-owned runtime outputs default to `/int/tools/.runtime/**`.

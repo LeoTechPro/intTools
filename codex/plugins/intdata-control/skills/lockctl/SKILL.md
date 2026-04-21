@@ -1,3 +1,8 @@
+---
+name: lockctl
+description: Lockctl locks для tracked-правок. Используйте перед изменением файлов в governed repo, чтобы взять, продлить, проверить или освободить runtime lock по path/issue.
+---
+
 # lockctl: locks для tracked-правок
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

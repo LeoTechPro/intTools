@@ -20,6 +20,7 @@
 - `gatesctl/` — machine-wide runtime для gate receipts, approvals и commit binding;
 - `vault/installers/` — канонический machine-wide vault tooling (`vault_sanitize.py`, `runtime_vault_gc.py`) для контуров `/2brain` + `/int/brain`;
 - `intdb/` — self-contained operator CLI для remote Postgres/Supabase профилей, dump/restore и migration flow `/int/data`;
+- `agent_plane/` — neutral Agent Tool/Policy/State Plane для равноправных фасадов Agno/OpenClaw/Codex App;
 - `codex/` — versioned host-tooling, managed assets и project overlays для Codex CLI;
 - `openclaw/` — versioned overlay для локального OpenClaw runtime;
 - `data/` — внешний tooling/configs слой для backend-core `/int/data`;
@@ -35,8 +36,8 @@
 ## OpenSpec governance
 
 - Для любых tracked-мутаций repo-owned tooling в `/int/tools/**` канонический process source-of-truth живёт в `openspec/specs/process/spec.md`.
-- Agents in MCP-enabled Codex/OpenClaw runtimes must use the OpenSpec MCP plugin (`mcp__openspec__`) for OpenSpec discovery, validation, status, and lifecycle operations; repo-local `codex/bin/openspec*` entrypoints are operator/adapter fallback paths, not a PATH fallback.
-- Agents must use the Multica MCP plugin (`mcp__multica__`) for Multica issue state; direct `multica` CLI usage requires a recorded plugin blocker and explicit owner approval.
+- Agents in MCP-enabled Codex/OpenClaw runtimes use `intdata-control` OpenSpec tools for OpenSpec discovery, validation, status, and lifecycle operations; repo-local `codex/bin/openspec*` entrypoints are operator/adapter fallback paths, not a PATH fallback.
+- Agents use the official documented `multica` CLI for Multica issue state; if an official Multica MCP plugin (`mcp__multica__`) is installed, agents may use it. `intdata-control` does not expose Multica tools.
 - Перед первой правкой обязателен owner-approved change package в `openspec/changes/<change-id>/`:
   - `proposal.md`
   - `tasks.md`
@@ -50,7 +51,7 @@
 
 - runtime Codex живёт в `~/.codex`, а versioned overlay и bootstrap-утилиты — в `codex/`;
 - self-authored/versioned Codex wrappers и publish/tooling живут только в `codex/`, в первую очередь в `codex/bin/`; `~/.codex` не используем как source-of-truth для таких скриптов;
-- `codex/projects/` хранит tracked project overlays для runtime `~/.codex/projects/`;
+- `codex/projects/` хранит legacy project overlay references; repo scripts больше не зеркалят их в `~/.codex/projects/`;
 - reusable browser tooling, Firefox MCP launcher-ы и profile-aware wrapper-скрипты живут только в `codex/bin/`;
 - tracked Firefox MCP overlays для конкретных контуров живут только в `codex/projects/*/.mcp.json`;
 - machine-readable routing registry для repo-owned high-risk capabilities живёт в `codex/config/agent-tool-routing.v1.json`, а resolver/validator CLI — в `codex/bin/agent_tool_routing.py`;
@@ -75,29 +76,32 @@
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --brain-root /int/brain` — dry-run архивации и очистки canonical runtime-root (`/int/.tmp/brain-runtime-vault`);
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --runtime-root /int/brain/runtime/vault` — compatibility-режим для legacy runtime-path (с deprecation warning);
 - `python /int/tools/intdb/lib/intdb.py doctor --profile intdata-dev` — проверка native PostgreSQL CLI, TCP и SQL для локально настроенного DB profile;
-- `python /int/tools/intdb/lib/intdb.py migrate status --target intdata-dev --repo /int/data` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `/int/data`;
+- `ssh agents@vds.intdata.pro 'cd /int/tools && python /int/tools/intdb/lib/intdb.py migrate status --target intdata-dev'` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `agents@vds.intdata.pro:/int/data`;
 - `python /int/tools/delivery/bin/publish_repo.py --repo-path /int/data --repo-name data --success-label publish_data --expected-branch main --expected-upstream origin/main --push-remote origin --push-branch main --require-clean --deploy-mode ssh-fast-forward --deploy-host vds-intdata-intdata --deploy-repo-path /int/data --deploy-fetch-ref main --deploy-pull-ref main` — canonical publish engine для `/int/data`;
 - `python /int/tools/delivery/bin/multica_autopilot_report_sidecar.py --target 6053a2d3-682f-48ca-a76a-ba1f09faa5e5=<master_issue_id> --dry-run` — dry-run доставки autopilot hygiene-отчёта в существующий Multica issue + Probe outbox; runtime mapping можно задавать через `AUTOPILOT_REPORT_TARGETS`;
 - В owner-facing командах `push/publish/выкатывай/публикуй` агент не вправе сам сокращать уже подготовленный состав publication: локальный commit по своему/scope допустим как обычно, но перед самой публикацией выборочно скрывать/откладывать "чужие" правки из publication-state запрещено.
 - `ssh vds-intdata-intdata` — canonical remote shell для IntData deploy/apply/smoke на `vds.intdata.pro`;
-- `ssh vds-intdata-agents` — canonical remote shell для Codex runtime на `vds.intdata.pro`;
-- `ssh vds-intdata-agents` — canonical remote shell для OpenClaw runtime/service на `vds.intdata.pro`;
+- `ssh vds-intdata-agents` — canonical remote shell для consolidated Codex/OpenClaw runtime на `vds.intdata.pro` (`agents`);
+- Для dev backend intdata с локальной Windows-машины не используйте `D:\int\data`; рабочий checkout — `agents@vds.intdata.pro:/int/data`.
+- `python -m agent_plane.server --host 127.0.0.1 --port 9192` — локальный запуск neutral Agent Tool Plane;
+- `python -m agent_plane.local_harness --tool intbrain_context_pack --args-json '{"owner_id":1,"query":"test"}'` — Agno/local smoke через neutral plane;
 - `python -m unittest discover -s delivery/tests -p test_publish_repo.py -v` — hermetic regression smoke для canonical publish engine и PowerShell compatibility adapter: clean-tree guard, `-NoDeploy` publish, shared SSH resolver и `partial_state` на локально подменённом `ssh` без реальной сети;
 - `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intbrain` (или `/int/tools/codex/bin/mcp-intdata-cli.sh --profile intbrain`) — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
 - `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
 - `pwsh -File /int/tools/scripts/codex/bootstrap_windows_toolchain.ps1 -AllowUserFallback` — idempotent bootstrap Windows CLI-toolchain (`rg`, `fd`, `yq`, `uv`, `pnpm`, `terraform`, `make`, PATH-normalization, fallback для `cmake/7z`);
 - `pwsh -File /int/tools/scripts/codex/codex_preflight.ps1` — preflight-проверка ключевых CLI с machine-readable режимом `-Json`;
-- `/int/tools/codex/bin/openspec` — tracked Linux operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `mcp__openspec__` first;
-- `pwsh -File D:\int\tools\codex\bin\openspec.ps1` — tracked Windows PowerShell operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `mcp__openspec__` first;
-- `D:\int\tools\codex\bin\openspec.cmd` — tracked Windows CMD operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `mcp__openspec__` first;
+- `/int/tools/codex/bin/openspec` — tracked Linux operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `intdata-control` OpenSpec tools first;
+- `pwsh -File D:\int\tools\codex\bin\openspec.ps1` — tracked Windows PowerShell operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `intdata-control` OpenSpec tools first;
+- `D:\int\tools\codex\bin\openspec.cmd` — tracked Windows CMD operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `intdata-control` OpenSpec tools first;
 - `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Windows) — обязательный start-gate для текущего checkout в `/int/*` (`clean check -> fetch -> pull --ff-only` только если `behind>0`);
 - `python /int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Windows) — обязательный finish-gate для текущего checkout (`clean check -> fetch -> verify -> push -> post-push fetch`, без auto-merge/rebase);
 - `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start --all-repos --root-path /int` — явный legacy-style scan всех top-level repo, когда нужен массовый проход вместо default current-repo режима;
 - `python /int/tools/codex/bin/agent_tool_routing.py validate --strict --json` — validate registry и blocker-rules для V1 high-risk tooling;
 - `python /int/tools/codex/bin/agent_tool_routing.py resolve --intent publish:data --platform windows --json` — machine-readable resolution `logical intent -> canonical engine -> thin adapter`;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control` — MCP wrapper `intData Control` для lockctl, Multica, OpenSpec, routing/sync-gate/publish/gate receipts и commit binding;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control` — MCP wrapper `intData Control` для lockctl, OpenSpec, routing, sync-gate start/finish, publish, gate receipts и commit binding; Multica ведётся через официальный `multica` CLI или официальный Multica MCP plugin, если он установлен;
 - `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-runtime` — MCP wrapper для host/ssh/browser runtime tooling, vault sanitize и runtime GC;
+- `python -m unittest discover -s agent_plane/tests -p test_*.py -v` — unit/integration smoke neutral Agent Tool Plane;
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
 - `bash /int/tools/openclaw/ops/verify.sh` — проверка overlay OpenClaw;
 - `AUTH_TYPE=oauth-personal HOST=127.0.0.1 PORT=11434 npm start` из `gemini-openai-proxy/` — локальный запуск proxy.
@@ -192,35 +196,35 @@
 #### Codex Scripts
 
 `codex/` хранит versioned host-tooling для Codex CLI и смежного MCP-окружения.
-Канонические wrapper'ы и install/runbook-обвязка живут здесь; live runtime OpenClaw вынесен в `~/.openclaw`, а versioned overlay лежит в `/int/tools/openclaw`. Managed assets для `~/.codex` лежат в `assets/codex-home/`.
+Канонические wrapper'ы и install/runbook-обвязка живут здесь; live runtime OpenClaw вынесен в `~/.openclaw`, а versioned overlay лежит в `/int/tools/openclaw`. Codex home остаётся Codex-owned state и не синхронизируется из repo scripts.
 
 ##### Контракт
 
 - Канонические Codex-facing wrapper'ы и install/ops-обвязка живут в `/int/tools/codex`.
-- Managed assets для `~/.codex` живут в `/int/tools/codex/assets/codex-home/`.
-- Project overlays для `~/.codex/projects/*` живут в `/int/tools/codex/projects/` и синхронизируются в runtime автоматически.
-- Runtime/log/tmp/state этого домена живут вне git, в `~/.codex`.
-- Секретные env-файлы MCP живут не в `~/.codex/var`, а в `/int/tools/.runtime/codex-secrets/`; legacy path поддерживается только как fallback.
+- Legacy managed assets для старого Codex home overlay могут оставаться только как historical/read-only reference; они не являются active sync source.
+- Project overlays для старого `~/.codex/projects/*` не синхронизируются repo scripts; используйте native Codex plugin/skill/config mechanisms.
+- Runtime/log/tmp/state repo-owned tooling живут вне git, в `/int/tools/.runtime/**`.
+- Секретные env-файлы MCP живут не в `~/.codex/var`, а в `/int/tools/.runtime/codex-secrets/`; `mcp-bizon365.py` не использует legacy Codex-home fallback.
 - Любые cron/systemd записи должны ссылаться на файлы из этого каталога, а не на продуктовые репозитории.
-- Канонический cron entrypoint для orphan cleaner: `/int/tools/codex/cleanup_agent_orphans.sh`.
-- `~/.codex/scripts/cleanup-agent-orphans.sh` допустим только как compatibility wrapper для старых вызовов.
-- Для refresh managed assets в runtime используйте `/int/tools/codex/sync_runtime_from_repo.sh`.
-- Для окончательного отключения git в `~/.codex` используйте `/int/tools/codex/detach_home_git.sh`.
+- Канонический cron entrypoint для orphan cleaner: `/int/tools/codex/cleanup_agent_orphans.sh`; lock/log writes go to `/int/tools/.runtime/codex/**`.
+- `~/.codex/scripts/cleanup-agent-orphans.sh` допустим только как legacy compatibility wrapper для старых вызовов, без source-of-truth логики.
+- `sync_runtime_from_repo.*` retired: repo scripts no longer refresh managed assets into Codex home.
+- `detach_home_git.sh` retired for mutating mode: Codex home git state changes require native Codex state management or explicit manual owner action.
 - Для clean-room восстановления используйте `/int/tools/codex/bin/codex-host-bootstrap`, `/int/tools/codex/bin/codex-host-verify` и `/int/tools/codex/bin/codex-recovery-bundle`.
 
 ##### Канонические runtime-path
 
-- логи: `~/.codex/log/`
-- временные файлы: `~/.codex/tmp/`
+- логи repo-owned tooling: `/int/tools/.runtime/codex/log/`
+- временные файлы repo-owned tooling: `/int/tools/.runtime/codex/tmp/`
 - OpenClaw runtime: `~/.openclaw/`
 - OpenClaw overlay/runbooks: `/int/tools/openclaw/`
-- прочий Codex runtime/state: `~/.codex/`
+- прочий Codex runtime/state: Codex-owned `~/.codex/`, изменяется только native Codex mechanisms или explicit manual owner action
 - Codex MCP secrets runtime: `/int/tools/.runtime/codex-secrets/`
 - Cloud runtime: `/int/tools/.runtime/cloud-access/`
 
 ##### Текущие утилиты
 
-- `duplex_bridge.py` — debate-bridge; по умолчанию пишет лог в `~/.codex/log/debate/duplex_bridge.log`
+- `duplex_bridge.py` — debate-bridge; по умолчанию пишет лог в `/int/tools/.runtime/codex/log/debate/duplex_bridge.log`
 - `cleanup_agent_orphans.sh` — уборка осиротевших MCP/agent процессов
 - `install_orphan_cleaner_cron.sh` — установка канонической cron-записи на `/int/tools/codex/cleanup_agent_orphans.sh`
 - `cloud_access.sh` — ленивый доступ к `gdrive`/`yadisk` через `rclone mount` и единый runtime `RCLONE_CONFIG=/int/tools/.runtime/cloud-access/rclone.conf`
@@ -229,30 +233,30 @@
 - publish/deploy wrappers for `/int/*` live under `/int/tools/delivery/bin`; `codex/bin/*.ps1` are not source-of-truth for publish logic.
 - `bin/agent_tool_routing.py` + `../config/agent-tool-routing.v1.json` — routing contract для repo-owned high-risk capabilities; blocked path не подменяется verified skill автоматически, fallback допустим только как explicit approved metadata.
 - `tools/` — repo-managed helper trees (`mcp-obsidian-memory`, `obsidian-desktop`, `openspec`)
-- `assets/codex-home/` — versioned `AGENTS.md`, `rules/`, `prompts/`, `skills/`, `version.json` для синхронизации в `~/.codex`
-- `projects/` — tracked project-specific overlay-файлы для `~/.codex/projects/`
-- `sync_runtime_from_repo.sh` — синхронизация managed assets из `assets/codex-home/` в `~/.codex`
-- `detach_home_git.sh` — безопасное отключение git в `~/.codex` после подготовки `assets/codex-home/`
-- `bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling
+- `assets/codex-home/` — legacy reference для старого Codex home overlay; не active sync source
+- `projects/` — legacy reference для старых project-specific overlay-файлов; не синхронизируется repo scripts
+- `sync_runtime_from_repo.sh` — retired mutating entrypoint; `--dry-run` only reports legacy source/destination
+- `detach_home_git.sh` — retired mutating entrypoint; `--dry-run` only reports whether legacy git state exists
+- `bin/codex-host-bootstrap` — bootstrap рабочего минимума `/int/tools/.runtime/**`, OpenClaw/cloud tooling; не пишет в Codex home
 - `bin/codex-host-verify` — проверка clean layout и целостности ссылок
 - `bin/codex-recovery-bundle` — export/import шифрованного recovery-бандла с секретным runtime-слоем
 
 ##### Recovery Layout
 
-- `~/.codex` должен содержать только Codex-generated runtime/state и синхронизируемые managed-assets.
+- `~/.codex` должен содержать только Codex-generated runtime/state и файлы, созданные native documented Codex mechanisms или explicit manual owner action.
 - Наши wrapper'ы, templates и policy остаются в `/int/tools/codex`.
 - Самописные publish/helper scripts для Codex не храним в `~/.codex/scripts`; home-контур допускается только для native tools и обязательных runtime instructions/compat wrappers, если их нельзя вынести из home-layout.
 - Живые секреты для MCP храним в `/int/tools/.runtime/codex-secrets/`.
 - `OpenClaw` runtime живёт в `~/.openclaw`, а versioned overlay остаётся в `/int/tools/openclaw`.
 - Секретный слой OpenClaw для recovery bundle берётся из `~/.openclaw/secrets/`.
-- `sync_runtime_from_repo.sh` теперь синхронизирует не только `assets/codex-home`, но и tracked `projects/`.
+- `sync_runtime_from_repo.*` больше не синхронизирует `assets/codex-home` или tracked `projects/` в Codex home.
 - dedicated Firefox MCP runtime использует repo-managed launcher'ы и project overlays отсюда; owner browser profile не является source-of-truth для automated browser-proof.
 
 ###### Базовая процедура восстановления
 
 1. Установить `codex-cli`.
 2. Восстановить секретный слой через `codex-recovery-bundle import`.
-3. Запустить `/int/tools/codex/bin/codex-host-bootstrap`.
+3. Запустить `/int/tools/codex/bin/codex-host-bootstrap` для repo-local runtime bootstrap без изменения Codex home.
 4. При необходимости выполнить `codex login`.
 5. Проверить контур через `/int/tools/codex/bin/codex-host-verify` и `/int/tools/openclaw/ops/verify.sh`.
 
@@ -289,8 +293,8 @@
 Здесь лежат tracked project-specific overlay-файлы для Codex runtime.
 
 Правила:
-- этот каталог — канонический источник project overlays вместо ручных файлов в `~/.codex/projects/*`;
-- синхронизация в runtime выполняется через `/int/tools/codex/sync_runtime_from_repo.sh`;
+- этот каталог — legacy reference для project overlays; active Codex project config должен идти через native Codex mechanisms;
+- repo scripts не синхронизируют этот каталог в Codex home;
 - в tracked overlay не храним секреты;
 - реальные env-файлы живут в `/int/tools/.runtime/codex-secrets/`.
 - browser-proof overlays для dedicated Firefox MCP обязаны вызывать только repo-managed wrapper'ы из `/int/tools/codex/bin/**`, а не raw `npx`.
@@ -366,6 +370,7 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 - локальный `.env` допустим только как untracked runtime-файл рядом с инструментом;
 - временные dump/log/CSV-артефакты живут только в ignored путях `.tmp/` и `logs/`;
 - `INTDB_DATA_REPO` может задаваться как через process env, так и через локальный `intdb/.env`; типовые runtime-ошибки должны выходить как обычные `intdb:` сообщения без traceback;
+- на Windows `intdb` не должен автоматически подхватывать `D:\int\data`; для dev backend работы используется `agents@vds.intdata.pro:/int/data`, а локальный disposable flow требует явный `--repo`/`INTDB_DATA_REPO`;
 - native migration-path тоже должен быть самодостаточным: `bootstrap` использует тот же profile-password, а `incremental` при необходимости сам прокидывает найденный PostgreSQL `bin` в `PATH` дочернего `bash`;
 - для `/int/data` tool не дублирует schema ownership и migration engine, а переиспользует owner flow через `init/010_supabase_migrate.sh`, `init/schema.sql` и `migration_manifest.lock`.
 

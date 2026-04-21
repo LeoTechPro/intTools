@@ -1,6 +1,6 @@
 {
   "name": "intdata-runtime",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Инструменты runtime intData для host diagnostics, SSH, Firefox profiles, vault sanitize и runtime GC.",
   "author": {
     "name": "IntData",

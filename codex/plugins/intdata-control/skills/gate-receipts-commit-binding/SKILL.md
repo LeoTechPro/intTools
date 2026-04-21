@@ -1,3 +1,8 @@
+---
+name: gate-receipts-commit-binding
+description: Gate receipts и commit binding для intData Control. Используйте, когда нужно проверять gate status/receipts или связывать локальные коммиты с Multica issue и governance receipt.
+---
+
 # Gate receipts и commit binding
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

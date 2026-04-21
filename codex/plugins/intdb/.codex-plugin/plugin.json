@@ -1,6 +1,6 @@
 {
   "name": "intdb",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Инструменты intData DBA для DB doctor, migration status, SQL/apply planning и local smoke через intdata_cli.",
   "author": {
     "name": "IntData",

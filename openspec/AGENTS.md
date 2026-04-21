@@ -9,7 +9,7 @@
 
 ## TL;DR
 - Не мутируйте tracked tooling/process assets без owner-approved change package в `openspec/changes/<change-id>/`.
-- В MCP-enabled Codex/OpenClaw runtimes обращайтесь к OpenSpec через plugin `OpenSpec` (`mcp__openspec__` tools), а не через `openspec`, `codex/bin/openspec`, `codex/bin/openspec.ps1` или `codex/bin/openspec.cmd`.
+- В MCP-enabled Codex/OpenClaw runtimes обращайтесь к OpenSpec через project-approved OpenSpec MCP tools (`intdata-control` в этом repo), а не через `openspec`, `codex/bin/openspec`, `codex/bin/openspec.ps1` или `codex/bin/openspec.cmd`.
 - Отсутствие `openspec` в Windows `PATH` не является fallback-основанием: если plugin tool доступен, используйте его; если plugin tool недоступен/blocked, зафиксируйте blocker и получите owner approval на direct wrapper.
 - `SPEC-MUTATION` обязателен не только для `public API/contracts`, `schema/DB`, capability boundaries и breaking changes, но и для любых tracked tooling mutations этого репозитория.
 - В `EXECUTE` разрешена только реализация по уже согласованному active change; прямой mutate-first path без change package запрещён.

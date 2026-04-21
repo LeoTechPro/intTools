@@ -18,6 +18,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 TOOL_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATA_REPO_ENV = "INTDB_DATA_REPO"
+REMOTE_DATA_REPO_HINT = "agents@vds.intdata.pro:/int/data"
 PROFILE_PATTERN = re.compile(r"^INTDB_PROFILE__([A-Z0-9_]+)__([A-Z0-9_]+)$")
 SAFE_TABLE_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?$")
 WINDOWS_PG_ROOT = Path(r"C:\Program Files\PostgreSQL")
@@ -182,11 +183,19 @@ def _resolve_data_repo(requested_repo: str | None) -> Path:
         return _ensure_repo(Path(env_repo))
 
     sibling_repo = TOOL_ROOT.parent.parent / "data"
+    if os.name == "nt":
+        raise IntDbError(
+            "Не удалось автоматически найти repo `/int/data`: локальный Windows checkout `D:\\int\\data` "
+            f"не является dev backend default. Для работы с dev backend intdata используйте remote checkout "
+            f"`{REMOTE_DATA_REPO_HINT}`, например через `ssh agents@vds.intdata.pro` и `cd /int/data`, "
+            "либо передайте явный локальный --repo/INTDB_DATA_REPO для осознанного disposable flow."
+        )
     if sibling_repo.exists():
         return sibling_repo.resolve()
 
     raise IntDbError(
-        "Не удалось автоматически найти repo `/int/data`; укажите --repo или задайте INTDB_DATA_REPO."
+        "Не удалось автоматически найти repo `/int/data`; укажите --repo, задайте INTDB_DATA_REPO "
+        f"или выполните dev backend workflow на `{REMOTE_DATA_REPO_HINT}`."
     )
 
 

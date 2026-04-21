@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -16,6 +17,26 @@ SPEC.loader.exec_module(MODULE)
 
 
 class Bizon365ModuleTest(unittest.TestCase):
+    def test_defaults_do_not_use_codex_home(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            runtime_root = Path(tmp_dir) / "runtime"
+            previous_env = {key: os.environ.get(key) for key in ("CODEX_RUNTIME_ROOT", "CODEX_SECRETS_ROOT")}
+            try:
+                os.environ["CODEX_RUNTIME_ROOT"] = str(runtime_root)
+                os.environ.pop("CODEX_SECRETS_ROOT", None)
+
+                self.assertEqual(
+                    MODULE.resolve_default_env_path(),
+                    runtime_root / "codex-secrets" / "bizon365-punkt-b.env",
+                )
+                self.assertNotIn(".codex", str(MODULE.resolve_default_env_path()))
+            finally:
+                for key, value in previous_env.items():
+                    if value is None:
+                        os.environ.pop(key, None)
+                    else:
+                        os.environ[key] = value
+
     def test_extract_captcha(self) -> None:
         html = """
         <script>

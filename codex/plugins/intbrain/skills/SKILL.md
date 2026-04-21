@@ -1,3 +1,8 @@
+---
+name: intbrain
+description: Internal int-tools skill entrypoint for the intbrain plugin. Use as the router for IntBrain context, memory, people graph, policies, jobs, PM dashboard, session sync, and external import workflows.
+---
+
 # Маршрутизатор intData Brain
 
 - Используй этот skill как входную точку для IntBrain MCP: контекст, память, граф людей, политики, jobs и PM.

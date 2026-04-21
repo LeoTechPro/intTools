@@ -13,13 +13,16 @@ from mcp.types import ToolAnnotations
 
 
 def resolve_default_env_path() -> Path:
-    primary = Path(os.environ.get("CODEX_SECRETS_ROOT", "/int/tools/.runtime/codex-secrets")) / "bizon365-punkt-b.env"
-    legacy = Path.home() / ".codex" / "var" / "bizon365-punkt-b.env"
-    return primary if primary.exists() else legacy
+    secrets_root = Path(os.environ.get("CODEX_SECRETS_ROOT", str(default_runtime_root() / "codex-secrets")))
+    return secrets_root / "bizon365-punkt-b.env"
+
+
+def default_runtime_root() -> Path:
+    return Path(os.environ.get("CODEX_RUNTIME_ROOT", "/int/tools/.runtime"))
 
 
 DEFAULT_ENV_PATH = resolve_default_env_path()
-DEFAULT_DOWNLOAD_DIR = Path.home() / ".codex" / "tmp" / "bizon365" / "downloads"
+DEFAULT_DOWNLOAD_DIR = default_runtime_root() / "bizon365" / "downloads"
 DEFAULT_PROFILE_ROLES = {"codex": "operator", "openclaw": "admin"}
 ROLE_ORDER = {"viewer": 0, "operator": 1, "admin": 2}
 UNSAFE_PATH_TOKENS = (

@@ -12,7 +12,7 @@ official_sources:
 
 ## Process Core (stable)
 - Работай через Multica Issues как единственный task-control-plane для агентских задач.
-- В MCP-enabled runtime используй plugin `Multica` (`mcp__multica__`, tool `multica_issue`) для issue reads/writes; direct `multica` CLI является только owner-approved fallback после documented MCP blocker.
+- Используй официальный документированный `multica` CLI для issue reads/writes; если в runtime установлен официальный Multica MCP plugin (`mcp__multica__`), можно использовать его. Не используй `intdata-control` как Multica-прослойку.
 - GitHub Issues, `gh issue` и `gh project` не используются для координации задач агентов и не являются fallback.
 - Если Multica недоступна, задача считается заблокированной: остановись, сообщи владельцу конкретный blocker и продолжай без Multica только после явного разрешения владельца.
 - Привязывай реализацию к Multica issue + lock-flow проекта, если lock-flow существует.
@@ -22,7 +22,7 @@ official_sources:
 ## Goal
 Work with Multica Issues and project lock-flow in any repo without hardcoded paths.
 - OpenSpec = источник требований/контекста; Multica Issues = трекинг исполнения, worklog, статусы и история runs.
-- В MCP-enabled runtime используй plugin `OpenSpec` (`mcp__openspec__`) для OpenSpec list/show/status/validate/lifecycle операций; direct `openspec` или repo-local `codex/bin/openspec*` wrappers не являются PATH fallback.
+- В MCP-enabled runtime используй project-approved OpenSpec MCP tools для OpenSpec list/show/status/validate/lifecycle операций; direct `openspec` или repo-local `codex/bin/openspec*` wrappers не являются PATH fallback.
 - Use issue-linked locks only when the project/task requires issue discipline; `lockctl.issue` is optional metadata and locks may be taken without an `INT-*` issue for non-project or pre-intake work.
 - Создавай новые задачи только после утверждённой OpenSpec-спеки/дельты или прямого запроса владельца. Консультации без правок остаются комментариями в текущем Multica issue.
 - Не дёргай владельца без блокеров: если задача однозначна и решаема в рамках правил, выполняй и фиксируй результат в Multica issue; вопросы задавай только при конфликте требований, нехватке данных, необходимости санкции на high-risk действия или недоступности Multica.
@@ -32,9 +32,9 @@ Work with Multica Issues and project lock-flow in any repo without hardcoded pat
    - If the task came from Multica, use that issue.
    - If there is no issue, create/import one in Multica before implementation only when the owner or project process permits it.
    - For imported/backlog work that must not auto-run, create it without agent assignee or in `backlog`.
-2. Verify Multica access with the cheapest available plugin check:
-   - `mcp__multica__.multica_issue` with `list`, `get`, or `search`.
-   - If the plugin is unavailable or blocked, report that exact blocker before considering direct CLI fallback.
+2. Verify Multica access with the cheapest available official check:
+   - `multica issue list`, `multica issue get <INT-*>`, or `multica issue search <query>`.
+   - If an official Multica MCP plugin is installed, its equivalent read-only check is acceptable.
 3. If Multica is unavailable:
    - Do not switch to GitHub Issues.
    - Do not continue execution as an untracked task unless the owner explicitly approves that exception.
@@ -56,15 +56,14 @@ Work with Multica Issues and project lock-flow in any repo without hardcoded pat
    - Open `AGENTS.md` (and `GEMINI.md` if required by the project).
    - If the request involves planning/changes, open `openspec/AGENTS.md` and the relevant change proposal/spec delta first.
    - OpenSpec reference for any repo: `openspec/AGENTS.md` when present.
-   - In MCP-enabled runtimes, use `mcp__openspec__` tools for OpenSpec discovery/validation/lifecycle.
+   - In MCP-enabled runtimes, use project-approved OpenSpec MCP tools for OpenSpec discovery/validation/lifecycle.
    - Follow the project’s schema, consult IDs, templates and issue prefix.
    - If AGENTS defines mandatory fields for Worklog/Closed, ensure the references/templates include them.
    - If you are a spawned agent, follow the same Multica issue rules and record `spawn_agent_id`/`spawn_agent_utc` in Multica comments/worklog.
 
-3. Use Multica plugin/API/UI as source of task truth.
-   - Prefer `mcp__multica__.multica_issue` for `list`, `get`, `search`, `runs`, `run-messages`, `create`, `update`, `assign`, `status`, and `comment`.
-   - Mutating plugin calls require `confirm_mutation=true` and `issue_context=INT-*` when the task is already linked.
-   - If plugin syntax or behavior is uncertain, inspect the plugin help or Multica API before mutating.
+3. Use Multica CLI/API/UI as source of task truth.
+   - Prefer official `multica issue ...` commands for `list`, `get`, `search`, `runs`, `run-messages`, `create`, `update`, `assign`, `status`, and `comment`.
+   - If CLI syntax or behavior is uncertain, inspect `multica --help`, `multica issue --help`, or the Multica API before mutating.
    - Treat ambiguous assignee/name matching as a blocker or use exact IDs.
 
 4. Choose issue type/status deliberately.
@@ -82,14 +81,14 @@ Work with Multica Issues and project lock-flow in any repo without hardcoded pat
    - Never edit lock runtime storage directly.
 
 7. Use Multica for task updates.
-   - Create, update, comment, assign, move status and close through Multica plugin/API/UI.
+   - Create, update, comment, assign, move status and close through Multica CLI/API/UI.
    - Do not use GitHub Issues as a mirror/fallback for agent task state.
 
 8. Worklog after each meaningful step.
    - Use `references/worklog-template.md`.
    - Include tools used and changed files list.
    - If spawn-agent used, include `spawn_agent_id` and `spawn_agent_utc` (and `parent_session_id` if available).
-   - If any direct CLI/wrapper fallback was used, include attempted MCP tool, error/blocker, owner approval, and exact fallback command.
+   - If any wrapper fallback was used, include attempted official command/API, error/blocker, owner approval, and exact fallback command.
 
 9. Close only when acceptance criteria are met.
    - Use `references/closed-template.md`.

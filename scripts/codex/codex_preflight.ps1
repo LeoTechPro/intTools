@@ -5,13 +5,35 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Continue"
 
+function Resolve-ToolCommand {
+    param(
+        [Parameter(Mandatory = $true)][string]$Tool
+    )
+
+    $cmd = Get-Command $Tool -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($cmd) {
+        return $cmd
+    }
+
+    $wingetLink = Join-Path $env:LOCALAPPDATA "Microsoft\WinGet\Links\$Tool.exe"
+    if (Test-Path -LiteralPath $wingetLink) {
+        return [pscustomobject]@{
+            Source = $wingetLink
+            Path = $wingetLink
+            Name = $Tool
+        }
+    }
+
+    return $null
+}
+
 function Invoke-ToolCheck {
     param(
         [Parameter(Mandatory = $true)][string]$Tool,
         [Parameter(Mandatory = $true)][scriptblock]$VersionCommand
     )
 
-    $cmd = Get-Command $Tool -ErrorAction SilentlyContinue
+    $cmd = Resolve-ToolCommand -Tool $Tool
     if (-not $cmd) {
         return [pscustomobject]@{
             tool = $Tool
@@ -25,7 +47,7 @@ function Invoke-ToolCheck {
     $output = ""
     $status = "ok"
     try {
-        $output = (& $VersionCommand 2>&1 | Out-String).Trim()
+        $output = (& $VersionCommand $cmd.Source 2>&1 | Out-String).Trim()
         if ($LASTEXITCODE -ne 0) {
             $status = "fix_suggested"
         }
@@ -59,9 +81,9 @@ function Invoke-ToolCheck {
 }
 
 function Invoke-FirefoxCheck {
-    $firefoxCommand = Get-Command firefox.exe -ErrorAction SilentlyContinue | Select-Object -First 1
+    $firefoxCommand = Resolve-ToolCommand -Tool "firefox.exe"
     if (-not $firefoxCommand) {
-        $firefoxCommand = Get-Command firefox -ErrorAction SilentlyContinue | Select-Object -First 1
+        $firefoxCommand = Resolve-ToolCommand -Tool "firefox"
     }
 
     $candidatePaths = @(
@@ -115,21 +137,21 @@ function Invoke-FirefoxCheck {
 }
 
 $checks = @(
-    @{ tool = "rg"; cmd = { rg --version } },
-    @{ tool = "fd"; cmd = { fd --version } },
-    @{ tool = "yq"; cmd = { yq --version } },
-    @{ tool = "uv"; cmd = { uv --version } },
-    @{ tool = "pnpm"; cmd = { pnpm --version } },
-    @{ tool = "cmake"; cmd = { cmake --version } },
-    @{ tool = "terraform"; cmd = { terraform --version } },
-    @{ tool = "make"; cmd = { make --version } },
-    @{ tool = "7z"; cmd = { 7z i | Select-Object -First 2 } },
-    @{ tool = "git"; cmd = { git --version } },
-    @{ tool = "python"; cmd = { python --version } },
-    @{ tool = "node"; cmd = { node --version } },
-    @{ tool = "npx"; cmd = { npx --version } },
-    @{ tool = "gh"; cmd = { gh --version } },
-    @{ tool = "go"; cmd = { go version } }
+    @{ tool = "rg"; cmd = { param($Executable) & $Executable --version } },
+    @{ tool = "fd"; cmd = { param($Executable) & $Executable --version } },
+    @{ tool = "yq"; cmd = { param($Executable) & $Executable --version } },
+    @{ tool = "uv"; cmd = { param($Executable) & $Executable --version } },
+    @{ tool = "pnpm"; cmd = { param($Executable) & $Executable --version } },
+    @{ tool = "cmake"; cmd = { param($Executable) & $Executable --version } },
+    @{ tool = "terraform"; cmd = { param($Executable) & $Executable --version } },
+    @{ tool = "make"; cmd = { param($Executable) & $Executable --version } },
+    @{ tool = "7z"; cmd = { param($Executable) & $Executable i | Select-Object -First 2 } },
+    @{ tool = "git"; cmd = { param($Executable) & $Executable --version } },
+    @{ tool = "python"; cmd = { param($Executable) & $Executable --version } },
+    @{ tool = "node"; cmd = { param($Executable) & $Executable --version } },
+    @{ tool = "npx"; cmd = { param($Executable) & $Executable --version } },
+    @{ tool = "gh"; cmd = { param($Executable) & $Executable --version } },
+    @{ tool = "go"; cmd = { param($Executable) & $Executable version } }
 )
 
 $rows = foreach ($item in $checks) {

@@ -2,8 +2,10 @@
 from __future__ import annotations
 
 import os
+import shlex
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -93,3 +95,107 @@ class HostRuntimeEntrypointsTest(unittest.TestCase):
                         os.environ.pop(key, None)
                     else:
                         os.environ[key] = value
+
+    def test_host_bootstrap_does_not_write_codex_home(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="host_bootstrap_") as temp_root_raw:
+            temp_root = Path(temp_root_raw)
+            codex_home = temp_root / "codex-home"
+            runtime_root = temp_root / "runtime"
+            previous_env = {key: os.environ.get(key) for key in ("CODEX_HOME", "CODEX_RUNTIME_ROOT")}
+            previous_argv = sys.argv[:]
+            original_run_checked = host_bootstrap.run_checked
+
+            try:
+                os.environ["CODEX_HOME"] = str(codex_home)
+                os.environ["CODEX_RUNTIME_ROOT"] = str(runtime_root)
+                sys.argv = ["codex_host_bootstrap.py", "--verify-only"]
+                host_bootstrap.run_checked = lambda *args, **kwargs: None
+
+                self.assertEqual(host_bootstrap.main(), 0)
+                self.assertFalse((codex_home / "config.toml").exists())
+                self.assertFalse((codex_home / "AGENTS.md").exists())
+                self.assertTrue((runtime_root / "codex-secrets").is_dir())
+            finally:
+                host_bootstrap.run_checked = original_run_checked
+                sys.argv = previous_argv
+                for key, value in previous_env.items():
+                    if value is None:
+                        os.environ.pop(key, None)
+                    else:
+                        os.environ[key] = value
+
+    def test_sync_runtime_from_repo_shell_is_retired(self) -> None:
+        bash = shutil.which("bash")
+        if not bash:
+            self.skipTest("bash is required")
+
+        with tempfile.TemporaryDirectory(prefix="codex_home_sync_") as temp_root_raw:
+            temp_root = Path(temp_root_raw)
+            codex_home = temp_root / "codex-home"
+            script = REPO_ROOT / "codex" / "sync_runtime_from_repo.sh"
+            script_for_bash = script.as_posix()
+            if os.name == "nt" and script.drive:
+                drive = script.drive.rstrip(":").lower()
+                script_for_bash = f"/mnt/{drive}/{script.relative_to(script.anchor).as_posix()}"
+            visible = subprocess.run(
+                [bash, "-lc", f"test -f {shlex.quote(script_for_bash)}"],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            if visible.returncode != 0:
+                self.skipTest("bash cannot see the repository checkout")
+
+            completed = subprocess.run(
+                [bash, script_for_bash],
+                env={**os.environ, "CODEX_HOME": str(codex_home)},
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("Codex home sync is retired", completed.stderr)
+            self.assertFalse(codex_home.exists())
+
+            dry_run = subprocess.run(
+                [bash, script_for_bash, "--dry-run"],
+                env={**os.environ, "CODEX_HOME": str(codex_home)},
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(dry_run.returncode, 0)
+            self.assertIn("legacy destination", dry_run.stdout)
+            self.assertFalse(codex_home.exists())
+
+    def test_sync_runtime_from_repo_powershell_is_retired(self) -> None:
+        pwsh = shutil.which("pwsh") or shutil.which("powershell")
+        if not pwsh:
+            self.skipTest("PowerShell runtime is required")
+
+        with tempfile.TemporaryDirectory(prefix="codex_home_sync_") as temp_root_raw:
+            temp_root = Path(temp_root_raw)
+            codex_home = temp_root / "codex-home"
+            script = REPO_ROOT / "codex" / "sync_runtime_from_repo.ps1"
+
+            completed = subprocess.run(
+                [pwsh, "-File", str(script)],
+                env={**os.environ, "CODEX_HOME": str(codex_home)},
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("Codex home sync is retired", completed.stderr)
+            self.assertFalse(codex_home.exists())
+
+            dry_run = subprocess.run(
+                [pwsh, "-File", str(script), "-DryRun"],
+                env={**os.environ, "CODEX_HOME": str(codex_home)},
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(dry_run.returncode, 0)
+            self.assertIn("legacy destination", dry_run.stdout)
+            self.assertFalse(codex_home.exists())

@@ -1,3 +1,8 @@
+---
+name: external-imports
+description: IntBrain external imports. Используйте для controlled импортов из vault/session/MemPalace источников и count-check workflows.
+---
+
 # IntBrain external imports
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

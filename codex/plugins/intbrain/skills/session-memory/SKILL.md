@@ -1,3 +1,8 @@
+---
+name: session-memory
+description: IntBrain session memory. Используйте для session sync, recent work и session brief по локальной Codex/OpenClaw памяти.
+---
+
 # IntBrain session memory
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

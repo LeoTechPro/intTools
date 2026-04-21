@@ -56,13 +56,13 @@ def get_config_path() -> Path | None:
 def resolve_logical_host(requested_host: str) -> str | None:
     mapping = {
         "vds-intdata-intdata": "dev-intdata",
-        "vds-intdata-agents": "dev-codex",
-        "vds-intdata-agents": "dev-openclaw",
+        "vds-intdata-agents": "dev-agents",
         "prod": "prod-leon",
         "vds.punkt-b.pro": "prod-leon",
         "dev-intdata": "dev-intdata",
-        "dev-codex": "dev-codex",
-        "dev-openclaw": "dev-openclaw",
+        "dev-agents": "dev-agents",
+        "dev-codex": "dev-agents",
+        "dev-openclaw": "dev-agents",
         "prod-leon": "prod-leon",
     }
     return mapping.get(requested_host.strip())
@@ -87,31 +87,18 @@ def build_spec(logical_host: str) -> TargetSpec | None:
             public_alias="int-dev-intdata-public",
             tailnet_alias="int-dev-intdata-tailnet",
         )
-    if logical_host == "dev-codex":
+    if logical_host == "dev-agents":
         public_host = os.getenv("INT_SSH_DEV_PUBLIC_HOST", "vds.intdata.pro").strip() or "vds.intdata.pro"
         tail_node = os.getenv("INT_SSH_DEV_TAILNET_NODE", "vds-intdata-pro").strip() or "vds-intdata-pro"
         tailnet_host = os.getenv("INT_SSH_DEV_TAILNET_HOST", "").strip() or f"{tail_node}.{suffix}"
         return TargetSpec(
             logical_host=logical_host,
-            user="codex",
-            identity_file="~/.ssh/id_ed25519_vds_intdata_codex",
+            user="agents",
+            identity_file="~/.ssh/id_ed25519_vds_intdata_agents",
             public_host=public_host,
             tailnet_host=tailnet_host,
-            public_alias="int-dev-codex-public",
-            tailnet_alias="int-dev-codex-tailnet",
-        )
-    if logical_host == "dev-openclaw":
-        public_host = os.getenv("INT_SSH_DEV_PUBLIC_HOST", "vds.intdata.pro").strip() or "vds.intdata.pro"
-        tail_node = os.getenv("INT_SSH_DEV_TAILNET_NODE", "vds-intdata-pro").strip() or "vds-intdata-pro"
-        tailnet_host = os.getenv("INT_SSH_DEV_TAILNET_HOST", "").strip() or f"{tail_node}.{suffix}"
-        return TargetSpec(
-            logical_host=logical_host,
-            user="openclaw",
-            identity_file="~/.ssh/id_ed25519_vds_intdata_openclaw",
-            public_host=public_host,
-            tailnet_host=tailnet_host,
-            public_alias="int-dev-openclaw-public",
-            tailnet_alias="int-dev-openclaw-tailnet",
+            public_alias="int-dev-agents-public",
+            tailnet_alias="int-dev-agents-tailnet",
         )
     if logical_host == "prod-leon":
         public_host = os.getenv("INT_SSH_PROD_PUBLIC_HOST", "vds.punkt-b.pro").strip() or "vds.punkt-b.pro"

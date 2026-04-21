@@ -11,10 +11,9 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 MCP_SERVER = ROOT / "codex" / "bin" / "mcp-intdata-cli.py"
-
 EXPECTED_COUNTS = {
     "intbrain": 27,
-    "intdata-control": 35,
+    "intdata-control": 24,
     "intdata-runtime": 9,
     "intdb": 1,
 }
@@ -40,25 +39,14 @@ TOOL_SKILLS = {
         "openspec_status": "openspec-read",
         "openspec_instructions": "openspec-read",
         "openspec_archive": "openspec-mutation",
-        "openspec_change": "openspec-mutation",
-        "openspec_spec": "openspec-mutation",
+        "openspec_change_mutate": "openspec-mutation",
+        "openspec_spec_mutate": "openspec-mutation",
         "openspec_new": "openspec-mutation",
-        "openspec_exec": "openspec-mutation",
-        "multica_issue": "multica-issue-workflow",
-        "multica_project": "multica-entities-config",
-        "multica_agent": "multica-entities-config",
-        "multica_workspace": "multica-entities-config",
-        "multica_repo": "multica-entities-config",
-        "multica_skill": "multica-entities-config",
-        "multica_runtime": "multica-entities-config",
-        "multica_config": "multica-entities-config",
-        "multica_daemon": "multica-daemon-auth-attachments",
-        "multica_attachment": "multica-daemon-auth-attachments",
-        "multica_auth": "multica-daemon-auth-attachments",
-        "multica_exec": "multica-daemon-auth-attachments",
+        "openspec_exec_mutate": "openspec-mutation",
         "routing_validate": "routing",
         "routing_resolve": "routing",
-        "sync_gate": "sync-gate-publish",
+        "sync_gate_start": "sync-gate-publish",
+        "sync_gate_finish": "sync-gate-publish",
         "publish": "sync-gate-publish",
         "gate_status": "gate-receipts-commit-binding",
         "gate_receipt": "gate-receipts-commit-binding",
@@ -122,8 +110,8 @@ REQUIRED_CARD_MARKERS = [
 
 GUARDED_TOOLS = {
     "lockctl_acquire", "lockctl_renew", "lockctl_release_path", "lockctl_release_issue", "lockctl_gc",
-    "openspec_archive", "openspec_change", "openspec_spec", "openspec_new", "openspec_exec",
-    "sync_gate", "publish", "commit_binding",
+    "openspec_archive", "openspec_change_mutate", "openspec_spec_mutate", "openspec_new", "openspec_exec_mutate",
+    "sync_gate_finish", "publish", "commit_binding",
     "host_bootstrap", "recovery_bundle", "ssh_host", "browser_profile_launch",
     "intdata_vault_sanitize", "intdata_runtime_vault_gc",
     "intbrain_context_store", "intbrain_graph_link", "intbrain_group_policy_upsert", "intbrain_jobs_sync_runtime",
@@ -134,6 +122,38 @@ GUARDED_TOOLS = {
 GUARD_WORDS = ["approval", "confirm_mutation", "issue_context", "owner approval"]
 READ_ONLY_MARKERS = ["Режим: read-only", "Режим: read-only by default"]
 CABINET_RE = re.compile(r"cabinet|intbrain_cabinet", re.IGNORECASE)
+
+REMOVED_INTDATA_CONTROL_TOOLS = {
+    "multica_issue", "multica_project", "multica_agent", "multica_workspace", "multica_repo",
+    "multica_skill", "multica_runtime", "multica_config", "multica_daemon", "multica_attachment",
+    "multica_auth", "multica_exec", "multica_issue_read", "multica_issue_write",
+    "multica_project_read", "multica_project_write", "multica_agent_read", "multica_agent_write",
+    "multica_workspace_read", "multica_skill_read", "multica_skill_write", "multica_runtime_read",
+    "multica_runtime_write", "multica_config_read", "multica_config_write", "multica_daemon_read",
+    "multica_daemon_control", "multica_auth_read", "multica_auth_write", "multica_attachment_download",
+    "multica_repo_checkout", "openspec_change", "openspec_spec", "openspec_exec", "sync_gate",
+}
+
+ACTIVE_DOC_GUARD_PATHS = [
+    ROOT / "AGENTS.md",
+    ROOT / "openspec" / "changes" / "require-agent-plugin-tool-access" / "specs" / "process" / "spec.md",
+    ROOT / "openspec" / "changes" / "remove-intdata-control-multica-surface" / "specs" / "process" / "spec.md",
+]
+
+REMOVED_ACTIVE_DOC_REFS = {
+    "mcp__openspec__": re.compile(r"mcp__openspec__"),
+    **{
+        name: re.compile(rf"(?<![A-Za-z0-9_]){re.escape(name)}(?![A-Za-z0-9_])")
+        for name in REMOVED_INTDATA_CONTROL_TOOLS
+    },
+}
+
+
+def display_path(path: Path) -> str:
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
 
 
 def frame(payload: dict[str, Any]) -> bytes:
@@ -277,9 +297,49 @@ def verify_cabinet_absent(report: dict[str, Any]) -> None:
                 report["cabinet_errors"].append(str(path.relative_to(ROOT)))
 
 
+def verify_skill_frontmatter(report: dict[str, Any]) -> None:
+    for plugin_dir in PLUGIN_DIRS.values():
+        for path in sorted((plugin_dir / "skills").rglob("SKILL.md")):
+            if not path.read_text(encoding="utf-8").startswith("---"):
+                report["skill_frontmatter_errors"].append(display_path(path))
+
+
+def active_doc_paths() -> list[Path]:
+    paths = list(ACTIVE_DOC_GUARD_PATHS)
+    for plugin_dir in PLUGIN_DIRS.values():
+        paths.extend(sorted((plugin_dir / "skills").rglob("SKILL.md")))
+    return paths
+
+
+def verify_active_doc_references(report: dict[str, Any]) -> None:
+    allowed_removed_context = ("removed", "forbidden", "must not expose", "no longer", "MUST NOT expose")
+    for path in active_doc_paths():
+        if not path.exists():
+            report["doc_guard_errors"].append(f"missing active doc: {display_path(path)}")
+            continue
+        for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            if "int_git_sync_gate.py" in line:
+                continue
+            for name, pattern in REMOVED_ACTIVE_DOC_REFS.items():
+                if pattern.search(line):
+                    if any(marker in line for marker in allowed_removed_context):
+                        continue
+                    report["doc_guard_errors"].append({
+                        "path": display_path(path),
+                        "line": line_no,
+                        "removed_ref": name,
+                    })
+
+
 def verify_guard_cases(profile: str) -> None:
     guard_cases = {
-        "intdata-control": [("openspec_archive", {"change_name": "guard-negative"}), ("publish", {"target": "tools"}), ("commit_binding", {"commit_sha": "0" * 40}), ("multica_issue", {"command": "create", "args": ["guard-negative"]})],
+        "intdata-control": [
+            ("openspec_archive", {"change_name": "guard-negative"}),
+            ("openspec_change_mutate", {"subcommand": "set", "args": ["guard-negative"]}),
+            ("publish", {"target": "tools"}),
+            ("commit_binding", {"commit_sha": "0" * 40}),
+            ("sync_gate_finish", {}),
+        ],
         "intdata-runtime": [("host_bootstrap", {}), ("recovery_bundle", {}), ("browser_profile_launch", {"profile": "firefox-default"}), ("intdata_vault_sanitize", {"dry_run": False})],
         "intbrain": [("intbrain_context_store", {"owner_id": 1, "kind": "note", "title": "guard", "text_content": "guard"}), ("intbrain_pm_task_create", {"owner_id": 1, "title": "guard"}), ("intbrain_jobs_sync_runtime", {"owner_id": 1})],
         "intdb": [("intdata_cli", {"command": "intdb", "args": ["migrate", "apply"]})],
@@ -304,6 +364,8 @@ def build_report(skip_guards: bool) -> dict[str, Any]:
         "manifest_errors": [],
         "mapping_errors": [],
         "cabinet_errors": [],
+        "skill_frontmatter_errors": [],
+        "doc_guard_errors": [],
         "matrix": [],
     }
     verify_manifests(report)
@@ -316,13 +378,26 @@ def build_report(skip_guards: bool) -> dict[str, Any]:
         leaked = sorted(name for name in names if CABINET_RE.search(name))
         if leaked:
             report["cabinet_errors"].append({"profile": profile, "tools": leaked})
+        if profile == "intdata-control":
+            removed = sorted(name for name in names if name.startswith("multica_") or name in REMOVED_INTDATA_CONTROL_TOOLS)
+            if removed:
+                report["mapping_errors"].append({"profile": profile, "removed_tools_present": removed})
         verify_skill_coverage(profile, tools, report)
         if not skip_guards:
             verify_guard_cases(profile)
     verify_cabinet_absent(report)
+    verify_skill_frontmatter(report)
+    verify_active_doc_references(report)
     missing_count = sum(len(row["missing_guidance"]) for row in report["matrix"])
     report["missing_guidance_count"] = missing_count
-    report["ok"] = not (report["manifest_errors"] or report["mapping_errors"] or report["cabinet_errors"] or missing_count)
+    report["ok"] = not (
+        report["manifest_errors"]
+        or report["mapping_errors"]
+        or report["cabinet_errors"]
+        or report["skill_frontmatter_errors"]
+        or report["doc_guard_errors"]
+        or missing_count
+    )
     return report
 
 
@@ -340,7 +415,7 @@ def main() -> int:
             status = "ok" if not row["missing_guidance"] else "; ".join(row["missing_guidance"])
             print(f"{row['profile']}/{row['tool']} -> {row['skill']} -> {status}")
         if report["ok"]:
-            print("ok: int-tools plugin manifests, MCP smoke, skill cards, Cabinet exclusion, and guard checks passed")
+            print("ok: int-tools plugin manifests, MCP smoke, skill cards, Cabinet exclusion, doc guard, and guard checks passed")
     return 0 if report["ok"] else 1
 
 

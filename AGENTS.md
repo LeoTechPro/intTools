@@ -55,9 +55,9 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 
 ### Agent Tool Access
 - В MCP-enabled Codex/OpenClaw runtimes agent-facing доступ к governed tooling идёт через установленные MCP plugins; direct CLI/wrapper path является только documented fallback после blocker/approval.
-- OpenSpec operations выполняются через plugin `OpenSpec` (`mcp__openspec__`: `openspec_list`, `openspec_show`, `openspec_status`, `openspec_validate`, `openspec_new`, `openspec_change`, `openspec_spec`, `openspec_archive`). Отсутствие `openspec` в Windows `PATH` не является причиной вызывать `codex/bin/openspec.cmd` или `codex/bin/openspec.ps1` напрямую.
-- Multica operations выполняются через plugin `Multica` (`mcp__multica__`: `multica_issue` и related structured wrappers). Не вызывайте `multica issue ...` напрямую, если доступен MCP tool; это относится и к `create/comment/status/update`.
-- Если нужный plugin tool недоступен или возвращает blocker, остановитесь или запросите owner approval на fallback; в worklog/handoff укажите tool, error/blocker и почему direct CLI/wrapper fallback был необходим.
+- OpenSpec operations выполняются через plugin `intdata-control` (`mcp__intdata_control__`): read tools `openspec_list`, `openspec_show`, `openspec_status`, `openspec_validate`, `openspec_instructions`; lifecycle tools `openspec_new`, `openspec_archive`; mutation-only tools `openspec_change_mutate`, `openspec_spec_mutate`, `openspec_exec_mutate`. Отсутствие `openspec` в Windows `PATH` не является причиной вызывать `codex/bin/openspec.cmd` или `codex/bin/openspec.ps1` напрямую.
+- Multica operations выполняются через официальный документированный `multica` CLI; если в runtime установлен официальный Multica MCP plugin (`mcp__multica__`), можно использовать его. `intdata-control` не предоставляет Multica tools и не является fallback для `multica`.
+- Если нужный non-Multica plugin tool недоступен или возвращает blocker, остановитесь или запросите owner approval на fallback; в worklog/handoff укажите tool, error/blocker и почему direct CLI/wrapper fallback был необходим.
 
 ### Coding and Change Discipline
 - Make minimal, targeted edits; preserve existing architecture, conventions, and file structure.
@@ -107,6 +107,7 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 - product repos подключают этот contour извне через scripts, hooks и documented runbooks;
 - self-authored/versioned Codex tooling и wrapper-скрипты должны жить в `/int/tools/codex/**`, а не в `~/.codex` / `C:\Users\intData\.codex`;
 - custom intTools runtime state (`lockctl`, `gatesctl`, gate receipts, lock SQLite/events) должен жить в `/int/tools/.runtime/**`, а не в official Codex home (`~/.codex`, `C:\Users\intData\.codex`) и не в shared Codex memories; `.codex/memories/**` допустим только как legacy migration source без удаления исходника.
+- official Codex home (`~/.codex`, `C:\Users\intData\.codex`) является Codex-owned state: repo-owned scripts не должны копировать, зеркалить, патчить или генерировать туда overlay/config; изменения Codex home допустимы только через native documented Codex mechanisms или explicit manual owner action.
 - reusable browser tooling, Firefox MCP launcher-ы и tracked project overlays живут только в `/int/tools/codex/**`;
 - runtime layout для dedicated Firefox MCP contour документируется и поддерживается только из `/int/tools/codex/**` + `/int/tools/.runtime/firefox-mcp/**`;
 - repo остаётся machine-wide tooling layer, а не отдельным business runtime.
@@ -127,7 +128,7 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 
 ## Multica issue and commit gate
 - Multica Issues are the mandatory task-control-plane for agent work in this repo; GitHub Issues, `gh issue`, and `gh project` are not used for agent task coordination and are not fallback.
-- Agents must use the Multica MCP plugin (`mcp__multica__`) for issue reads and writes when it is available; direct `multica` CLI usage requires a recorded plugin blocker and explicit owner approval.
+- Agents must use the official documented `multica` CLI for Multica issue reads and writes; if an official Multica MCP plugin (`mcp__multica__`) is installed in the runtime, it may be used instead. `intdata-control` Multica tools are removed/forbidden.
 - Before non-trivial implementation, commit, push, deploy, or publication, the agent must identify a reachable Multica issue id in `INT-*` format for the current task.
 - Missing Multica issue id, inaccessible Multica, or an issue id that cannot be verified is a blocker: stop, report the blocker to the owner, and continue without Multica only after explicit owner approval for that exception.
 - Every local commit message must contain the current Multica task id in `INT-*` format in the subject or body. A commit without `INT-*` is forbidden.
@@ -142,7 +143,7 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 ## Tooling Mutation Governance
 
 - Любая tracked-мутация repo-owned tooling в `/int/tools/**` обязана начинаться с согласованного OpenSpec package в `openspec/changes/<change-id>/`.
-- Agents must use the OpenSpec MCP plugin (`mcp__openspec__`) for OpenSpec discovery, validation, status, and lifecycle operations when available; direct `openspec` CLI or repo-local `codex/bin/openspec*` usage is an explicit blocker/fallback path, not a PATH fallback.
+- Agents must use the `intdata-control` MCP plugin (`mcp__intdata_control__`) for OpenSpec discovery, validation, status, lifecycle, and gated mutation operations when available. Use read tools for discovery/status/validation and `openspec_change_mutate`, `openspec_spec_mutate`, or `openspec_exec_mutate` only for approved mutation workflows. Direct `openspec` CLI or repo-local `codex/bin/openspec*` usage is an explicit blocker/fallback path, not a PATH fallback.
 - До первой tracked-правки должны существовать как минимум `proposal.md`, `tasks.md` и релевантный `spec.md` delta в `openspec/changes/<change-id>/specs/**`; `design.md` обязателен, если change меняет resolver/runtime architecture, capability boundaries или enforcement model.
 - Каждый active OpenSpec change package должен явно указывать owning Multica issue в формате `INT-*`; соответствующий Multica issue/worklog должен ссылаться на путь `openspec/changes/<change-id>/`.
 - OpenSpec остаётся source-of-truth для requirements/spec/acceptance, Multica остаётся source-of-truth для execution/worklog/status/blockers/closure; полный OpenSpec не зеркалится в issue, туда пишутся только short summary и links/paths.
@@ -158,10 +159,11 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 - Blocked path обязателен при `missing engine`, `missing adapter`, `unsupported platform`, `adapter drift`, `unknown intent` и `ambiguous intent`.
 - Verified skills для high-risk capabilities не могут подменять blocked repo-owned path автоматически; они допустимы только как explicit approved fallback metadata.
 - Актуальный deduplicated MCP surface:
-  - plugin `intdata-control` (`intData Control`) заменяет `lockctl`, `multica`, `openspec`, `intdata-governance`, `intdata-routing`, `intdata-delivery`, `gatesctl`;
+  - plugin `intdata-control` (`intData Control`) заменяет `lockctl`, `openspec`, `intdata-governance`, `intdata-routing`, `intdata-delivery`, `gatesctl`;
   - plugin `intdata-runtime` заменяет `intdata-host`, `intdata-ssh`, `intdata-browser`, `intdata-vault`.
 - Публичные tool names (без alias-совместимости):
-  - governance: `routing_validate`, `routing_resolve`, `sync_gate`, `publish`, `gate_status`, `gate_receipt`, `commit_binding`;
+  - governance: `routing_validate`, `routing_resolve`, `sync_gate_start`, `sync_gate_finish`, `publish`, `gate_status`, `gate_receipt`, `commit_binding`;
+  - OpenSpec: `openspec_list`, `openspec_show`, `openspec_validate`, `openspec_status`, `openspec_instructions`, `openspec_new`, `openspec_archive`, `openspec_change_mutate`, `openspec_spec_mutate`, `openspec_exec_mutate`;
   - runtime: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`, `ssh_resolve`, `ssh_host`, `browser_profile_launch`.
 - Старые plugin IDs/tool names из удалённых шести плагинов не использовать в AGENTS/skills/runbooks.
 - Canonical engine roots:

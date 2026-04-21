@@ -1,3 +1,8 @@
+---
+name: doctor-status
+description: intDB doctor/status. Используйте для read-only проверки профилей, состояния подключения и безопасной диагностики intdb.
+---
+
 # intDB doctor/status
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

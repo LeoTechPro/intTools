@@ -33,7 +33,17 @@
 - [x] 4.3 Split overloaded capability skills: Multica, IntBrain jobs/PM, and IntBrain session/import guidance.
 - [x] 4.4 Add one tool-card per active MCP tool with trigger, required inputs, mode, approval rules, example, and blocker language.
 - [x] 4.5 Extend verifier with `--report-json`, required-arg checks, guard wording checks, read-only markers, matrix output, and Cabinet leak detection.
-- [x] 4.6 Verify active counts: `intbrain=27`, `intdata-control=35`, `intdata-runtime=9`, `intdb=1`.
+- [x] 4.6 Verify active counts before control split: `intbrain=27`, `intdata-control=35`, `intdata-runtime=9`, `intdb=1`.
+- [x] 4.7 Split `intdata-control` OpenSpec/sync-gate command routers into explicit tools. Superseded for Multica by `remove-intdata-control-multica-surface`; active count is now `24`.
+
+## 5. Codex Home Hardening
+
+- [x] 5.1 Retire `sync_runtime_from_repo.*` mutating mode and keep only non-mutating dry-run diagnostics.
+- [x] 5.2 Stop `codex-host-bootstrap` from calling sync or writing `config.toml` under Codex home.
+- [x] 5.3 Retire `detach_home_git.sh` mutating mode and keep only non-mutating dry-run diagnostics.
+- [x] 5.4 Move orphan-cleaner and debate logs/locks plus Bizon downloads under `/int/tools/.runtime/**`.
+- [x] 5.5 Remove automatic Bizon secret fallback from `~/.codex/var`.
+- [x] 5.6 Update docs and focused tests for native-only Codex home mutation policy.
 
 ## Exceptions
 

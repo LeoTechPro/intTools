@@ -1,3 +1,8 @@
+---
+name: sql-apply
+description: intDB SQL/apply. Используйте для controlled SQL execution/apply workflows с read-only defaults и отдельными gates для writes.
+---
+
 # intDB SQL/apply
 
 - `intdata_cli` является command-router; выбирай subcommand по этой карточке, а не угадывай shell-команду.

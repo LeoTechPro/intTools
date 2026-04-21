@@ -1,3 +1,8 @@
+---
+name: intdata-runtime
+description: Internal int-tools skill entrypoint for the intdata-runtime plugin. Use as the router for host diagnostics, SSH routes, Firefox browser profiles, and runtime vault maintenance.
+---
+
 # Маршрутизатор intData Runtime
 
 - Используй этот skill для host diagnostics, SSH route checks, dedicated Firefox MCP profiles и vault maintenance.

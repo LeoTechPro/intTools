@@ -18,8 +18,8 @@ INCLUDE_NAMES = {
     ".env.example", ".env.sample",
 }
 
-DEFAULT_CODEX_HOME = pathlib.Path(os.getenv("CODEX_HOME", str(pathlib.Path.home() / ".codex")))
-DEFAULT_LOG_PATH = DEFAULT_CODEX_HOME / "log" / "debate" / "duplex_bridge.log"
+DEFAULT_RUNTIME_ROOT = pathlib.Path(os.getenv("CODEX_RUNTIME_ROOT", "/int/tools/.runtime"))
+DEFAULT_LOG_PATH = DEFAULT_RUNTIME_ROOT / "codex" / "log" / "debate" / "duplex_bridge.log"
 
 # ---------- утилиты ----------
 def load_env_file(path: str) -> Dict[str, str]:

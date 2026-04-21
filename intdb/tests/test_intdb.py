@@ -189,6 +189,45 @@ class IntDbTests(unittest.TestCase):
                 else:
                     os.environ["INTDB_DATA_REPO"] = previous
 
+    def test_resolve_data_repo_uses_non_windows_sibling_repo(self) -> None:
+        previous_root = intdb.TOOL_ROOT
+        previous = os.environ.get("INTDB_DATA_REPO")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            repo = root / "data"
+            repo.mkdir()
+            intdb.TOOL_ROOT = root / "tools" / "intdb"
+            try:
+                os.environ.pop("INTDB_DATA_REPO", None)
+                with mock.patch.object(intdb.os, "name", "posix"):
+                    resolved = intdb._resolve_data_repo(None)
+            finally:
+                intdb.TOOL_ROOT = previous_root
+                if previous is None:
+                    os.environ.pop("INTDB_DATA_REPO", None)
+                else:
+                    os.environ["INTDB_DATA_REPO"] = previous
+            self.assertEqual(resolved, repo.resolve())
+
+    def test_resolve_data_repo_skips_windows_sibling_repo(self) -> None:
+        previous_root = intdb.TOOL_ROOT
+        previous = os.environ.get("INTDB_DATA_REPO")
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            (root / "data").mkdir()
+            intdb.TOOL_ROOT = root / "tools" / "intdb"
+            try:
+                os.environ.pop("INTDB_DATA_REPO", None)
+                with mock.patch.object(intdb.os, "name", "nt"):
+                    with self.assertRaisesRegex(intdb.IntDbError, "agents@vds\\.intdata\\.pro:/int/data"):
+                        intdb._resolve_data_repo(None)
+            finally:
+                intdb.TOOL_ROOT = previous_root
+                if previous is None:
+                    os.environ.pop("INTDB_DATA_REPO", None)
+                else:
+                    os.environ["INTDB_DATA_REPO"] = previous
+
     def test_run_process_keeps_secrets_in_env_not_in_argv(self) -> None:
         captured: dict[str, object] = {}
 

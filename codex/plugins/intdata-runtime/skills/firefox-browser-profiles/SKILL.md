@@ -1,3 +1,8 @@
+---
+name: firefox-browser-profiles
+description: Firefox MCP profiles. Используйте для dedicated Firefox profile launch/browser-proof workflows через intData Runtime.
+---
+
 # Firefox MCP profiles
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

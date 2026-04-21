@@ -69,7 +69,7 @@ def migrate_main(config: EntryPointConfig, *, prod: bool) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--path")
     parser.add_argument("--mode", choices=("incremental", "bootstrap"), default="incremental")
-    parser.add_argument("--repo", default=str(Path(r"D:\int\data")))
+    parser.add_argument("--repo")
     parser.add_argument("--seed-business", action="store_true")
     parser.add_argument("--write", action="store_true", required=True)
     parser.add_argument("--confirm-target", required=True)
@@ -107,11 +107,11 @@ def migrate_main(config: EntryPointConfig, *, prod: bool) -> int:
         config.profile,
         "--mode",
         args.mode,
-        "--repo",
-        args.repo,
         "--approve-target",
         config.profile,
     ]
+    if args.repo:
+        command.extend(["--repo", args.repo])
     if args.seed_business:
         command.append("--seed-business")
     if prod:

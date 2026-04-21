@@ -1,3 +1,8 @@
+---
+name: openspec-read
+description: OpenSpec read-only discovery. Используйте для просмотра, list/status/validate и проверки source-of-truth без изменения OpenSpec lifecycle.
+---
+
 # OpenSpec read-only discovery
 
 - Используй эту capability-группу только когда задача совпадает с trigger ниже.

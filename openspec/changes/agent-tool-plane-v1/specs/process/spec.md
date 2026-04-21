@@ -81,4 +81,47 @@ The repository MUST provide Russian-facing plugin metadata and capability skills
 - **AND** every required argument from the MCP schema is listed in the tool-card
 - **AND** guarded or mutating tools mention owner approval, `confirm_mutation`, and `issue_context`
 - **AND** read-only tools are explicitly marked read-only
-- **AND** the active MCP counts are `intbrain=27`, `intdata-control=35`, `intdata-runtime=9`, and `intdb=1`
+- **AND** the active MCP counts are `intbrain=27`, `intdata-control=24`, `intdata-runtime=9`, and `intdb=1`
+
+### Requirement: Repo-owned tooling MUST NOT mutate Codex home by default
+
+`CODEX_HOME` (`~/.codex` / `C:\Users\intData\.codex`) is Codex-owned state. Repo-owned intTools scripts MUST NOT install, patch, mirror, generate, move, or delete files under Codex home by default.
+
+#### Scenario: Legacy Codex home sync is invoked
+- **WHEN** `sync_runtime_from_repo.sh` or `sync_runtime_from_repo.ps1` is invoked without dry-run mode
+- **THEN** it exits non-zero with a controlled retired-path message
+- **AND** it does not create or modify files under `CODEX_HOME`
+
+#### Scenario: Legacy Codex home diagnostics are requested
+- **WHEN** `sync_runtime_from_repo.sh --dry-run` or `sync_runtime_from_repo.ps1 -DryRun` is invoked
+- **THEN** it reports legacy source and destination paths
+- **AND** it does not create or modify files under `CODEX_HOME`
+
+#### Scenario: Host bootstrap runs
+- **WHEN** `codex-host-bootstrap` runs
+- **THEN** it bootstraps only repo-local runtime paths such as `/int/tools/.runtime/**`
+- **AND** it does not call legacy Codex home sync
+- **AND** it does not write `config.toml` or other overlay files under `CODEX_HOME`
+
+#### Scenario: Legacy Codex home git detach is invoked
+- **WHEN** `detach_home_git.sh` is invoked without dry-run mode
+- **THEN** it exits non-zero with a controlled retired-path message
+- **AND** it does not move `$CODEX_HOME/.git` or write `$CODEX_HOME/.git-detached`
+
+### Requirement: Allowed intTools runtime outputs MUST live under tools runtime
+
+Repo-owned runtime logs, locks, downloads, and secrets MUST default to `/int/tools/.runtime/**`, not Codex home. Explicit environment overrides MAY redirect these outputs when the operator intentionally supplies them.
+
+#### Scenario: Orphan cleaner writes runtime files
+- **WHEN** `cleanup_agent_orphans.sh` needs a lock or log file
+- **THEN** it defaults to `/int/tools/.runtime/codex/tmp/probe-agent-orphan-cleaner.lock` and `/int/tools/.runtime/codex/log/probe-agent-orphan-cleaner.log`
+
+#### Scenario: Debate bridge writes logs
+- **WHEN** `duplex_bridge.py` is invoked without `--log`
+- **THEN** it defaults to `/int/tools/.runtime/codex/log/debate/duplex_bridge.log`
+
+#### Scenario: Bizon MCP resolves secrets and downloads
+- **WHEN** `mcp-bizon365.py` resolves default secrets or downloads
+- **THEN** secrets default to `/int/tools/.runtime/codex-secrets/bizon365-punkt-b.env`
+- **AND** downloads default to `/int/tools/.runtime/bizon365/downloads`
+- **AND** it does not automatically fall back to `~/.codex/var`

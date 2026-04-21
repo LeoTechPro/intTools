@@ -1,3 +1,8 @@
+---
+name: local-smoke
+description: intDB local smoke. Используйте для read-only SQL smoke и локальных проверок профилей без migrator/admin действий.
+---
+
 # intDB local smoke
 
 - `intdata_cli` является command-router; выбирай subcommand по этой карточке, а не угадывай shell-команду.

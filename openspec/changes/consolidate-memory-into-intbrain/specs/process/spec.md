@@ -37,13 +37,14 @@ The system MUST provide an IntBrain-owned Cabinet inventory/import path before r
 - **AND** physical deletion of `D:/int/cabinet` remains blocked until count-check and owner acceptance are recorded in INT-222
 
 ### Requirement: intData Control MUST be the only repo-owned control-plane plugin surface
-The system MUST expose lockctl, Multica, OpenSpec, routing, sync gate, publish, gate, and commit-binding MCP tools through the `intdata-control` plugin/profile.
+The system MUST expose lockctl, OpenSpec, routing, sync gate, publish, gate, and commit-binding MCP tools through the `intdata-control` plugin/profile. Multica is removed/forbidden from this repo-owned surface and remains available through official Multica interfaces.
 
 #### Scenario: Control-plane tools are listed
 - **WHEN** the IntData Tools plugin catalog and MCP profiles are inspected
 - **THEN** `intdata-control` is the only active control-plane plugin ID
 - **AND** old plugin IDs `lockctl`, `multica`, `openspec`, and `intdata-governance` are absent from the active catalog
-- **AND** public tool names remain the existing unique `lockctl_*`, `multica_*`, `openspec_*`, `routing_*`, `sync_gate`, `publish`, `gate_*`, and `commit_binding` names
+- **AND** public tool names remain unique `lockctl_*`, explicit `openspec_*`, `routing_*`, `sync_gate_start`, `sync_gate_finish`, `publish`, `gate_*`, and `commit_binding` names
+- **AND** no public `intdata-control` tool name starts with `multica_`
 
 ### Requirement: Vault tools MUST be part of intData Runtime
 The system MUST expose repo-owned vault sanitizer and runtime GC tools through `intdata-runtime`.

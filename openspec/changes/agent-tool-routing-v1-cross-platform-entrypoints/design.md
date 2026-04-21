@@ -37,7 +37,7 @@ Current repo-owned tools:
 - `D:/int/tools/codex/bin/publish_id.ps1`
 - `D:/int/tools/codex/bin/publish_nexus.ps1`
 - `D:/int/tools/codex/bin/publish_bundle_dint.ps1`
-- `D:/int/brain/deploy/scripts/publish_dev_vds_intbrain.sh`
+- `agents@vds.intdata.pro:/int/brain/deploy/scripts/publish_dev_vds_intbrain.sh`
 
 Decision:
 
