@@ -76,6 +76,16 @@ class IntBrainMemoryTests(unittest.TestCase):
             assert brief is not None
             self.assertEqual(brief.repo, "tools")
 
+    def test_session_reads_require_explicit_source(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            memory = IntBrainMemory(state_path=Path(tmp_dir) / "state.json")
+            with self.assertRaises(ValueError):
+                memory.extract_session_items()
+            with self.assertRaises(ValueError):
+                memory.recent_work()
+            with self.assertRaises(ValueError):
+                memory.session_brief(session_id="session-123")
+
     def test_mempalace_import_counts_candidates(self) -> None:
         with tempfile.TemporaryDirectory() as tmp_dir:
             root = Path(tmp_dir) / "palace"

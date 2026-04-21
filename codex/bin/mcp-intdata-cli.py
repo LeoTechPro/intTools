@@ -262,9 +262,9 @@ INTBRAIN_TOOLS = [
     _tool("intbrain_import_vault_pm", "Import PM/PARA data from 2brain vault (admin token required).", {**_mutation_props(), "owner_id": {"type": "integer"}, "source_root": {"type": "string"}, "timezone": {"type": "string"}}, ["confirm_mutation", "issue_context", "owner_id", "source_root"]),
     _tool("intbrain_memory_sync_sessions", "Import Codex/OpenClaw session memory into IntBrain.", {**_mutation_props(), "owner_id": {"type": "integer"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}, "since": {"type": "string"}, "file": {"type": "string"}, "incremental": {"type": "boolean"}, "dry_run": {"type": "boolean"}}, []),
     _tool("intbrain_memory_search", "Search previously imported IntBrain memory items.", {"owner_id": {"type": "integer"}, "query": {"type": "string"}, "limit": {"type": "integer"}, "days": {"type": "integer"}, "repo": {"type": "string"}}, ["owner_id", "query"]),
-    _tool("intbrain_memory_recent_work", "Summarize recent in-scope local Codex/OpenClaw sessions.", {"codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}, "days": {"type": "integer"}, "limit": {"type": "integer"}, "repo": {"type": "string"}}, []),
-    _tool("intbrain_memory_session_brief", "Build a concise brief for one Codex/OpenClaw session.", {"session_id": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}}, ["session_id"]),
-    _tool("intbrain_memory_import_mempalace", "Inventory or import MemPalace palace data into IntBrain.", {**_mutation_props(), "owner_id": {"type": "integer"}, "palace_root": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "limit": {"type": "integer"}, "dry_run": {"type": "boolean"}}, ["palace_root"]),
+    _tool("intbrain_memory_recent_work", "Summarize recent in-scope local Codex/OpenClaw sessions.", {"codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}, "days": {"type": "integer"}, "limit": {"type": "integer"}, "repo": {"type": "string"}}, ["codex_home"]),
+    _tool("intbrain_memory_session_brief", "Build a concise brief for one Codex/OpenClaw session.", {"session_id": {"type": "string"}, "codex_home": {"type": "string"}, "state_path": {"type": "string"}, "source_root": {"type": "string"}}, ["session_id", "codex_home"]),
+    _tool("intbrain_memory_import_mempalace", "Inventory or import MemPalace palace data into IntBrain.", {**_mutation_props(), "owner_id": {"type": "integer"}, "palace_root": {"type": "string"}, "state_path": {"type": "string"}, "limit": {"type": "integer"}, "dry_run": {"type": "boolean"}}, ["palace_root"]),
 ]
 
 RUNTIME_TOOLS.extend(VAULT_TOOLS)
@@ -378,12 +378,9 @@ def _load_intbrain_env_once() -> None:
     if os.environ.get("INTBRAIN_AGENT_ID") and os.environ.get("INTBRAIN_AGENT_KEY"):
         return
 
-    codex_home = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
     runtime_root = Path(os.environ.get("CODEX_RUNTIME_ROOT", ROOT_DIR / ".runtime"))
     secrets_root = Path(os.environ.get("CODEX_SECRETS_ROOT", runtime_root / "codex-secrets"))
-    legacy_root = Path(os.environ.get("LEGACY_CODEX_VAR_ROOT", codex_home / "var"))
     _parse_env_file(secrets_root / INTBRAIN_ENV_NAME)
-    _parse_env_file(legacy_root / INTBRAIN_ENV_NAME)
 
 
 def _coerce_pm_date_alias(value: Any, timezone: str | None) -> Any:
@@ -981,6 +978,8 @@ def _call_intbrain(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             extra_headers={"X-Core-Admin-Token": core_admin_token},
         )
     elif name == "intbrain_memory_sync_sessions":
+        if not args.get("codex_home") and not args.get("file"):
+            return {"ok": False, "error": "explicit_session_source_required", "message": "codex_home or file is required"}
         memory = IntBrainMemory(
             codex_home=args.get("codex_home"),
             state_path=args.get("state_path"),
@@ -1029,7 +1028,6 @@ def _call_intbrain(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         return {"ok": brief is not None, "data": None if brief is None else asdict(brief)}
     elif name == "intbrain_memory_import_mempalace":
         memory = IntBrainMemory(
-            codex_home=args.get("codex_home"),
             state_path=args.get("state_path"),
             scope_roots=_scope_roots(None),
         )

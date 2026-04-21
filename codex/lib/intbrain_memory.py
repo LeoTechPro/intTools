@@ -14,6 +14,7 @@ MEMPALACE_SOURCE = "intbrain.memory.mempalace.v1"
 CABINET_WORKSPACE_SOURCE = "intbrain.cabinet.workspace.v1"
 CABINET_RUNTIME_SOURCE = "intbrain.cabinet.runtime.v1"
 DEFAULT_SCOPE_ROOTS = ("D:/int", "/int")
+DEFAULT_STATE_PATH = Path(__file__).resolve().parents[2] / ".runtime" / "intbrain-memory" / "state.json"
 TEXT_SUFFIXES = {".md", ".txt", ".json", ".jsonl", ".yaml", ".yml", ".ts", ".tsx", ".js", ".jsx", ".cjs", ".mjs"}
 IGNORED_DIRS = {".git", ".next", ".venv", "node_modules", "dist", "build", "out", "coverage"}
 
@@ -124,16 +125,21 @@ class IntBrainMemory:
         state_path: str | Path | None = None,
         scope_roots: Iterable[str] = DEFAULT_SCOPE_ROOTS,
     ) -> None:
-        home = Path(codex_home).expanduser() if codex_home else Path.home() / ".codex"
+        home = Path(codex_home).expanduser() if codex_home else None
         self.codex_home = home
-        self.state_path = Path(state_path).expanduser() if state_path else home / "memories" / "intbrain-memory" / "state.json"
+        self.state_path = Path(state_path).expanduser() if state_path else DEFAULT_STATE_PATH
         self.scope_roots = tuple(scope_roots)
         self.state = _StateStore(self.state_path)
         self.state.load()
-        self.session_index = load_session_index(home)
+        self.session_index = load_session_index(home) if home is not None else {}
 
     def extract_session_items(self, *, file_path: str | Path | None = None, since: str | None = None, incremental: bool = True) -> dict[str, Any]:
-        paths = [Path(file_path).expanduser()] if file_path else list_session_files(self.codex_home)
+        if file_path:
+            paths = [Path(file_path).expanduser()]
+        elif self.codex_home is not None:
+            paths = list_session_files(self.codex_home)
+        else:
+            raise ValueError("codex_home or file_path is required for session memory reads")
         since_dt = parse_since(since)
         summary = _empty_summary(source=SESSION_SOURCE)
         items: list[MemoryItem] = []
@@ -187,6 +193,8 @@ class IntBrainMemory:
         self.state.save()
 
     def recent_work(self, *, days: int = 7, limit: int = 10, repo: str | None = None) -> dict[str, Any]:
+        if self.codex_home is None:
+            raise ValueError("codex_home is required for recent_work")
         cutoff = datetime.now(timezone.utc) - timedelta(days=max(days, 0))
         repo_norm = (repo or "").strip().lower() or None
         briefs: list[dict[str, Any]] = []
@@ -206,7 +214,12 @@ class IntBrainMemory:
         return {"days": days, "count": len(briefs), "items": briefs}
 
     def session_brief(self, *, session_id: str, session_path: str | Path | None = None, repo: str | None = None) -> SessionBrief | None:
-        path = Path(session_path) if session_path else find_session_file(self.codex_home, session_id)
+        if session_path:
+            path = Path(session_path)
+        elif self.codex_home is not None:
+            path = find_session_file(self.codex_home, session_id)
+        else:
+            raise ValueError("codex_home or session_path is required for session_brief")
         if path is None:
             return None
         meta = load_session_meta(path, thread_name=self.session_index.get(session_id))

@@ -84,7 +84,7 @@ TOOL_SKILLS = {
         "intbrain_pm_task_create": "pm-dashboard-tasks",
         "intbrain_pm_task_patch": "pm-dashboard-tasks",
         "intbrain_memory_recent_work": "session-memory",
-        "intbrain_memory_session_brief": "session-memory",
+    "intbrain_memory_session_brief": "session-memory",
         "intbrain_memory_sync_sessions": "session-memory",
         "intbrain_import_vault_pm": "external-imports",
         "intbrain_memory_import_mempalace": "external-imports",
@@ -145,6 +145,26 @@ ACTIVE_DOC_GUARD_PATHS = [
     ROOT / "openspec" / "changes" / "remove-local-delivery-publish-surface" / "specs" / "process" / "spec.md",
     ROOT / "openspec" / "changes" / "remove-local-sync-gate-and-codex-home-mutation" / "specs" / "process" / "spec.md",
 ]
+
+CODEX_HOME_FALLBACK_GUARD_PATHS = [
+    ROOT / "lockctl" / "lockctl_core.py",
+    ROOT / "gatesctl" / "gatesctl.py",
+    ROOT / "codex" / "bin" / "mcp-intdata-cli.py",
+    ROOT / "codex" / "bin" / "mcp-salebot.mjs",
+    ROOT / "codex" / "bin" / "mcp-bitrix24.sh",
+    ROOT / "codex" / "bin" / "twc-timeweb.sh",
+    ROOT / "codex" / "bin" / "timeweb-app-diagnostics.sh",
+    ROOT / "codex" / "lib" / "codex-env.sh",
+]
+
+REMOVED_CODEX_HOME_FALLBACK_REFS = {
+    "LEGACY_CODEX_VAR_ROOT": re.compile(r"LEGACY_CODEX_VAR_ROOT"),
+    "codex_legacy_env_hint": re.compile(r"codex_legacy_env_hint"),
+    "codex_var_fallback": re.compile(r"\.codex[/\\]var|CODEX_HOME.*var"),
+    "codex_memory_fallback": re.compile(r"\.codex[/\\]memories|CODEX_HOME.*memories"),
+    "legacy_lockctl_memory_env": re.compile(r"LOCKCTL_LEGACY_WINDOWS_STATE_DIR"),
+    "legacy_gatesctl_memory_env": re.compile(r"GATESCTL_LEGACY_STATE_DIR"),
+}
 
 REMOVED_ACTIVE_DOC_REFS = {
     "mcp__openspec__": re.compile(r"mcp__openspec__"),
@@ -345,6 +365,21 @@ def verify_active_doc_references(report: dict[str, Any]) -> None:
                     })
 
 
+def verify_no_codex_home_fallbacks(report: dict[str, Any]) -> None:
+    for path in CODEX_HOME_FALLBACK_GUARD_PATHS:
+        if not path.exists():
+            report["doc_guard_errors"].append(f"missing fallback guard path: {display_path(path)}")
+            continue
+        for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+            for name, pattern in REMOVED_CODEX_HOME_FALLBACK_REFS.items():
+                if pattern.search(line):
+                    report["doc_guard_errors"].append({
+                        "path": display_path(path),
+                        "line": line_no,
+                        "removed_ref": name,
+                    })
+
+
 def verify_guard_cases(profile: str) -> None:
     guard_cases = {
         "intdata-control": [
@@ -400,6 +435,7 @@ def build_report(skip_guards: bool) -> dict[str, Any]:
     verify_cabinet_absent(report)
     verify_skill_frontmatter(report)
     verify_active_doc_references(report)
+    verify_no_codex_home_fallbacks(report)
     missing_count = sum(len(row["missing_guidance"]) for row in report["matrix"])
     report["missing_guidance_count"] = missing_count
     report["ok"] = not (

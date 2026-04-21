@@ -106,7 +106,7 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 - reusable tooling хранится здесь, а не в корне `/int` и не в чужих product repos;
 - product repos подключают этот contour извне через scripts, hooks и documented runbooks;
 - self-authored/versioned Codex tooling и wrapper-скрипты должны жить в `/int/tools/codex/**`, а не в `~/.codex` / `C:\Users\intData\.codex`;
-- custom intTools runtime state (`lockctl`, `gatesctl`, gate receipts, lock SQLite/events) должен жить в `/int/tools/.runtime/**`, а не в official Codex home (`~/.codex`, `C:\Users\intData\.codex`) и не в shared Codex memories; `.codex/memories/**` допустим только как legacy migration source без удаления исходника.
+- custom intTools runtime state (`lockctl`, `gatesctl`, gate receipts, lock SQLite/events) должен жить в `/int/tools/.runtime/**`, а не в official Codex home (`~/.codex`, `C:\Users\intData\.codex`) и не в shared Codex memories; автоматические fallback/migration reads из `.codex/memories/**` запрещены.
 - official Codex home (`~/.codex`, `C:\Users\intData\.codex`) является Codex-owned state: repo-owned scripts не должны копировать, зеркалить, патчить или генерировать туда overlay/config; изменения Codex home допустимы только через native documented Codex mechanisms или explicit manual owner action.
 - reusable browser tooling, Firefox MCP launcher-ы и tracked project overlays живут только в `/int/tools/codex/**`;
 - runtime layout для dedicated Firefox MCP contour документируется и поддерживается только из `/int/tools/codex/**` + `/int/tools/.runtime/firefox-mcp/**`;

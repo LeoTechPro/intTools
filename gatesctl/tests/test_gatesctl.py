@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-import json
 import os
 import sys
 import tempfile
@@ -27,29 +26,24 @@ class GatesCtlStateTest(unittest.TestCase):
             expected = (MODULE_DIR.parent / ".runtime" / "gatesctl").resolve()
             self.assertEqual(gatesctl.resolve_state_dir(), expected)
 
-    def test_legacy_state_migration_copies_without_removing_legacy(self):
+    def test_ensure_state_dir_does_not_migrate_legacy_codex_memory(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             canonical = tmp_path / "canonical"
             legacy = tmp_path / "legacy"
             legacy.mkdir(parents=True, exist_ok=True)
-            sample = legacy / "events.jsonl"
-            sample.write_text("{\"ok\": true}\n", encoding="utf-8")
+            (legacy / "events.jsonl").write_text("{\"ok\": true}\n", encoding="utf-8")
 
             env = {
-                "GATESCTL_SKIP_LEGACY_MIGRATION": "",
+                "CODEX_HOME": str(tmp_path / ".codex"),
                 "GATESCTL_LEGACY_STATE_DIR": str(legacy),
             }
             with mock.patch.dict(os.environ, env, clear=False):
-                gatesctl.maybe_migrate_legacy_state(canonical)
+                with mock.patch.object(gatesctl, "STATE_DIR", canonical):
+                    gatesctl.ensure_state_dir()
 
-            self.assertTrue((canonical / "events.jsonl").exists())
-            self.assertTrue(legacy.exists())
-            self.assertTrue((legacy / "events.jsonl").exists())
-            marker = canonical / gatesctl.LEGACY_MIGRATION_MARKER
-            self.assertTrue(marker.exists())
-            payload = json.loads(marker.read_text(encoding="utf-8"))
-            self.assertIn(str(legacy.resolve()), payload["legacy_dirs"])
+            self.assertTrue(canonical.exists())
+            self.assertFalse((canonical / "events.jsonl").exists())
 
 
 if __name__ == "__main__":

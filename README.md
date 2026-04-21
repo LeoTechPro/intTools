@@ -198,7 +198,7 @@
 - Legacy managed assets для старого Codex home overlay могут оставаться только как historical/read-only reference; они не являются active sync source.
 - Project overlays для старого `~/.codex/projects/*` не синхронизируются repo scripts; используйте native Codex plugin/skill/config mechanisms.
 - Runtime/log/tmp/state repo-owned tooling живут вне git, в `/int/tools/.runtime/**`.
-- Секретные env-файлы MCP живут не в `~/.codex/var`, а в `/int/tools/.runtime/codex-secrets/`; `mcp-bizon365.py` не использует legacy Codex-home fallback.
+- Секретные env-файлы MCP живут не в `~/.codex/var`, а в `/int/tools/.runtime/codex-secrets/`; active helpers не используют legacy Codex-home fallback.
 - Любые cron/systemd записи должны ссылаться на файлы из этого каталога, а не на продуктовые репозитории.
 - Канонический cron entrypoint для orphan cleaner: `/int/tools/codex/cleanup_agent_orphans.sh`; lock/log writes go to `/int/tools/.runtime/codex/**`.
 - `~/.codex/scripts/cleanup-agent-orphans.sh` допустим только как legacy compatibility wrapper для старых вызовов, без source-of-truth логики.
@@ -764,7 +764,7 @@ Runtime files:
 
 Legacy migration:
 
-- Старый state из `$CODEX_HOME/memories/gatesctl` или `~/.codex/memories/gatesctl` используется только как non-destructive migration source.
+- Старый state из `$CODEX_HOME/memories/gatesctl` или `~/.codex/memories/gatesctl` больше не читается автоматически; при необходимости оператор делает явный ручной импорт вне default startup path.
 - При первом запуске недостающие файлы копируются в `/int/tools/.runtime/gatesctl`; старый каталог не удаляется.
 - На `vds.intdata.pro` `/int/tools/.runtime/gatesctl` является machine-local runtime и не синхронизируется через `/2brain`.
 
@@ -1056,7 +1056,7 @@ Runtime files:
 
 Legacy migration note:
 
-- Старый state из `$CODEX_HOME/memories/lockctl`, `~/.codex/memories/lockctl` или legacy Windows path `D:\home\leon\.codex\memories\lockctl` используется только как non-destructive migration source.
+- Старый state из `$CODEX_HOME/memories/lockctl`, `~/.codex/memories/lockctl` или legacy Windows path `D:\home\leon\.codex\memories\lockctl` больше не читается автоматически; при необходимости оператор делает явный ручной импорт вне default startup path.
 - При первом запуске недостающие файлы копируются в `/int/tools/.runtime/lockctl`; старые каталоги не удаляются.
 - На `vds.intdata.pro` `/int/tools/.runtime/lockctl` является machine-local runtime и не синхронизируется через `/2brain`.
 

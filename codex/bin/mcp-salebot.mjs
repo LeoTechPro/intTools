@@ -9,8 +9,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "../tools/mcp-obsi
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const primaryEnvPath = path.resolve(process.env.CODEX_SECRETS_ROOT || "/int/tools/.runtime/codex-secrets", "salebot-punkt-b.env");
-const legacyEnvPath = path.resolve(process.env.HOME || "", ".codex/var/salebot-punkt-b.env");
-const defaultEnvPath = fs.existsSync(primaryEnvPath) ? primaryEnvPath : legacyEnvPath;
+const defaultEnvPath = primaryEnvPath;
 
 function loadEnvFile(filePath) {
   if (!fs.existsSync(filePath)) {

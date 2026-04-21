@@ -12,7 +12,6 @@ if [[ -z "${TIMEWEB_TOKEN:-}" ]]; then
   cat >&2 <<EOF
 TIMEWEB_TOKEN is not set.
 Set it in $(codex_primary_env_hint "$env_name") before using twc.
-Legacy fallback: $(codex_legacy_env_hint "$env_name")
 EOF
   exit 1
 fi

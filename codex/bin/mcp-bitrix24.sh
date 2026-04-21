@@ -13,7 +13,6 @@ if [[ -z "${BITRIX_WEBHOOK_URL:-}" ]]; then
   cat >&2 <<EOF
 mcp-bitrix24: BITRIX_WEBHOOK_URL is not set.
 Set it in $(codex_primary_env_hint "$env_name") or export it before starting Codex.
-Legacy fallback: $(codex_legacy_env_hint "$env_name")
 EOF
   exit 1
 fi

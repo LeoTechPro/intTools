@@ -23,7 +23,7 @@ description: IntBrain external imports. Используйте для controlled
 ### intbrain_memory_import_mempalace
 - Когда: нужно dry-run или approved импортировать MemPalace data.
 - Required inputs: `palace_root`
-- Optional/schema inputs: `confirm_mutation`, `issue_context`, `owner_id`, `codex_home`, `state_path`, `limit`, `dry_run`
+- Optional/schema inputs: `confirm_mutation`, `issue_context`, `owner_id`, `state_path`, `limit`, `dry_run`
 - Режим: read-only by default
 - Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
 - Не использовать когда: нет нужного контекста, target/profile не подтверждён или требуется production/destructive действие без явной команды владельца.

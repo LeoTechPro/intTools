@@ -5,7 +5,6 @@ import os
 import sys
 import tempfile
 import unittest
-import json
 from pathlib import Path
 from unittest import mock
 
@@ -69,51 +68,24 @@ class LockCtlCoreTest(unittest.TestCase):
         self.assertTrue(normalized.lower().endswith(r"\int\tools"))
         self.assertTrue(normalized.upper().startswith(module_drive.upper()))
 
-    def test_legacy_state_migration_copies_without_removing_legacy(self):
+    def test_ensure_state_dir_does_not_migrate_legacy_codex_memory(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             canonical = tmp_path / "canonical"
             legacy = tmp_path / "legacy"
             legacy.mkdir(parents=True, exist_ok=True)
-            sample = legacy / "events.jsonl"
-            sample.write_text("{\"ok\": true}\n", encoding="utf-8")
+            (legacy / "events.jsonl").write_text("{\"ok\": true}\n", encoding="utf-8")
 
             env = {
-                "LOCKCTL_SKIP_WINDOWS_MIGRATION": "",
+                "CODEX_HOME": str(tmp_path / ".codex"),
                 "LOCKCTL_LEGACY_WINDOWS_STATE_DIR": str(legacy),
             }
             with mock.patch.dict(os.environ, env, clear=False):
-                with mock.patch.object(lockctl_core.os, "name", "nt"):
-                    lockctl_core._maybe_migrate_legacy_state(canonical)
+                with mock.patch.object(lockctl_core, "STATE_DIR", canonical):
+                    lockctl_core.ensure_state_dir()
 
-            self.assertTrue((canonical / "events.jsonl").exists())
-            self.assertTrue(legacy.exists())
-            self.assertTrue((legacy / "events.jsonl").exists())
-            marker = canonical / lockctl_core.LEGACY_MIGRATION_MARKER
-            self.assertTrue(marker.exists())
-            payload = json.loads(marker.read_text(encoding="utf-8"))
-            self.assertIn(str(legacy.resolve()), payload["legacy_dirs"])
-
-    def test_windows_legacy_state_migration_is_idempotent_after_marker(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            canonical = tmp_path / "canonical"
-            legacy = tmp_path / "legacy"
-            canonical.mkdir(parents=True, exist_ok=True)
-            legacy.mkdir(parents=True, exist_ok=True)
-            marker = canonical / lockctl_core.LEGACY_MIGRATION_MARKER
-            marker.write_text("already-migrated\n", encoding="utf-8")
-
-            env = {
-                "LOCKCTL_SKIP_WINDOWS_MIGRATION": "",
-                "LOCKCTL_LEGACY_WINDOWS_STATE_DIR": str(legacy),
-            }
-            with mock.patch.dict(os.environ, env, clear=False):
-                with mock.patch.object(lockctl_core.os, "name", "nt"):
-                    lockctl_core._maybe_migrate_windows_legacy_state(canonical)
-
-            self.assertTrue(legacy.exists())
-            self.assertEqual(marker.read_text(encoding="utf-8"), "already-migrated\n")
+            self.assertTrue(canonical.exists())
+            self.assertFalse((canonical / "events.jsonl").exists())
 
 
 if __name__ == "__main__":
