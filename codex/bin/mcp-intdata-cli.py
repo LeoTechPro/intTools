@@ -140,17 +140,6 @@ GOVERNANCE_TOOLS = [
         ["intent"],
     ),
     _tool(
-        "sync_gate_start",
-        "Run int git sync gate start for the current checkout.",
-        {**COMMON_RUN_PROPS, "all_repos": {"type": "boolean"}, "root_path": {"type": "string"}},
-    ),
-    _tool(
-        "sync_gate_finish",
-        "Run int git sync gate finish. Push mode requires confirmation.",
-        {**COMMON_RUN_PROPS, **_mutation_props(), "push": {"type": "boolean"}, "all_repos": {"type": "boolean"}, "root_path": {"type": "string"}},
-        ["confirm_mutation", "issue_context"],
-    ),
-    _tool(
         "gate_status",
         "Show gate receipts/bindings/approvals status.",
         {**COMMON_RUN_PROPS, "repo_root": {"type": "string"}, "issue": {"type": "string"}, "receipt_id": {"type": "string"}, "commit": {"type": "string"}, "gate": {"type": "string"}, "owner": {"type": "string"}, "format": {"type": "string", "enum": ["json", "text"]}},
@@ -672,23 +661,6 @@ def _call_governance(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             argv.extend(["--platform", str(arguments["platform"])])
         if arguments.get("json"):
             argv.append("--json")
-        return _run(argv, cwd=cwd, timeout_sec=timeout)
-    if name == "sync_gate_start":
-        argv = ["python", str(ROOT_DIR / "scripts" / "codex" / "int_git_sync_gate.py"), "--stage", "start"]
-        if arguments.get("all_repos"):
-            argv.append("--all-repos")
-        if arguments.get("root_path"):
-            argv.extend(["--root-path", str(arguments["root_path"])])
-        return _run(argv, cwd=cwd, timeout_sec=timeout)
-    if name == "sync_gate_finish":
-        _require_mutation(arguments)
-        argv = ["python", str(ROOT_DIR / "scripts" / "codex" / "int_git_sync_gate.py"), "--stage", "finish"]
-        if arguments.get("push"):
-            argv.append("--push")
-        if arguments.get("all_repos"):
-            argv.append("--all-repos")
-        if arguments.get("root_path"):
-            argv.extend(["--root-path", str(arguments["root_path"])])
         return _run(argv, cwd=cwd, timeout_sec=timeout)
     if name == "gate_status":
         argv = ["python", str(ROOT_DIR / "gatesctl" / "gatesctl.py"), "status"]

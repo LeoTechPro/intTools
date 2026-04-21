@@ -8,7 +8,7 @@
 
 - `node` и `npx` доступны в `PATH`;
 - установлен Firefox 100+;
-- project overlay синхронизирован в runtime через `/int/tools/codex/sync_runtime_from_repo.sh`;
+- project overlay подключён native Codex/OpenClaw mechanism; repo scripts не синхронизируют Codex home;
 - browser-proof не использует owner browser profile как default-path.
 
 ## Runtime layout

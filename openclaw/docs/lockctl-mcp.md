@@ -1,13 +1,14 @@
 # lockctl MCP adapter (OpenClaw)
 
-Единый MCP server для `lockctl` запускается через:
+Единый MCP server для `lockctl` запускается через shared `intdata-control` runtime:
 
-- Linux: `/int/tools/openclaw/bin/mcp-lockctl.sh`
-- Windows: `D:\int\tools\openclaw\bin\mcp-lockctl.cmd`
+- Linux: `/int/tools/codex/bin/mcp-intdata-cli.sh --profile intdata-control`
+- Windows: `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control`
 
-Оба adapter-скрипта делегируют в канонический Codex launcher:
+Фактическая реализация:
 
-- `/int/tools/codex/bin/mcp-lockctl.py`
+- `/int/tools/lockctl/lockctl_core.py` для lock engine
+- `/int/tools/codex/bin/mcp-intdata-cli.py --profile intdata-control` для MCP surface
 
 Доступные typed tools:
 

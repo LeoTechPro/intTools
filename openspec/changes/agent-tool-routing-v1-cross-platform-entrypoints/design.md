@@ -27,21 +27,18 @@
 
 Current repo-owned tools:
 
-- `D:/int/tools/scripts/codex/int_git_sync_gate.py`
-- `D:/int/tools/codex/bin/int_git_sync_gate.sh`
-- `D:/int/tools/codex/bin/int_git_sync_gate.ps1`
 - `D:/int/tools/lockctl/lockctl_core.py`
 - `D:/int/tools/lockctl/lockctl.py`
 - `D:/int/tools/lockctl/lockctl`
 - `D:/int/tools/lockctl/lockctl.ps1`
 - `D:/int/tools/lockctl/lockctl.cmd`
-- `D:/int/tools/codex/bin/mcp-lockctl.py`
-- `D:/int/tools/codex/bin/mcp-lockctl.sh`
-- `D:/int/tools/codex/bin/mcp-lockctl.cmd`
+- `D:/int/tools/codex/bin/mcp-intdata-cli.py --profile intdata-control`
+- `D:/int/tools/codex/bin/mcp-intdata-cli.sh --profile intdata-control`
+- `D:/int/tools/codex/bin/mcp-intdata-cli.cmd --profile intdata-control`
 
 Decision:
 
-- `int_git_sync_gate.py` и `lockctl_core.py` фиксируются как reference-pattern для engine/adapter split.
+- `lockctl_core.py` фиксируется как reference-pattern для engine/adapter split.
 - Эти capabilities не требуют архитектурного переписывания, но должны быть внесены в registry V1 как canonical examples.
 
 ### Remote access
@@ -118,4 +115,4 @@ Decision:
 
 - V1 запрещает agent self-routing на основании случайного wrapper path.
 - Переход к cross-platform adapters становится обязательным не только для publish, но и для SSH, Firefox, `intdb` и host runtime launchers.
-- Existing `int_git_sync_gate` и `lockctl` становятся reference implementations, а не просто частными скриптами.
+- Existing `lockctl` остаётся reference implementation, а не просто частным скриптом.

@@ -14,12 +14,9 @@
 Publish/deploy inventory removed by `remove-local-delivery-publish-surface`: do not add local delivery publish wrappers back to this routing inventory.
 
 ### Lock / sync gate
-- `D:/int/tools/scripts/codex/int_git_sync_gate.py`
-- `D:/int/tools/codex/bin/int_git_sync_gate.sh`
-- `D:/int/tools/codex/bin/int_git_sync_gate.ps1`
 - `D:/int/tools/lockctl/lockctl_core.py`
 - `D:/int/tools/lockctl/lockctl.py`
-- `D:/int/tools/codex/bin/mcp-lockctl.py`
+- `D:/int/tools/codex/bin/mcp-intdata-cli.py`
 
 Требование:
 - используй их как reference-pattern для engine/adapter split;
@@ -116,5 +113,5 @@ Publish/deploy inventory removed by `remove-local-delivery-publish-surface`: do 
 2. Ни один primary binding не остаётся shell-specific source-of-truth без canonical engine.
 3. Local delivery publish wrapper layer remains removed and is not reintroduced as a routing binding.
 4. SSH routing и Firefox launcher имеют cross-platform engine/adapter contract.
-5. `int_git_sync_gate` и `lockctl` остаются рабочими reference-patterns без регрессии.
+5. `lockctl` остаётся рабочим cross-platform reference-pattern без регрессии; `int_git_sync_gate` удалён/запрещён.
 6. Verified skills остаются допустимыми, но не могут неявно подменять blocked repo-owned high-risk capability.

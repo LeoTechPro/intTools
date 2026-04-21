@@ -1,5 +1,7 @@
 # Design: Multica autopilot report sidecar
 
+Status note: superseded by `remove-local-sync-gate-and-codex-home-mutation`; this sidecar is removed/forbidden.
+
 ## Runtime boundary
 
 The sidecar lives in `/int/tools/delivery/bin` as machine-wide delivery tooling. It does not import code from Multica, Probe, or Nexus. Integration happens only through existing command/API boundaries:
@@ -9,7 +11,7 @@ The sidecar lives in `/int/tools/delivery/bin` as machine-wide delivery tooling.
 
 ## Delivery flow
 
-1. Resolve target mapping from `AUTOPILOT_REPORT_TARGETS` and `--target`.
+1. Removed/forbidden behavior: resolve target mapping from `AUTOPILOT_REPORT_TARGETS` and `--target`.
 2. Fail closed if a requested autopilot has no configured master issue.
 3. Collect active issues and recent run history through Multica CLI.
 4. Render a deterministic Markdown hygiene report.

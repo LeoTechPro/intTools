@@ -162,24 +162,20 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
   - plugin `intdata-control` (`intData Control`) заменяет `lockctl`, `openspec`, `intdata-governance`, `intdata-routing`, `intdata-delivery`, `gatesctl`;
   - plugin `intdata-runtime` заменяет `intdata-host`, `intdata-ssh`, `intdata-browser`, `intdata-vault`.
 - Публичные tool names (без alias-совместимости):
-  - governance: `routing_validate`, `routing_resolve`, `sync_gate_start`, `sync_gate_finish`, `gate_status`, `gate_receipt`, `commit_binding`;
+  - governance: `routing_validate`, `routing_resolve`, `gate_status`, `gate_receipt`, `commit_binding`;
   - OpenSpec: `openspec_list`, `openspec_show`, `openspec_validate`, `openspec_status`, `openspec_instructions`, `openspec_new`, `openspec_archive`, `openspec_change_mutate`, `openspec_spec_mutate`, `openspec_exec_mutate`;
   - runtime: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`, `ssh_resolve`, `ssh_host`, `browser_profile_launch`.
 - Старые plugin IDs/tool names из удалённых шести плагинов не использовать в AGENTS/skills/runbooks.
 - Canonical engine roots:
   - SSH / Firefox / host launchers: `codex/bin`
-  - sync gate: `scripts/codex/int_git_sync_gate.py`
   - lockctl CLI/MCP: `lockctl/lockctl_core.py`, `codex/bin/mcp-intdata-cli.py --profile intdata-control`
   - intdb: `intdb/lib/intdb.py`
 
 ## Git и завершение работы
 
-- Для любой задачи с файловыми мутациями в `/int/*` обязателен двухфазный sync-gate:
-  - `start`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Windows) до первой правки; по умолчанию gate работает только с текущим checkout.
-  - `finish`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Windows) перед закрытием задачи; gate делает `fetch -> verify -> push -> post-push fetch`, но не делает auto-merge/rebase.
-- Запрещено начинать правки без успешного `start` и запрещено завершать задачу с локальными commit-ами `ahead>0`.
-- Для старого массового scan всех top-level repo требуется явный `--all-repos`; `--root-path` без `--all-repos` не используется.
-- Автосинхронизация `git pull --ff-only` выполняется только на clean tree с корректным upstream и только на `start`; при любом блокере работа приостанавливается до явных инструкций владельца, в запросе владельцу нужно коротко предложить варианты дальнейших действий.
+- Для любой задачи с файловыми мутациями в `/int/*` агент явно проверяет native git state: `git status --short --branch`, при необходимости `git fetch --prune origin`, и `git pull --ff-only` только на clean tree с корректным upstream и `behind>0`.
+- Локальный `int_git_sync_gate` и MCP `sync_gate_*` удалены/запрещены; не используйте repo-owned sync wrappers вместо явных git-команд и hooks.
+- Запрещено завершать задачу с локальными commit-ами `ahead>0`, если владелец не остановил задачу до публикации явно.
 - Любая завершённая правка в `/int/tools` считается незавершённой, пока в пределах текущей задачи не создан как минимум один локальный commit в этом repo.
 - Перед каждым локальным commit обязательно добавить в индекс новые файлы текущего scope и повторно выполнить `git add` для уже staged путей после каждой дополнительной правки; commit по устаревшему состоянию индекса запрещён.
 - Перед каждым локальным commit обновление `RELEASE.md` не требуется; по умолчанию source-of-truth изменений — git history (commit subjects/body + diff).
@@ -187,8 +183,8 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 - Если в задаче явно нужен релизлог, используем только корневой `RELEASE.md`; исторический `docs/`-путь и другие альтернативные варианты не используем.
 - Перед локальным commit агент обязан проверить, не устарел ли корневой `README.md`; если правка меняет описанные там команды, структуру, маршруты, интеграции или инструкции, обновление `README.md` входит в тот же commit.
 - Любой push в удалённую ветку `main` допустим только при `ALLOW_MAIN_PUSH=1` и только из локальной `main`.
-- Для `/int/tools` owner-approved git-задача после локального commit и при clean tree должна завершаться немедленной canonical publication в `origin/main`; локальный commit без этой публикации считается промежуточным состоянием, если владелец явно не остановил задачу до push.
-- Если canonical publication в `origin/main` завершилась non-zero, задача считается незавершённой до устранения причины и повторного успешного publish.
+- Для `/int/tools` owner-approved git-задача после локального commit и при clean tree должна завершаться немедленным native `git push origin main:main` в `origin/main`; локальный commit без этой публикации считается промежуточным состоянием, если владелец явно не остановил задачу до push.
+- Если native publication в `origin/main` завершилась non-zero, задача считается незавершённой до устранения причины и повторного успешного push.
 - Для каждого checkout/worktree обязателен локальный bootstrap `git config core.hooksPath .githooks`; tracked `.githooks/pre-push` включает этот guardrail только после такой настройки и не ограничивает push в `dev` или другие non-main branches.
 - `git push` и прочие remote-операции остаются отдельным шагом и не выполняются автоматически без owner approval или явного требования локального процесса.
 - Локальный `git add`/`git commit` по умолчанию остаётся дисциплиной согласованного scope: агент коммитит свои/согласованные правки, если владелец явно не указал включить больше.

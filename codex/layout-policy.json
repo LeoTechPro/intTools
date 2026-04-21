@@ -1,47 +1,5 @@
 {
-  "home_managed_roots": [
-    "AGENTS.md",
-    ".personality_migration",
-    "version.json",
-    "prompts",
-    "rules",
-    "skills",
-    "projects"
-  ],
-  "home_runtime_roots": [
-    "auth.json",
-    "config.toml",
-    "history.jsonl",
-    "session_index.jsonl",
-    "internal_storage.json",
-    "models_cache.json",
-    "sessions",
-    "archived_sessions",
-    "log",
-    "tmp",
-    "logs_1.sqlite",
-    "logs_1.sqlite-shm",
-    "logs_1.sqlite-wal",
-    "state_5.sqlite",
-    "state_5.sqlite-shm",
-    "state_5.sqlite-wal",
-    "shell_snapshots",
-    "memories"
-  ],
-  "home_forbidden_roots": [
-    "var",
-    "tools",
-    "autosync.sh",
-    ".git-detached",
-    ".gitignore"
-  ],
-  "home_forbidden_globs": [
-    ".git.detached-*",
-    "config.toml.bak*",
-    "session_index.jsonl.bak*"
-  ],
   "required_repo_paths": [
-    "codex/assets/codex-home/AGENTS.md",
     "codex/templates/config.toml.tmpl",
     "codex/bin/codex-host-bootstrap",
     "codex/bin/codex-host-bootstrap.cmd",

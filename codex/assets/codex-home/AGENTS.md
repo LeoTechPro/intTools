@@ -78,9 +78,8 @@ Ambiguity считается значимой только при неяснос
 ## Безопасность и рисковые операции
 - Потенциально разрушительные действия (`удаление`, `reset`, `перезапись истории`, `перезапись файлов`) выполняй только после явного подтверждения владельца.
 - Операции с удалёнными сервисами/репозиториями выполняй только по прямому запросу владельца или по явно описанному обязательному шагу утверждённого процесса.
-- Для любой задачи с мутациями в `/int/*` обязателен двухфазный sync-gate:
-  - `start`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage start` (Windows); по умолчанию gate работает только с текущим checkout.
-  - `finish`: `python /int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Linux) или `python D:/int/tools/scripts/codex/int_git_sync_gate.py --stage finish --push` (Windows); finish gate делает `fetch -> verify -> push -> post-push fetch`, без auto-merge/rebase.
+- Для любой задачи с мутациями в `/int/*` агент явно проверяет native git state: `git status --short --branch`, при необходимости `git fetch --prune origin`, и `git pull --ff-only` только на clean tree с корректным upstream и `behind>0`.
+- Локальный `int_git_sync_gate` и MCP `sync_gate_*` удалены/запрещены; используйте явные git-команды и repo hooks.
 - Запрещено начинать правки без успешного `start` и запрещено завершать задачу с локальными commit-ами `ahead>0`.
 - `git pull --ff-only` на clean tree с валидным upstream выполняй только в `start`; для старого массового scan всех top-level repo используй явный `--all-repos`. Если дерево грязное, upstream отсутствует или fast-forward не проходит, фиксируй это как git-блокер и эскалируй владельцу.
 - Перед любым локальным commit обязательно добавить в индекс новые файлы текущего scope и повторно выполнить `git add` для уже staged путей после каждой дополнительной правки; commit по устаревшему состоянию индекса запрещён.
@@ -98,7 +97,7 @@ Ambiguity считается значимой только при неяснос
   - `intdata-control` (вместо `lockctl`, `multica`, `openspec`, `intdata-governance`, `intdata-routing`, `intdata-delivery`, `gatesctl`);
   - `intdata-runtime` (вместо `intdata-host`, `intdata-ssh`, `intdata-browser`, `intdata-vault`).
 - Публичные tool names без alias:
-  - governance: `routing_validate`, `routing_resolve`, `sync_gate_start`, `sync_gate_finish`, `gate_status`, `gate_receipt`, `commit_binding`;
+  - governance: `routing_validate`, `routing_resolve`, `gate_status`, `gate_receipt`, `commit_binding`;
   - runtime: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`, `ssh_resolve`, `ssh_host`, `browser_profile_launch`.
 - Удалённые plugin IDs/tool names запрещено использовать в новых AGENTS/skills/runbooks.
 - Local delivery publish wrappers are removed; do not use `/int/tools/delivery/bin/publish_*`, `/int/tools/codex/bin/publish_*.ps1`, or `mcp__intdata_control__.publish`.

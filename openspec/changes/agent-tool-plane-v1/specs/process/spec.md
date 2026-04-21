@@ -87,15 +87,10 @@ The repository MUST provide Russian-facing plugin metadata and capability skills
 
 `CODEX_HOME` (`~/.codex` / `C:\Users\intData\.codex`) is Codex-owned state. Repo-owned intTools scripts MUST NOT install, patch, mirror, generate, move, or delete files under Codex home by default.
 
-#### Scenario: Legacy Codex home sync is invoked
-- **WHEN** `sync_runtime_from_repo.sh` or `sync_runtime_from_repo.ps1` is invoked without dry-run mode
-- **THEN** it exits non-zero with a controlled retired-path message
-- **AND** it does not create or modify files under `CODEX_HOME`
-
-#### Scenario: Legacy Codex home diagnostics are requested
-- **WHEN** `sync_runtime_from_repo.sh --dry-run` or `sync_runtime_from_repo.ps1 -DryRun` is invoked
-- **THEN** it reports legacy source and destination paths
-- **AND** it does not create or modify files under `CODEX_HOME`
+#### Scenario: Legacy Codex home sync is requested
+- **WHEN** an agent or operator looks for removed/forbidden `sync_runtime_from_repo.*`
+- **THEN** no active repo-owned sync script is available
+- **AND** Codex home changes require native Codex mechanisms or explicit manual owner action
 
 #### Scenario: Host bootstrap runs
 - **WHEN** `codex-host-bootstrap` runs
@@ -103,10 +98,10 @@ The repository MUST provide Russian-facing plugin metadata and capability skills
 - **AND** it does not call legacy Codex home sync
 - **AND** it does not write `config.toml` or other overlay files under `CODEX_HOME`
 
-#### Scenario: Legacy Codex home git detach is invoked
-- **WHEN** `detach_home_git.sh` is invoked without dry-run mode
-- **THEN** it exits non-zero with a controlled retired-path message
-- **AND** it does not move `$CODEX_HOME/.git` or write `$CODEX_HOME/.git-detached`
+#### Scenario: Legacy Codex home git detach is requested
+- **WHEN** an agent or operator looks for removed/forbidden `detach_home_git.sh`
+- **THEN** no active repo-owned detach script is available
+- **AND** Codex home git state changes require native Codex mechanisms or explicit manual owner action
 
 ### Requirement: Allowed intTools runtime outputs MUST live under tools runtime
 

@@ -14,7 +14,6 @@ if str(ROUTER_ROOT) not in __import__("sys").path:
 
 import agent_tool_routing as routing  # noqa: E402
 EXPECTED_V1_CAPABILITIES = {
-    "int_git_sync_gate",
     "lockctl-cli",
     "lockctl-mcp",
     "int_ssh_resolve",
@@ -54,9 +53,20 @@ class AgentToolRoutingTest(unittest.TestCase):
         declared = {item["capability_id"] for item in payload["capabilities"]}
         self.assertEqual(declared, EXPECTED_V1_CAPABILITIES)
 
-    def test_resolve_sync_gate_uses_python_engine(self) -> None:
-        payload = routing.resolve_capability("sync-gate:start", platform="linux")
-        self.assertEqual(payload["selected_binding"]["binding_origin"], "scripts/codex/int_git_sync_gate.py")
+    def test_sync_gate_intent_is_removed(self) -> None:
+        with self.assertRaises(routing.RoutingError) as ctx:
+            routing.resolve_capability("sync-gate:start", platform="linux")
+        self.assertEqual(ctx.exception.code, "UNKNOWN_INTENT")
+
+    def test_lockctl_mcp_resolves_to_shared_intdata_control_runtime(self) -> None:
+        self.assertEqual(
+            routing.resolve_capability("lockctl:mcp", platform="windows")["selected_binding"]["binding_origin"],
+            "codex/bin/mcp-intdata-cli.cmd",
+        )
+        self.assertEqual(
+            routing.resolve_capability("lockctl:mcp", platform="linux")["selected_binding"]["binding_origin"],
+            "codex/bin/mcp-intdata-cli.sh",
+        )
 
     def test_unknown_intent_blocks(self) -> None:
         with self.assertRaises(routing.RoutingError) as ctx:

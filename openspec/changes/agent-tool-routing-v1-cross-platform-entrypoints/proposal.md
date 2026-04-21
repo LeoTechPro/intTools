@@ -22,9 +22,8 @@
 ## V1 Inventory To Canonize
 
 ### Lock / sync gate
-- `int_git_sync_gate`
 - `lockctl` CLI
-- `lockctl` MCP
+- `lockctl` MCP through shared `mcp-intdata-cli --profile intdata-control`
 
 ### Remote access
 - `int_ssh_resolve`

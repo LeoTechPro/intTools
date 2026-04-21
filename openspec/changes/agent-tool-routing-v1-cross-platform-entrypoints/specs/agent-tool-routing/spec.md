@@ -53,7 +53,7 @@ The system MUST include repo-owned DB diagnostics, lock/sync, and host runtime l
 
 #### Scenario: V1 inventory is defined
 - **WHEN** the registry and capability spec enumerate runtime-critical tooling
-- **THEN** they include `intdb`, `int_git_sync_gate`, `lockctl`, `mcp-lockctl`, `codex-host-bootstrap`, `codex-host-verify`, and `codex-recovery-bundle`
+- **THEN** they include `intdb`, `lockctl`, `lockctl-mcp` through `mcp-intdata-cli --profile intdata-control`, `codex-host-bootstrap`, `codex-host-verify`, and `codex-recovery-bundle`
 - **AND** those capabilities inherit the same engine/adapter and blocker rules as the rest of V1 high-risk scope
 
 ### Requirement: Verified skill fallbacks MUST be explicit

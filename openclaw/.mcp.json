@@ -1,7 +1,11 @@
 {
   "mcpServers": {
     "lockctl": {
-      "command": "lockctl-mcp.cmd"
+      "command": "mcp-intdata-cli.cmd",
+      "args": [
+        "--profile",
+        "intdata-control"
+      ]
     }
   }
 }

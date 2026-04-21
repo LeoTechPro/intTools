@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import os
-import shlex
 import shutil
 import subprocess
 import sys
@@ -24,8 +23,8 @@ import codex_recovery_bundle as recovery_bundle  # noqa: E402
 class HostRuntimeEntrypointsTest(unittest.TestCase):
     def test_windows_dispatch_uses_powershell_adapters(self) -> None:
         command = host_bootstrap.build_repo_step_command(
-            "codex/sync_runtime_from_repo.sh",
-            "codex/sync_runtime_from_repo.ps1",
+            "codex/tools/install_tools.sh",
+            "codex/tools/install_tools.ps1",
             binding_origin="ignored",
         )
         self.assertTrue(command[0].lower().endswith(("pwsh", "powershell", "pwsh.exe", "powershell.exe")))
@@ -37,11 +36,8 @@ class HostRuntimeEntrypointsTest(unittest.TestCase):
         self.addCleanup(setattr, host_bootstrap, "current_platform", original)
         self.addCleanup(setattr, host_bootstrap, "resolve_powershell", original_ps)
 
-        sync_command = host_bootstrap.build_repo_step_command("codex/sync_runtime_from_repo.sh", "codex/sync_runtime_from_repo.ps1")
         install_command = host_bootstrap.build_repo_step_command("codex/tools/install_tools.sh", "codex/tools/install_tools.ps1")
 
-        self.assertEqual(sync_command[:2], ["pwsh", "-File"])
-        self.assertTrue(sync_command[2].endswith("codex\\sync_runtime_from_repo.ps1"))
         self.assertEqual(install_command[:2], ["pwsh", "-File"])
         self.assertTrue(install_command[2].endswith("codex\\tools\\install_tools.ps1"))
 
@@ -124,78 +120,7 @@ class HostRuntimeEntrypointsTest(unittest.TestCase):
                     else:
                         os.environ[key] = value
 
-    def test_sync_runtime_from_repo_shell_is_retired(self) -> None:
-        bash = shutil.which("bash")
-        if not bash:
-            self.skipTest("bash is required")
-
-        with tempfile.TemporaryDirectory(prefix="codex_home_sync_") as temp_root_raw:
-            temp_root = Path(temp_root_raw)
-            codex_home = temp_root / "codex-home"
-            script = REPO_ROOT / "codex" / "sync_runtime_from_repo.sh"
-            script_for_bash = script.as_posix()
-            if os.name == "nt" and script.drive:
-                drive = script.drive.rstrip(":").lower()
-                script_for_bash = f"/mnt/{drive}/{script.relative_to(script.anchor).as_posix()}"
-            visible = subprocess.run(
-                [bash, "-lc", f"test -f {shlex.quote(script_for_bash)}"],
-                text=True,
-                capture_output=True,
-                check=False,
-            )
-            if visible.returncode != 0:
-                self.skipTest("bash cannot see the repository checkout")
-
-            completed = subprocess.run(
-                [bash, script_for_bash],
-                env={**os.environ, "CODEX_HOME": str(codex_home)},
-                text=True,
-                capture_output=True,
-                check=False,
-            )
-            self.assertNotEqual(completed.returncode, 0)
-            self.assertIn("Codex home sync is retired", completed.stderr)
-            self.assertFalse(codex_home.exists())
-
-            dry_run = subprocess.run(
-                [bash, script_for_bash, "--dry-run"],
-                env={**os.environ, "CODEX_HOME": str(codex_home)},
-                text=True,
-                capture_output=True,
-                check=False,
-            )
-            self.assertEqual(dry_run.returncode, 0)
-            self.assertIn("legacy destination", dry_run.stdout)
-            self.assertFalse(codex_home.exists())
-
-    def test_sync_runtime_from_repo_powershell_is_retired(self) -> None:
-        pwsh = shutil.which("pwsh") or shutil.which("powershell")
-        if not pwsh:
-            self.skipTest("PowerShell runtime is required")
-
-        with tempfile.TemporaryDirectory(prefix="codex_home_sync_") as temp_root_raw:
-            temp_root = Path(temp_root_raw)
-            codex_home = temp_root / "codex-home"
-            script = REPO_ROOT / "codex" / "sync_runtime_from_repo.ps1"
-
-            completed = subprocess.run(
-                [pwsh, "-File", str(script)],
-                env={**os.environ, "CODEX_HOME": str(codex_home)},
-                text=True,
-                capture_output=True,
-                check=False,
-            )
-            self.assertNotEqual(completed.returncode, 0)
-            self.assertIn("Codex home sync is retired", completed.stderr)
-            self.assertFalse(codex_home.exists())
-
-            dry_run = subprocess.run(
-                [pwsh, "-File", str(script), "-DryRun"],
-                env={**os.environ, "CODEX_HOME": str(codex_home)},
-                text=True,
-                capture_output=True,
-                check=False,
-            )
-            self.assertEqual(dry_run.returncode, 0)
-            self.assertIn("legacy destination", dry_run.stdout)
-            self.assertFalse(codex_home.exists())
+    def test_codex_home_sync_entrypoints_are_removed(self) -> None:
+        self.assertFalse((REPO_ROOT / "codex" / "sync_runtime_from_repo.sh").exists())
+        self.assertFalse((REPO_ROOT / "codex" / "sync_runtime_from_repo.ps1").exists())
+        self.assertFalse((REPO_ROOT / "codex" / "detach_home_git.sh").exists())

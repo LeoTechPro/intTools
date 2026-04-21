@@ -26,7 +26,7 @@ The local publish contour hides branch, push, host, and deploy assumptions insid
 
 ## Non-Goals
 
-- Do not remove `scripts/codex/int_git_sync_gate.py`.
+- Superseded by `remove-local-sync-gate-and-codex-home-mutation`: `scripts/codex/int_git_sync_gate.py` is removed.
 - Do not create a replacement publish wrapper.
 - Do not mutate live `C:\Users\intData\.codex`.
 - Do not push or deploy other repos.

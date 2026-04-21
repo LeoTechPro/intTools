@@ -129,8 +129,8 @@ def render_config_template(template_text: str, *, codex_home: Path) -> str:
                 "__MCP_OBSIDIAN_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-obsidian-memory.sh"]',
                 "__MCP_BITRIX24_COMMAND__": "bash",
                 "__MCP_BITRIX24_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-bitrix24.sh"]',
-                "__LOCKCTL_COMMAND__": "python",
-                "__LOCKCTL_ARGS__": f'args = ["{tools_root}/codex/bin/mcp-lockctl.py"]',
+                "__LOCKCTL_COMMAND__": f"{tools_root}/codex/bin/mcp-intdata-cli.cmd",
+                "__LOCKCTL_ARGS__": 'args = ["--profile", "intdata-control"]',
             }
         )
     else:
@@ -144,8 +144,8 @@ def render_config_template(template_text: str, *, codex_home: Path) -> str:
                 "__MCP_OBSIDIAN_ARGS__": "",
                 "__MCP_BITRIX24_COMMAND__": f"{tools_root}/codex/bin/mcp-bitrix24.sh",
                 "__MCP_BITRIX24_ARGS__": "",
-                "__LOCKCTL_COMMAND__": f"{tools_root}/codex/bin/mcp-lockctl.sh",
-                "__LOCKCTL_ARGS__": "",
+                "__LOCKCTL_COMMAND__": f"{tools_root}/codex/bin/mcp-intdata-cli.sh",
+                "__LOCKCTL_ARGS__": 'args = ["--profile", "intdata-control"]',
             }
         )
 
@@ -174,37 +174,6 @@ def run_checked(command: list[str], *, cwd: Path | None = None) -> None:
         print(completed.stderr, end="", file=sys.stderr)
     if completed.returncode != 0:
         raise RuntimeError(f"command failed ({completed.returncode}): {' '.join(command)}")
-
-
-def sync_managed_runtime(codex_home: Path) -> None:
-    assets_root = Path(os.environ.get("ASSETS_ROOT", ROOT_DIR / "assets" / "codex-home")).expanduser()
-    projects_root = Path(os.environ.get("PROJECTS_ROOT", ROOT_DIR / "projects")).expanduser()
-    if not (assets_root / "AGENTS.md").exists():
-        raise RuntimeError(f"missing managed assets root: {assets_root}")
-
-    def copy_file(source: Path, destination: Path) -> None:
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source, destination)
-
-    def replace_dir(source: Path, destination: Path) -> None:
-        if destination.exists():
-            shutil.rmtree(destination)
-        shutil.copytree(
-            source,
-            destination,
-            ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
-        )
-
-    copy_file(assets_root / "AGENTS.md", codex_home / "AGENTS.md")
-    copy_file(assets_root / ".personality_migration", codex_home / ".personality_migration")
-    copy_file(assets_root / "version.json", codex_home / "version.json")
-
-    replace_dir(assets_root / "rules", codex_home / "rules")
-    replace_dir(assets_root / "prompts", codex_home / "prompts")
-    replace_dir(assets_root / "skills", codex_home / "skills")
-
-    if projects_root.exists():
-        replace_dir(projects_root, codex_home / "projects")
 
 
 def install_tools_neutral() -> None:

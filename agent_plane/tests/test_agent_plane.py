@@ -48,6 +48,9 @@ class AgentPlaneTest(unittest.TestCase):
         names = {tool["name"] for tool in dispatcher.list_tools()}
 
         self.assertFalse([name for name in names if name.startswith("multica_")])
+        self.assertNotIn("sync_gate_start", names)
+        self.assertNotIn("sync_gate_finish", names)
+        self.assertNotIn("publish", names)
 
     def test_guarded_tool_requires_approval_and_is_audited(self) -> None:
         audit = MemoryAuditStore()

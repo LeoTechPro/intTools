@@ -24,5 +24,5 @@ The wrapper is an adapter only. Canonical behavior stays in existing CLIs:
 - OpenSpec CLI through `codex/bin/openspec.ps1` or `codex/bin/openspec`.
 - Multica CLI through `multica`.
 - Routing through `codex/bin/agent_tool_routing.py`.
-- Delivery/synchronization through `scripts/codex/int_git_sync_gate.py`; local delivery publish wrappers are removed/forbidden.
+- Delivery/publication through explicit native git commands and repo hooks; local delivery publish wrappers and `int_git_sync_gate` are removed/forbidden.
 - Existing subsystem CLIs for intdb, gatesctl, host, SSH, vault, browser and connectors.

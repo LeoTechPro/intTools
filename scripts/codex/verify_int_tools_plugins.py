@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 MCP_SERVER = ROOT / "codex" / "bin" / "mcp-intdata-cli.py"
 EXPECTED_COUNTS = {
     "intbrain": 27,
-    "intdata-control": 23,
+    "intdata-control": 21,
     "intdata-runtime": 9,
     "intdb": 1,
 }
@@ -45,8 +45,6 @@ TOOL_SKILLS = {
         "openspec_exec_mutate": "openspec-mutation",
         "routing_validate": "routing",
         "routing_resolve": "routing",
-        "sync_gate_start": "sync-gate",
-        "sync_gate_finish": "sync-gate",
         "gate_status": "gate-receipts-commit-binding",
         "gate_receipt": "gate-receipts-commit-binding",
         "commit_binding": "gate-receipts-commit-binding",
@@ -110,7 +108,7 @@ REQUIRED_CARD_MARKERS = [
 GUARDED_TOOLS = {
     "lockctl_acquire", "lockctl_renew", "lockctl_release_path", "lockctl_release_issue", "lockctl_gc",
     "openspec_archive", "openspec_change_mutate", "openspec_spec_mutate", "openspec_new", "openspec_exec_mutate",
-    "sync_gate_finish", "commit_binding",
+    "commit_binding",
     "host_bootstrap", "recovery_bundle", "ssh_host", "browser_profile_launch",
     "intdata_vault_sanitize", "intdata_runtime_vault_gc",
     "intbrain_context_store", "intbrain_graph_link", "intbrain_group_policy_upsert", "intbrain_jobs_sync_runtime",
@@ -130,7 +128,10 @@ REMOVED_INTDATA_CONTROL_TOOLS = {
     "multica_workspace_read", "multica_skill_read", "multica_skill_write", "multica_runtime_read",
     "multica_runtime_write", "multica_config_read", "multica_config_write", "multica_daemon_read",
     "multica_daemon_control", "multica_auth_read", "multica_auth_write", "multica_attachment_download",
-    "multica_repo_checkout", "openspec_change", "openspec_spec", "openspec_exec", "sync_gate",
+    "multica_repo_checkout", "openspec_change", "openspec_spec", "openspec_exec",
+    "sync_gate", "sync_gate_start", "sync_gate_finish", "int_git_sync_gate", "int_git_sync_gate.py",
+    "mcp-lockctl.py", "mcp-lockctl.sh", "mcp-lockctl.cmd", "lockctl-mcp",
+    "multica_autopilot_report_sidecar.py", "AUTOPILOT_REPORT_TARGETS", "AUTOPILOT_REPORT_STATE_PATH",
     "publish_repo.py", "publish_data.py", "publish_assess.py", "publish_crm.py", "publish_id.py",
     "publish_nexus.py", "publish_bundle_dint.py", "publish_brain_dev.py",
     "publish_repo.ps1", "publish_data.ps1", "publish_assess.ps1", "publish_crm.ps1", "publish_id.ps1",
@@ -142,6 +143,7 @@ ACTIVE_DOC_GUARD_PATHS = [
     ROOT / "openspec" / "changes" / "require-agent-plugin-tool-access" / "specs" / "process" / "spec.md",
     ROOT / "openspec" / "changes" / "remove-intdata-control-multica-surface" / "specs" / "process" / "spec.md",
     ROOT / "openspec" / "changes" / "remove-local-delivery-publish-surface" / "specs" / "process" / "spec.md",
+    ROOT / "openspec" / "changes" / "remove-local-sync-gate-and-codex-home-mutation" / "specs" / "process" / "spec.md",
 ]
 
 REMOVED_ACTIVE_DOC_REFS = {
@@ -316,14 +318,22 @@ def active_doc_paths() -> list[Path]:
 
 
 def verify_active_doc_references(report: dict[str, Any]) -> None:
-    allowed_removed_context = ("removed", "forbidden", "must not expose", "no longer", "MUST NOT expose")
+    allowed_removed_context = (
+        "removed",
+        "forbidden",
+        "must not expose",
+        "no longer",
+        "MUST NOT expose",
+        "удалён",
+        "удалены",
+        "запрещён",
+        "запрещены",
+    )
     for path in active_doc_paths():
         if not path.exists():
             report["doc_guard_errors"].append(f"missing active doc: {display_path(path)}")
             continue
         for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
-            if "int_git_sync_gate.py" in line:
-                continue
             for name, pattern in REMOVED_ACTIVE_DOC_REFS.items():
                 if pattern.search(line):
                     if any(marker in line for marker in allowed_removed_context):
@@ -341,7 +351,6 @@ def verify_guard_cases(profile: str) -> None:
             ("openspec_archive", {"change_name": "guard-negative"}),
             ("openspec_change_mutate", {"subcommand": "set", "args": ["guard-negative"]}),
             ("commit_binding", {"commit_sha": "0" * 40}),
-            ("sync_gate_finish", {}),
         ],
         "intdata-runtime": [("host_bootstrap", {}), ("recovery_bundle", {}), ("browser_profile_launch", {"profile": "firefox-default"}), ("intdata_vault_sanitize", {"dry_run": False})],
         "intbrain": [("intbrain_context_store", {"owner_id": 1, "kind": "note", "title": "guard", "text_content": "guard"}), ("intbrain_pm_task_create", {"owner_id": 1, "title": "guard"}), ("intbrain_jobs_sync_runtime", {"owner_id": 1})],

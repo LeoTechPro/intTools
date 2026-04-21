@@ -12,7 +12,7 @@
   "interface": {
     "displayName": "intData Control",
     "shortDescription": "Locks, specs, routing и gates",
-    "longDescription": "Единая MCP-поверхность intData Control для lockctl, OpenSpec, routing validation, sync gate, gate receipts, commit binding и review workflows с явными approval/issue правилами. Multica issue state ведётся через официальный multica CLI или официальный Multica MCP plugin, если он установлен. Local delivery publish wrappers removed/forbidden.",
+    "longDescription": "Единая MCP-поверхность intData Control для lockctl, OpenSpec, routing validation, gate receipts, commit binding и review workflows с явными approval/issue правилами. Git sync/publish выполняется explicit native git commands, не через sync-gate wrapper. Multica issue state ведётся через официальный multica CLI или официальный Multica MCP plugin, если он установлен. Local delivery publish wrappers removed/forbidden.",
     "developerName": "IntData",
     "category": "Developer Tools",
     "capabilities": [
@@ -25,7 +25,7 @@
       "Проверить OpenSpec status и lock state для текущей задачи.",
       "Взять lockctl locks перед tracked-правками.",
       "Для недоверенного ревью использовать review-find/review-fix и проверять claims по ground truth.",
-      "Проверить routing/gates перед завершением."
+      "Проверить routing/gates перед завершением; git publish выполнять native git commands."
     ]
   }
 }

@@ -20,7 +20,7 @@ The system MUST NOT provide repo-owned `delivery/bin/publish_*` engines, legacy 
 #### Scenario: Agent validates the intData Control MCP surface
 - **WHEN** `intdata-control` tools are listed from a fresh MCP process
 - **THEN** no tool named `publish` is present
-- **AND** sync-gate, routing, gate receipts, commit binding, OpenSpec, and lockctl tools remain available
+- **AND** routing, gate receipts, commit binding, OpenSpec, and lockctl tools remain available
 
 #### Scenario: Agent validates high-risk routing
 - **WHEN** the high-risk routing registry is validated

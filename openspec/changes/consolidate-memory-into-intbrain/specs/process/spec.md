@@ -37,13 +37,13 @@ The system MUST provide an IntBrain-owned Cabinet inventory/import path before r
 - **AND** physical deletion of `D:/int/cabinet` remains blocked until count-check and owner acceptance are recorded in INT-222
 
 ### Requirement: intData Control MUST be the only repo-owned control-plane plugin surface
-The system MUST expose lockctl, OpenSpec, routing, sync gate, gate, and commit-binding MCP tools through the `intdata-control` plugin/profile. Multica and local delivery publish wrappers are removed/forbidden from this repo-owned surface.
+The system MUST expose lockctl, OpenSpec, routing, gate, and commit-binding MCP tools through the `intdata-control` plugin/profile. Multica, local delivery publish wrappers, and local sync-gate wrappers are removed/forbidden from this repo-owned surface.
 
 #### Scenario: Control-plane tools are listed
 - **WHEN** the IntData Tools plugin catalog and MCP profiles are inspected
 - **THEN** `intdata-control` is the only active control-plane plugin ID
 - **AND** old plugin IDs `lockctl`, `multica`, `openspec`, and `intdata-governance` are absent from the active catalog
-- **AND** public tool names remain unique `lockctl_*`, explicit `openspec_*`, `routing_*`, `sync_gate_start`, `sync_gate_finish`, `gate_*`, and `commit_binding` names
+- **AND** public tool names remain unique `lockctl_*`, explicit `openspec_*`, `routing_*`, `gate_*`, and `commit_binding` names
 - **AND** no public `intdata-control` tool name starts with `multica_`
 - **AND** no public `intdata-control` tool name is `publish`
 
