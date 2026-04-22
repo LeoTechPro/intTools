@@ -933,7 +933,7 @@ SET email = EXCLUDED.email,
     family_name = EXCLUDED.family_name,
     phone = EXCLUDED.phone,
     slug = EXCLUDED.slug,
-    status = EXCLUDED.status,
+    status = assess.specialists.status,
     configured_package_codes = EXCLUDED.configured_package_codes,
     updated_at = EXCLUDED.updated_at;
 

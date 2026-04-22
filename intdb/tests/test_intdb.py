@@ -131,6 +131,7 @@ class IntDbTests(unittest.TestCase):
         self.assertNotIn("legacy-specialist-", sql)
         self.assertIn("target assess.specialists has conflicting legacy numeric slugs", sql)
         self.assertIn("target assess.clients has conflicting legacy numeric slugs", sql)
+        self.assertIn("status = assess.specialists.status", sql)
         self.assertIn("auth.users", sql)
         self.assertIn("assess.diag_results", sql)
 
