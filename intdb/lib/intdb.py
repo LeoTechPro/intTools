@@ -734,6 +734,7 @@ PUNKTB_LEGACY_MANAGERS_EXPORT_SQL = """
     'legacy_id', id,
     'login', lower(btrim(login)),
     'raw_login', login,
+    'password', password,
     'name', name,
     'surname', surname,
     'phone', phone,
@@ -953,6 +954,30 @@ SET email = EXCLUDED.email,
     status = assess.specialists.status,
     configured_package_codes = EXCLUDED.configured_package_codes,
     updated_at = EXCLUDED.updated_at;
+
+SELECT set_config('request.jwt.claim.role', 'service_role', true);
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM _intdb_punktb_managers WHERE NULLIF(raw->>'password', '') IS NOT NULL)
+     AND NOT has_function_privilege(
+       current_user,
+       'assess.assess_set_user_password_internal(uuid,text,text,uuid)',
+       'execute'
+     ) THEN
+    RAISE EXCEPTION 'PUNKTB_PASSWORD_BACKFILL_REQUIRES_ASSESS_SET_USER_PASSWORD_INTERNAL_EXECUTE for role %', current_user;
+  END IF;
+END
+$$;
+
+SELECT assess.assess_set_user_password_internal(
+  user_id,
+  raw->>'password',
+  'specialist',
+  NULL
+)
+FROM _intdb_punktb_managers
+WHERE NULLIF(raw->>'password', '') IS NOT NULL;
 
 INSERT INTO assess.clients (
   user_id, email, first_name, phone, slug, status, specialist_id,

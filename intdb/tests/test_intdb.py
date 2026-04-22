@@ -135,6 +135,10 @@ class IntDbTests(unittest.TestCase):
         self.assertIn("target assess.specialists has conflicting legacy numeric slugs", sql)
         self.assertIn("target assess.clients has conflicting legacy numeric slugs", sql)
         self.assertIn("status = assess.specialists.status", sql)
+        self.assertIn("'password', password", intdb.PUNKTB_LEGACY_MANAGERS_EXPORT_SQL)
+        self.assertIn("assess.assess_set_user_password_internal", sql)
+        self.assertIn("PUNKTB_PASSWORD_BACKFILL_REQUIRES_ASSESS_SET_USER_PASSWORD_INTERNAL_EXECUTE", sql)
+        self.assertIn("set_config('request.jwt.claim.role', 'service_role', true)", sql)
         self.assertIn("auth.users", sql)
         self.assertIn("assess.diag_results", sql)
 
