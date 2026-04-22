@@ -1,12 +1,13 @@
 ---
 name: codex
 description: Codex usage, troubleshooting, and recovery workflows. Use for restoring hidden/archived local Codex sessions, locating Codex storage on disk, explaining Codex CLI/VS Code behavior, and referencing official OpenAI Codex documentation.
-knowledge_mode: hybrid-core-reference
-last_verified_at: "2026-02-25"
-refresh_interval_days: 30
-official_sources:
-  - https://platform.openai.com/docs/codex
-  - https://platform.openai.com/docs
+metadata:
+  knowledge_mode: hybrid-core-reference
+  last_verified_at: "2026-02-25"
+  refresh_interval_days: 30
+  official_sources:
+    - https://platform.openai.com/docs/codex
+    - https://platform.openai.com/docs
 ---
 
 # Codex

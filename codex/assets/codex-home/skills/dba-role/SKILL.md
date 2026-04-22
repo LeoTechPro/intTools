@@ -2,12 +2,13 @@
 name: dba-role
 description: 'Роль DBA: схемы, индексы, миграции, производительность и безопасность
   БД.'
-knowledge_mode: hybrid-core-reference
-last_verified_at: "2026-02-25"
-refresh_interval_days: 30
-official_sources:
-  - https://www.postgresql.org/docs/current/
-  - https://supabase.com/docs/guides/database
+metadata:
+  knowledge_mode: hybrid-core-reference
+  last_verified_at: "2026-02-25"
+  refresh_interval_days: 30
+  official_sources:
+    - https://www.postgresql.org/docs/current/
+    - https://supabase.com/docs/guides/database
 ---
 
 # Роль: DBA

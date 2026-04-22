@@ -2,11 +2,12 @@
 name: create-plan
 description: Создание краткого плана, когда пользователь явно просит план действий
   по задаче.
-knowledge_mode: hybrid-core-reference
-last_verified_at: "2026-02-25"
-refresh_interval_days: 60
-official_sources:
-  - https://platform.openai.com/docs
+metadata:
+  knowledge_mode: hybrid-core-reference
+  last_verified_at: "2026-02-25"
+  refresh_interval_days: 60
+  official_sources:
+    - https://platform.openai.com/docs
 ---
 
 # Create Plan

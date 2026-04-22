@@ -1,13 +1,14 @@
 ---
 name: devops-role
 description: 'Роль DevOps: инфраструктура, деплой, логирование, smoke-проверки и rollback.'
-knowledge_mode: hybrid-core-reference
-last_verified_at: "2026-02-25"
-refresh_interval_days: 30
-official_sources:
-  - https://docs.docker.com/
-  - https://docs.github.com/actions
-  - https://supabase.com/docs
+metadata:
+  knowledge_mode: hybrid-core-reference
+  last_verified_at: "2026-02-25"
+  refresh_interval_days: 30
+  official_sources:
+    - https://docs.docker.com/
+    - https://docs.github.com/actions
+    - https://supabase.com/docs
 ---
 
 # Роль: DevOps
