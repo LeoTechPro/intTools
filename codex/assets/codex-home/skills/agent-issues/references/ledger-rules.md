@@ -4,3 +4,8 @@
 - One active writer-lock per path; if lease expired, acquire a fresh lock instead of patching old runtime state.
 - Context/progress (goal/now/next/questions/risks/estimate) is kept in Multica worklog/closed comments, not in runtime lock state. If spawn-agent used, include `spawn_agent_id` and `spawn_agent_utc` in Multica (and `parent_session_id` if available).
 - Do not release or overwrite other agents’ active locks.
+
+## Tool surface
+- MCP/plugin preferred: `lockctl_acquire`, `lockctl_renew`, `lockctl_release_path`, `lockctl_release_issue`, `lockctl_status`, `lockctl_gc`.
+- CLI fallback from PATH: `lockctl acquire|renew|release-path|release-issue|status|gc`.
+- Universal fallback only when PATH is broken and project policy allows it: `python /int/tools/lockctl/lockctl.py ...`.

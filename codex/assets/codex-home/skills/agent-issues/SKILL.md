@@ -1,6 +1,6 @@
 ---
 name: agent-issues
-description: 'Multica-first процесс работы с задачами агентов: Multica Issues, worklog/closed, runtime lockctl, commit gates и status movement.'
+description: 'Multica-first процесс работы с задачами агентов: Multica Issues, runtime lockctl, worklog/closed, commit gates и status movement. Используй для любых tracked file mutations, issue-bound work, lock acquisition/release, Multica status/worklog и closure.'
 knowledge_mode: hybrid-core-reference
 last_verified_at: "2026-04-18"
 refresh_interval_days: 30
@@ -15,7 +15,7 @@ official_sources:
 - Используй официальный документированный `multica` CLI для issue reads/writes; если в runtime установлен официальный Multica MCP plugin (`mcp__multica__`), можно использовать его. Не используй `intdata-control` как Multica-прослойку.
 - Если Multica недоступна, задача считается заблокированной: остановись, сообщи владельцу конкретный blocker и продолжай без Multica только после явного разрешения владельца.
 - Привязывай реализацию к Multica issue + lock-flow проекта, если lock-flow существует.
-- Поддерживай lock state через runtime `lockctl`; если доступен MCP plugin `lockctl`, используй его вместо direct CLI.
+- Поддерживай lock state через runtime `lockctl`; если доступен MCP/plugin tool surface, используй его вместо direct CLI, иначе используй CLI `lockctl` из PATH.
 - В `FINISH` выполняй closure-процедуры по текущему Multica issue; push/PR/remote ops — только explicit.
 
 ## Goal
@@ -42,6 +42,20 @@ Work with Multica Issues and project lock-flow in any repo without hardcoded pat
 - Every local commit for agent work must include the current Multica task id in `INT-*` format in the commit subject or body.
 - Absence of a reachable Multica issue id is a blocker for `git commit`, push, deploy, publication, PR creation, and any close-out flow that publishes code.
 - If a commit in the current publication scope lacks `INT-*`, stop and report the blocker; fix commit metadata only through the safest project-approved path and owner approval where required.
+
+## Required Lockctl Gate
+- Before any tracked file mutation in governed repos, acquire a `lockctl` lease for each concrete file path.
+- Prefer MCP/plugin tools when available: `lockctl_acquire`, `lockctl_renew`, `lockctl_release_path`, `lockctl_release_issue`, `lockctl_status`, `lockctl_gc`.
+- CLI fallback examples:
+  - Windows/Linux/macOS PATH: `lockctl acquire --repo-root <repo> --path <file> --owner <owner> --issue INT-* --lease-sec 3600`
+  - Status: `lockctl status --repo-root <repo> --issue INT-* --format json`
+  - Release one path: `lockctl release-path --repo-root <repo> --path <file> --owner <owner>`
+  - Release issue scope: `lockctl release-issue --repo-root <repo> --issue INT-*`
+- Use only file paths, never directories.
+- Renew long-running edits before lease expiry.
+- Release locks immediately after finishing, blocking, or handing off the file scope.
+- Never edit lock SQLite/events/runtime storage manually.
+- `gatectl`/gate receipts are separate governance tooling and are intentionally out of scope for this skill unless a project-local rule explicitly requires them.
 
 ## Workflow
 1. Locate project context from current cwd.
@@ -73,7 +87,7 @@ Work with Multica Issues and project lock-flow in any repo without hardcoded pat
    - Add/refresh/remove locks through runtime `lockctl`; attach `issue=INT-*` only when the task has or requires a Multica issue.
    - Store locks only on file paths; directories are forbidden.
    - Если в рабочем дереве есть неожиданные изменения, не откатывай/не stash'и/не трогай их без прямого запроса владельца. Зафиксируй наблюдение в Multica issue handoff/worklog.
-   - Если использовался spawn-agent, допустимы только `spawn_agent_id`, `spawn_agent_utc`, `parent_session_id` in the project-approved lock ledger when one exists; progress stays in Multica.
+   - Если использовался spawn-agent, фиксируй `spawn_agent_id`, `spawn_agent_utc`, `parent_session_id` в Multica worklog/comment; progress stays in Multica.
    - Если лок исчез или TTL истёк, ставь новый лок по текущему Multica issue и не вмешивайся в чужие.
    - Never edit lock runtime storage directly.
 
