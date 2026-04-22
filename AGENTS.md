@@ -112,6 +112,15 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - Используй `$agent-issues` как источник истины для Multica issue-дисциплины, runtime `lockctl`, commit-гейты и движения worklog/status.
 - Любые файловые правки в этом repo запрещены без предварительного `lockctl acquire` по конкретному файлу; после завершения лок обязательно снимается через `lockctl release-path` или `lockctl release-issue`.
 - Repo-local правила ниже могут ужесточать git/commit/publish flow, но не должны дублировать полный Multica workflow.
+
+## Codex Skill Governance
+
+- Для создания или правки любого `SKILL.md` агент обязан загрузить и соблюдать официальный `$skill-creator` до файловых изменений.
+- Новые skills создаются через `skill-creator/scripts/init_skill.py`, если skill ещё не существует; ручное создание структуры допустимо только как явно зафиксированный blocker/fallback.
+- После правки skill обязательно выполнить `skill-creator/scripts/quick_validate.py <path-to-skill-folder>` и исправить ошибки до commit/publish; на Windows запускать validator с `PYTHONUTF8=1`, чтобы Python не читал русскоязычный `SKILL.md` через cp1251.
+- Перед копированием skill в `C:\Users\intData\.codex\skills` или иной Codex home проверить, что `SKILL.md` начинается с raw bytes `2D 2D 2D` (`---`) без UTF-8 BOM и содержит closing frontmatter delimiter.
+- Не читать/перезаписывать русскоязычные `SKILL.md` через PowerShell default encoding; использовать явный UTF-8 без BOM или byte-level операции, чтобы не получить mojibake.
+
 ## Разделение документации
 
 - `README.md` хранит только документацию и инструкции по репозиторию.

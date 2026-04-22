@@ -1,11 +1,12 @@
 ---
 name: agent-issues
 description: 'Multica-first процесс работы с задачами агентов: Multica Issues, runtime lockctl, worklog/closed, commit-гейты и движение статусов. Используй для любых tracked-мутаций файлов, работ с issue, взятия/снятия локов, Multica status/worklog и closure.'
-knowledge_mode: hybrid-core-reference
-last_verified_at: "2026-04-18"
-refresh_interval_days: 30
-official_sources:
-  - https://multica.intdata.pro
+metadata:
+  knowledge_mode: hybrid-core-reference
+  last_verified_at: "2026-04-18"
+  refresh_interval_days: 30
+  official_sources:
+    - https://multica.intdata.pro
 ---
 
 # Agent Issues
@@ -68,6 +69,7 @@ official_sources:
    - Если запрос включает планирование или правки, сначала открой `openspec/AGENTS.md` и релевантный change proposal/spec delta.
    - OpenSpec reference для любого репозитория: `openspec/AGENTS.md`, если он есть.
    - В MCP-enabled runtime используй project-approved OpenSpec MCP tools для discovery/validation/lifecycle OpenSpec.
+   - Если scope включает создание или правку `SKILL.md`, загрузи официальный `$skill-creator` до файловых изменений; после правки запусти `quick_validate.py <skill-folder>` и проверь, что `SKILL.md` начинается с raw `---` без UTF-8 BOM.
    - Следуй проектной schema, consult IDs, templates и issue prefix.
    - Если `AGENTS.md` задаёт обязательные поля Worklog/Closed, убедись, что references/templates их включают.
    - Если ты spawned agent, следуй тем же правилам Multica issue и фиксируй `spawn_agent_id`/`spawn_agent_utc` в comments/worklog Multica.
