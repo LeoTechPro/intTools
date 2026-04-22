@@ -138,7 +138,7 @@ class IntDbTests(unittest.TestCase):
         self.assertIn("'password', password", intdb.PUNKTB_LEGACY_MANAGERS_EXPORT_SQL)
         self.assertIn("assess.assess_set_user_password_internal", sql)
         self.assertIn("PUNKTB_PASSWORD_BACKFILL_REQUIRES_ASSESS_SET_USER_PASSWORD_INTERNAL_EXECUTE", sql)
-        self.assertIn("email_norm NOT IN ('leotechru@ya.ru', 'lerida2@ya.ru')", sql)
+        self.assertIn("WHEN email_norm IN ('leotechru@ya.ru', 'lerida2@ya.ru') THEN email_norm", sql)
         self.assertIn("set_config('request.jwt.claim.role', 'service_role', true)", sql)
         self.assertIn("auth.users", sql)
         self.assertIn("'00000000-0000-0000-0000-000000000000'::uuid", sql)

@@ -997,8 +997,10 @@ BEGIN
   IF EXISTS (
     SELECT 1
     FROM _intdb_punktb_managers
-    WHERE NULLIF(raw->>'password', '') IS NOT NULL
-      AND email_norm NOT IN ('leotechru@ya.ru', 'lerida2@ya.ru')
+    WHERE (
+      NULLIF(raw->>'password', '') IS NOT NULL
+      OR email_norm IN ('leotechru@ya.ru', 'lerida2@ya.ru')
+    )
   )
      AND NOT has_function_privilege(
        current_user,
@@ -1012,13 +1014,18 @@ $$;
 
 SELECT assess.assess_set_user_password_internal(
   user_id,
-  raw->>'password',
+  CASE
+    WHEN email_norm IN ('leotechru@ya.ru', 'lerida2@ya.ru') THEN email_norm
+    ELSE raw->>'password'
+  END,
   'specialist',
   NULL
 )
 FROM _intdb_punktb_managers
-WHERE NULLIF(raw->>'password', '') IS NOT NULL
-  AND email_norm NOT IN ('leotechru@ya.ru', 'lerida2@ya.ru');
+WHERE (
+  NULLIF(raw->>'password', '') IS NOT NULL
+  OR email_norm IN ('leotechru@ya.ru', 'lerida2@ya.ru')
+);
 
 INSERT INTO assess.clients (
   user_id, email, first_name, phone, slug, status, specialist_id,
