@@ -884,13 +884,14 @@ END
 $$;
 
 INSERT INTO auth.users (
-  id, aud, role, email, email_confirmed_at,
+  instance_id, id, aud, role, email, email_confirmed_at,
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
   is_sso_user, is_anonymous
 )
 SELECT
+  '00000000-0000-0000-0000-000000000000'::uuid,
   user_id,
-  'authenticated',
+  '',
   'authenticated',
   email_norm,
   now(),
@@ -902,18 +903,21 @@ SELECT
   false
 FROM _intdb_punktb_managers
 ON CONFLICT (id) DO UPDATE
-SET email = EXCLUDED.email,
+SET instance_id = COALESCE(auth.users.instance_id, EXCLUDED.instance_id),
+    aud = EXCLUDED.aud,
+    email = EXCLUDED.email,
     raw_user_meta_data = auth.users.raw_user_meta_data || EXCLUDED.raw_user_meta_data,
     updated_at = EXCLUDED.updated_at;
 
 INSERT INTO auth.users (
-  id, aud, role, email, email_confirmed_at,
+  instance_id, id, aud, role, email, email_confirmed_at,
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
   is_sso_user, is_anonymous
 )
 SELECT
+  '00000000-0000-0000-0000-000000000000'::uuid,
   user_id,
-  'authenticated',
+  '',
   'authenticated',
   email_norm,
   now(),
@@ -925,7 +929,9 @@ SELECT
   false
 FROM _intdb_punktb_clients
 ON CONFLICT (id) DO UPDATE
-SET email = EXCLUDED.email,
+SET instance_id = COALESCE(auth.users.instance_id, EXCLUDED.instance_id),
+    aud = EXCLUDED.aud,
+    email = EXCLUDED.email,
     raw_user_meta_data = auth.users.raw_user_meta_data || EXCLUDED.raw_user_meta_data,
     updated_at = EXCLUDED.updated_at;
 
@@ -950,7 +956,7 @@ SELECT
   now()
 FROM (
   SELECT email_norm, user_id FROM _intdb_punktb_managers
-  UNION ALL
+  UNION
   SELECT email_norm, user_id FROM _intdb_punktb_clients
 ) identities
 ON CONFLICT (provider_id, provider) DO UPDATE

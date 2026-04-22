@@ -140,9 +140,13 @@ class IntDbTests(unittest.TestCase):
         self.assertIn("PUNKTB_PASSWORD_BACKFILL_REQUIRES_ASSESS_SET_USER_PASSWORD_INTERNAL_EXECUTE", sql)
         self.assertIn("set_config('request.jwt.claim.role', 'service_role', true)", sql)
         self.assertIn("auth.users", sql)
+        self.assertIn("'00000000-0000-0000-0000-000000000000'::uuid", sql)
+        self.assertIn("aud = EXCLUDED.aud", sql)
+        self.assertIn("instance_id = COALESCE(auth.users.instance_id, EXCLUDED.instance_id)", sql)
         self.assertIn("auth.identities", sql)
         self.assertIn("PUNKTB_AUTH_IDENTITIES_BACKFILL_REQUIRES_AUTH_IDENTITIES_WRITE", sql)
         self.assertIn("'email_verified', true", sql)
+        self.assertIn("UNION\n  SELECT email_norm, user_id FROM _intdb_punktb_clients", sql)
         self.assertIn("assess.diag_results", sql)
 
     def test_punktb_legacy_target_sql_uses_commit_for_apply(self) -> None:
