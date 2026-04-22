@@ -1,4 +1,4 @@
-<!-- OPENSPEC:START -->
+﻿<!-- OPENSPEC:START -->
 # OpenSpec Instructions
 
 These instructions are for AI assistants working in this project.
@@ -44,21 +44,10 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 - If code and spec disagree, fix or approve the spec path first; do not silently invent contract behavior.
 
 ### Git, Multica, and Lock Gates
-- Multica Issues are the only task-control-plane for agent work. GitHub Issues, `gh issue`, and `gh project` are not fallback coordination systems.
-- Before non-trivial implementation, commit, push, deploy, or publication, verify a reachable Multica issue in `INT-*` format.
-- Every local commit for agent work must include the current `INT-*` id in subject or body.
+- Use `$agent-issues` as the source-of-truth for Multica issue discipline, runtime `lockctl`, commit gates and worklog/status movement.
+- Repo-local `AGENTS.md` may add stricter scope-specific gates, but must not duplicate the full Multica workflow.
 - Push, deploy, and publication require explicit owner approval or a direct `push/publish` command.
-- Before file mutation, acquire a runtime `lockctl` lock for each changed file. Release locks after completion.
-- `lockctl.issue` is optional metadata at the tool level; use the full `INT-*` value for issue-bound work, and omit it only for non-project or pre-intake locks where no issue applies.
-- The source of truth for locks is runtime `lockctl`, not YAML notes.
 - Work only from a clean tree unless the owner explicitly scopes around existing unrelated changes; never revert or stage unrelated user changes.
-
-### Agent Tool Access
-- В MCP-enabled Codex/OpenClaw runtimes agent-facing доступ к governed tooling идёт через установленные MCP plugins; direct CLI/wrapper path является только documented fallback после blocker/approval.
-- OpenSpec operations выполняются через plugin `intdata-control` (`mcp__intdata_control__`): read tools `openspec_list`, `openspec_show`, `openspec_status`, `openspec_validate`, `openspec_instructions`; lifecycle tools `openspec_new`, `openspec_archive`; mutation-only tools `openspec_change_mutate`, `openspec_spec_mutate`, `openspec_exec_mutate`. Отсутствие `openspec` в Windows `PATH` не является причиной вызывать `codex/bin/openspec.cmd` или `codex/bin/openspec.ps1` напрямую.
-- Multica operations выполняются через официальный документированный `multica` CLI; если в runtime установлен официальный Multica MCP plugin (`mcp__multica__`), можно использовать его. `intdata-control` не предоставляет Multica tools и не является fallback для `multica`.
-- Если нужный non-Multica plugin tool недоступен или возвращает blocker, остановитесь или запросите owner approval на fallback; в worklog/handoff укажите tool, error/blocker и почему direct CLI/wrapper fallback был необходим.
-
 ### Coding and Change Discipline
 - Make minimal, targeted edits; preserve existing architecture, conventions, and file structure.
 - Do not add speculative flexibility, broad rewrites, or unrelated cleanup.
@@ -119,21 +108,10 @@ When rules conflict, follow the higher-priority rule and record the conflict in 
 - перенос mutable runtime-state или секретов в tracked repo;
 - дублирование локальных product-docs вместо ссылок на реальные owner repos.
 
-## Lock discipline
-
-- Любые файловые правки в `/int/tools` запрещены без предварительного `lockctl acquire` по конкретному файлу.
-- Для issue-bound работ указывайте в lockctl полный Multica id (`INT-*`), не только numeric suffix; для non-project/pre-intake locks `issue` может быть omitted.
-- Источник истины по активным локам — только `lockctl`; project-local заметки не подменяют runtime truth.
-- После завершения правки лок обязательно снимается через `lockctl release-path` или `lockctl release-issue`.
-
-## Multica issue and commit gate
-- Multica Issues are the mandatory task-control-plane for agent work in this repo; GitHub Issues, `gh issue`, and `gh project` are not used for agent task coordination and are not fallback.
-- Agents must use the official documented `multica` CLI for Multica issue reads and writes; if an official Multica MCP plugin (`mcp__multica__`) is installed in the runtime, it may be used instead. `intdata-control` Multica tools are removed/forbidden.
-- Before non-trivial implementation, commit, push, deploy, or publication, the agent must identify a reachable Multica issue id in `INT-*` format for the current task.
-- Missing Multica issue id, inaccessible Multica, or an issue id that cannot be verified is a blocker: stop, report the blocker to the owner, and continue without Multica only after explicit owner approval for that exception.
-- Every local commit message must contain the current Multica task id in `INT-*` format in the subject or body. A commit without `INT-*` is forbidden.
-- Push/publication/deploy is forbidden if any commit being published for the current scope lacks a Multica `INT-*` id; fix the commit metadata through the safest owner-approved path before publication.
-- Issue-bound agent locks and close-out notes must reference the Multica `INT-*` id; generic issue ids without the Multica prefix are not sufficient for Multica-scoped agent work.
+## Lock and Multica Gates
+- Use `$agent-issues` as the source-of-truth for Multica issue discipline, runtime `lockctl`, commit gates and worklog/status movement.
+- Любые файловые правки в этом repo запрещены без предварительного `lockctl acquire` по конкретному файлу; после завершения лок обязательно снимается через `lockctl release-path` или `lockctl release-issue`.
+- Repo-local правила ниже могут ужесточать git/commit/publish flow, но не должны дублировать полный Multica workflow.
 ## Docs split
 
 - `README.md` хранит только документацию и инструкции по репозиторию.

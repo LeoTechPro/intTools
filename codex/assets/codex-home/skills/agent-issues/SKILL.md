@@ -1,6 +1,6 @@
 ---
 name: agent-issues
-description: 'Multica-first процесс работы с задачами агентов: Multica Issues, worklog/closed, lock-ledger. GitHub Issues не используются для coordination без явного разрешения владельца.'
+description: 'Multica-first процесс работы с задачами агентов: Multica Issues, worklog/closed, runtime lockctl, commit gates и status movement.'
 knowledge_mode: hybrid-core-reference
 last_verified_at: "2026-04-18"
 refresh_interval_days: 30
@@ -13,7 +13,6 @@ official_sources:
 ## Process Core (stable)
 - Работай через Multica Issues как единственный task-control-plane для агентских задач.
 - Используй официальный документированный `multica` CLI для issue reads/writes; если в runtime установлен официальный Multica MCP plugin (`mcp__multica__`), можно использовать его. Не используй `intdata-control` как Multica-прослойку.
-- GitHub Issues, `gh issue` и `gh project` не используются для координации задач агентов и не являются fallback.
 - Если Multica недоступна, задача считается заблокированной: остановись, сообщи владельцу конкретный blocker и продолжай без Multica только после явного разрешения владельца.
 - Привязывай реализацию к Multica issue + lock-flow проекта, если lock-flow существует.
 - Поддерживай lock state через runtime `lockctl`; если доступен MCP plugin `lockctl`, используй его вместо direct CLI.
@@ -36,7 +35,6 @@ Work with Multica Issues and project lock-flow in any repo without hardcoded pat
    - `multica issue list`, `multica issue get <INT-*>`, or `multica issue search <query>`.
    - If an official Multica MCP plugin is installed, its equivalent read-only check is acceptable.
 3. If Multica is unavailable:
-   - Do not switch to GitHub Issues.
    - Do not continue execution as an untracked task unless the owner explicitly approves that exception.
    - Report: attempted plugin tool/API, error, affected task, and safest next step.
 
@@ -44,13 +42,12 @@ Work with Multica Issues and project lock-flow in any repo without hardcoded pat
 - Every local commit for agent work must include the current Multica task id in `INT-*` format in the commit subject or body.
 - Absence of a reachable Multica issue id is a blocker for `git commit`, push, deploy, publication, PR creation, and any close-out flow that publishes code.
 - If a commit in the current publication scope lacks `INT-*`, stop and report the blocker; fix commit metadata only through the safest project-approved path and owner approval where required.
-- Do not use GitHub Issues, `gh issue`, or `gh project` to satisfy this gate.
 
 ## Workflow
 1. Locate project context from current cwd.
    - Find canonical lock path for current project, `AGENTS.md`, and `openspec/AGENTS.md` when present.
    - If multiple lock candidates exist, pick nearest project-canonical path or ask.
-   - Example command: `rg --files -g AGENTS.md -g agent_lock.yaml`.
+   - Example command: `rg --files -g AGENTS.md -g SKILL.md`.
 
 2. Read project rules.
    - Open `AGENTS.md` (and `GEMINI.md` if required by the project).
@@ -82,7 +79,6 @@ Work with Multica Issues and project lock-flow in any repo without hardcoded pat
 
 7. Use Multica for task updates.
    - Create, update, comment, assign, move status and close through Multica CLI/API/UI.
-   - Do not use GitHub Issues as a mirror/fallback for agent task state.
 
 8. Worklog after each meaningful step.
    - Use `references/worklog-template.md`.
@@ -105,11 +101,6 @@ Work with Multica Issues and project lock-flow in any repo without hardcoded pat
 12. Sync instructions if required.
    - If you change `AGENTS.md`, sync `GEMINI.md` per project rules. Do this only when the user explicitly permits editing those files.
    - If the project uses zonal IDs, keep explicit cross-links in Multica issue comments/fields; avoid local JSONL sync layers for task state.
-
-## GitHub Issues Policy
-- GitHub Issues are not an agent coordination system anymore.
-- Do not create/update/comment/close GitHub Issues for agent work unless the owner explicitly approves an exception for that specific task.
-- PR review comments, GitHub Actions/CI diagnostics, and repository metadata may still be read when the task itself is about GitHub/PR/CI, but task state still belongs in Multica.
 
 ## References
 - references/ledger-rules.md
