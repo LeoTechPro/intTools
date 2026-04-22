@@ -765,15 +765,30 @@ RETURNS uuid
 LANGUAGE sql
 IMMUTABLE
 AS $$
-  WITH digest AS (SELECT md5(seed) AS h)
-  SELECT (
-    substr(h, 1, 8) || '-' ||
-    substr(h, 9, 4) || '-' ||
-    '5' || substr(h, 14, 3) || '-' ||
-    '8' || substr(h, 18, 3) || '-' ||
-    substr(h, 21, 12)
-  )::uuid
-  FROM digest;
+  WITH digest AS (SELECT md5(seed) AS h),
+  candidate AS (
+    SELECT (
+      substr(h, 1, 8) || '-' ||
+      substr(h, 9, 4) || '-' ||
+      substr(h, 13, 4) || '-' ||
+      substr(h, 17, 4) || '-' ||
+      substr(h, 21, 12)
+    ) AS raw_uuid,
+    h
+    FROM digest
+  )
+  SELECT CASE
+    WHEN raw_uuid ~* '^[0-9a-f]{{8}}-[0-9a-f]{{4}}-[1-5][0-9a-f]{{3}}-[89ab][0-9a-f]{{3}}-[0-9a-f]{{12}}$'
+      THEN raw_uuid::uuid
+    ELSE (
+      substr(h, 1, 8) || '-' ||
+      substr(h, 9, 4) || '-' ||
+      '5' || substr(h, 14, 3) || '-' ||
+      '8' || substr(h, 18, 3) || '-' ||
+      substr(h, 21, 12)
+    )::uuid
+  END
+  FROM candidate;
 $$;
 
 CREATE TEMP TABLE _intdb_punktb_clients_raw(raw jsonb) ON COMMIT DROP;

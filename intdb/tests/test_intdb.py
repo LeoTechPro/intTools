@@ -123,6 +123,7 @@ class IntDbTests(unittest.TestCase):
         self.assertNotIn("COMMIT;", sql)
         self.assertIn("lower(btrim(raw->>'email'))", sql)
         self.assertIn("pg_temp._intdb_uuid('punktb-user-email:' || email_norm)", sql)
+        self.assertIn("raw_uuid ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'", sql)
         self.assertIn("'5' || substr(h, 14, 3)", sql)
         self.assertIn("'8' || substr(h, 18, 3)", sql)
         self.assertNotIn("punktb-client-email:", sql)
