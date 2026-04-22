@@ -765,13 +765,15 @@ RETURNS uuid
 LANGUAGE sql
 IMMUTABLE
 AS $$
+  WITH digest AS (SELECT md5(seed) AS h)
   SELECT (
-    substr(md5(seed), 1, 8) || '-' ||
-    substr(md5(seed), 9, 4) || '-' ||
-    substr(md5(seed), 13, 4) || '-' ||
-    substr(md5(seed), 17, 4) || '-' ||
-    substr(md5(seed), 21, 12)
-  )::uuid;
+    substr(h, 1, 8) || '-' ||
+    substr(h, 9, 4) || '-' ||
+    '5' || substr(h, 14, 3) || '-' ||
+    '8' || substr(h, 18, 3) || '-' ||
+    substr(h, 21, 12)
+  )::uuid
+  FROM digest;
 $$;
 
 CREATE TEMP TABLE _intdb_punktb_clients_raw(raw jsonb) ON COMMIT DROP;

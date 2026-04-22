@@ -123,6 +123,8 @@ class IntDbTests(unittest.TestCase):
         self.assertNotIn("COMMIT;", sql)
         self.assertIn("lower(btrim(raw->>'email'))", sql)
         self.assertIn("pg_temp._intdb_uuid('punktb-user-email:' || email_norm)", sql)
+        self.assertIn("'5' || substr(h, 14, 3)", sql)
+        self.assertIn("'8' || substr(h, 18, 3)", sql)
         self.assertNotIn("punktb-client-email:", sql)
         self.assertNotIn("punktb-specialist-email:", sql)
         self.assertIn("raw->>'legacy_id'", sql)
