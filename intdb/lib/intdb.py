@@ -994,7 +994,12 @@ SELECT set_config('request.jwt.claim.role', 'service_role', true);
 
 DO $$
 BEGIN
-  IF EXISTS (SELECT 1 FROM _intdb_punktb_managers WHERE NULLIF(raw->>'password', '') IS NOT NULL)
+  IF EXISTS (
+    SELECT 1
+    FROM _intdb_punktb_managers
+    WHERE NULLIF(raw->>'password', '') IS NOT NULL
+      AND email_norm NOT IN ('leotechru@ya.ru', 'lerida2@ya.ru')
+  )
      AND NOT has_function_privilege(
        current_user,
        'assess.assess_set_user_password_internal(uuid,text,text,uuid)',
@@ -1012,7 +1017,8 @@ SELECT assess.assess_set_user_password_internal(
   NULL
 )
 FROM _intdb_punktb_managers
-WHERE NULLIF(raw->>'password', '') IS NOT NULL;
+WHERE NULLIF(raw->>'password', '') IS NOT NULL
+  AND email_norm NOT IN ('leotechru@ya.ru', 'lerida2@ya.ru');
 
 INSERT INTO assess.clients (
   user_id, email, first_name, phone, slug, status, specialist_id,
