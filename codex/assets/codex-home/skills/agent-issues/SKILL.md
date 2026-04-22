@@ -1,4 +1,4 @@
-﻿---
+---
 name: agent-issues
 description: 'Multica-first процесс работы с задачами агентов: Multica Issues, runtime lockctl, worklog/closed, commit-гейты и движение статусов. Используй для любых tracked-мутаций файлов, работ с issue, взятия/снятия локов, Multica status/worklog и closure.'
 knowledge_mode: hybrid-core-reference
