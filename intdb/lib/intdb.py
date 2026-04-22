@@ -929,6 +929,35 @@ SET email = EXCLUDED.email,
     raw_user_meta_data = auth.users.raw_user_meta_data || EXCLUDED.raw_user_meta_data,
     updated_at = EXCLUDED.updated_at;
 
+DO $$
+BEGIN
+  IF NOT has_table_privilege(current_user, 'auth.identities', 'insert')
+     OR NOT has_table_privilege(current_user, 'auth.identities', 'update') THEN
+    RAISE EXCEPTION 'PUNKTB_AUTH_IDENTITIES_BACKFILL_REQUIRES_AUTH_IDENTITIES_WRITE for role %', current_user;
+  END IF;
+END
+$$;
+
+INSERT INTO auth.identities (
+  provider_id, user_id, identity_data, provider, created_at, updated_at
+)
+SELECT
+  email_norm,
+  user_id,
+  jsonb_build_object('sub', user_id::text, 'email', email_norm, 'email_verified', true, 'phone_verified', false),
+  'email',
+  now(),
+  now()
+FROM (
+  SELECT email_norm, user_id FROM _intdb_punktb_managers
+  UNION ALL
+  SELECT email_norm, user_id FROM _intdb_punktb_clients
+) identities
+ON CONFLICT (provider_id, provider) DO UPDATE
+SET user_id = EXCLUDED.user_id,
+    identity_data = EXCLUDED.identity_data,
+    updated_at = EXCLUDED.updated_at;
+
 INSERT INTO assess.specialists (
   user_id, email, first_name, family_name, phone, slug, status,
   configured_package_codes, created_at, updated_at
