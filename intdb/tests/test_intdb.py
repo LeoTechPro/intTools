@@ -125,6 +125,12 @@ class IntDbTests(unittest.TestCase):
         self.assertIn("pg_temp._intdb_uuid('punktb-user-email:' || email_norm)", sql)
         self.assertNotIn("punktb-client-email:", sql)
         self.assertNotIn("punktb-specialist-email:", sql)
+        self.assertIn("raw->>'legacy_id'", sql)
+        self.assertIn("c.raw->>'legacy_id'", sql)
+        self.assertNotIn("legacy-client-", sql)
+        self.assertNotIn("legacy-specialist-", sql)
+        self.assertIn("target assess.specialists has conflicting legacy numeric slugs", sql)
+        self.assertIn("target assess.clients has conflicting legacy numeric slugs", sql)
         self.assertIn("auth.users", sql)
         self.assertIn("assess.diag_results", sql)
 

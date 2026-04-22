@@ -841,6 +841,30 @@ FROM ranked r
 LEFT JOIN assess.clients c ON lower(btrim(c.email)) = r.email_norm
 LEFT JOIN auth.users au ON lower(btrim(au.email)) = r.email_norm;
 
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM _intdb_punktb_managers m
+    JOIN assess.specialists s
+      ON s.slug = m.raw->>'legacy_id'
+     AND lower(btrim(s.email)) IS DISTINCT FROM m.email_norm
+  ) THEN
+    RAISE EXCEPTION 'target assess.specialists has conflicting legacy numeric slugs';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM _intdb_punktb_clients c
+    JOIN assess.clients existing
+      ON existing.slug = c.raw->>'legacy_id'
+     AND lower(btrim(existing.email)) IS DISTINCT FROM c.email_norm
+  ) THEN
+    RAISE EXCEPTION 'target assess.clients has conflicting legacy numeric slugs';
+  END IF;
+END
+$$;
+
 INSERT INTO auth.users (
   id, aud, role, email, email_confirmed_at,
   raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
@@ -897,7 +921,7 @@ SELECT
   NULLIF(raw->>'name', ''),
   NULLIF(raw->>'surname', ''),
   NULLIF(raw->>'phone', ''),
-  'legacy-specialist-' || substr(md5(email_norm), 1, 12),
+  raw->>'legacy_id',
   CASE WHEN COALESCE((raw->>'active')::boolean, false) THEN 'in_work'::assess.specialist_status ELSE 'blocked'::assess.specialist_status END,
   ARRAY[]::text[],
   now(),
@@ -908,6 +932,7 @@ SET email = EXCLUDED.email,
     first_name = EXCLUDED.first_name,
     family_name = EXCLUDED.family_name,
     phone = EXCLUDED.phone,
+    slug = EXCLUDED.slug,
     status = EXCLUDED.status,
     configured_package_codes = EXCLUDED.configured_package_codes,
     updated_at = EXCLUDED.updated_at;
@@ -921,7 +946,7 @@ SELECT
   c.email_norm,
   NULLIF(c.raw->>'name', ''),
   NULLIF(c.raw->>'phone', ''),
-  'legacy-client-' || substr(md5(c.email_norm), 1, 12),
+  c.raw->>'legacy_id',
   CASE WHEN COALESCE((c.raw->>'in_archive')::boolean, false) THEN 'archive'::assess.client_status ELSE 'lead'::assess.client_status END,
   m.user_id,
   COALESCE((c.raw->>'is_phone_adult')::boolean, false),
@@ -934,6 +959,7 @@ ON CONFLICT (user_id) DO UPDATE
 SET email = EXCLUDED.email,
     first_name = EXCLUDED.first_name,
     phone = EXCLUDED.phone,
+    slug = EXCLUDED.slug,
     status = EXCLUDED.status,
     specialist_id = EXCLUDED.specialist_id,
     is_phone_adult = EXCLUDED.is_phone_adult,

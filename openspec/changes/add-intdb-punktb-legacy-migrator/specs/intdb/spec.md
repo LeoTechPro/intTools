@@ -22,8 +22,19 @@ The system MUST provide a PunktB legacy assessment migration workflow from `punk
 #### Scenario: Legacy clients are migrated
 - **WHEN** legacy clients contain numeric ids and target clients use UUID ids
 - **THEN** the migrator MUST identify target clients by normalized email
-- **AND** numeric legacy ids MUST be stored only as import metadata
+- **AND** numeric legacy ids MUST NOT be used as target identity or foreign keys
+- **AND** the selected legacy numeric client id MUST be written to `assess.clients.slug` as search/display metadata
+- **AND** numeric legacy ids MUST also be preserved as import metadata
+- **AND** an existing target row with the same client slug but a different normalized email MUST stop the migration
 - **AND** repeated runs MUST NOT create duplicate clients for the same normalized email
+
+#### Scenario: Legacy specialists are migrated
+- **WHEN** legacy managers contain numeric ids and target specialists use UUID ids
+- **THEN** the migrator MUST identify target specialists by normalized manager login email
+- **AND** numeric legacy manager ids MUST NOT be used as target identity or foreign keys
+- **AND** the selected legacy numeric manager id MUST be written to `assess.specialists.slug` as search/display metadata
+- **AND** an existing target row with the same specialist slug but a different normalized email MUST stop the migration
+- **AND** repeated runs MUST NOT create duplicate specialists for the same normalized login email
 
 #### Scenario: Legacy source has duplicate client emails
 - **WHEN** multiple legacy client rows share the same normalized email
