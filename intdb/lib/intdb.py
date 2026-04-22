@@ -471,6 +471,24 @@ def _sql_literal_path(path: Path) -> str:
     return path.resolve().as_posix().replace("'", "''")
 
 
+def _sql_literal(value: str) -> str:
+    return "'" + value.replace("'", "''") + "'"
+
+
+def _psql_meta_command_line(sql: str) -> str:
+    return re.sub(r"\s+", " ", sql.strip())
+
+
+def _truncate_lines(path: Path, limit: int | None) -> None:
+    if limit is None:
+        return
+    if limit < 1:
+        raise IntDbError("--limit must be >= 1.")
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if len(lines) > limit:
+        path.write_text("\n".join(lines[:limit]) + "\n", encoding="utf-8")
+
+
 def _cmd_doctor(args: argparse.Namespace) -> int:
     env_path = TOOL_ROOT / ".env"
     profile = _get_profile(env_path, args.profile)
@@ -683,6 +701,407 @@ def _cmd_copy(args: argparse.Namespace) -> int:
         profile=target_profile,
     )
     print(csv_path)
+    return 0
+
+
+PUNKTB_LEGACY_CLIENTS_EXPORT_SQL = """
+\\copy (
+  SELECT jsonb_build_object(
+    'legacy_id', id,
+    'manager_id', manager_id,
+    'name', name,
+    'phone', phone,
+    'email', lower(btrim(email)),
+    'raw_email', email,
+    'new', new,
+    'in_archive', in_archive,
+    'date', date,
+    'is_phone_adult', is_phone_adult,
+    'contact_permission', contact_permission,
+    'results', COALESCE(results, '[]'::jsonb)
+  )::text
+  FROM public.clients
+  WHERE NULLIF(btrim(email), '') IS NOT NULL
+  {limit_clause}
+  ORDER BY lower(btrim(email)), id
+) TO '{clients_path}' WITH (FORMAT text)
+""".strip()
+
+
+PUNKTB_LEGACY_MANAGERS_EXPORT_SQL = """
+\\copy (
+  SELECT jsonb_build_object(
+    'legacy_id', id,
+    'login', lower(btrim(login)),
+    'raw_login', login,
+    'name', name,
+    'surname', surname,
+    'phone', phone,
+    'active', active,
+    'is_admin', is_admin,
+    'available_diagnostics', to_jsonb(available_diagnostics),
+    'full_access', full_access,
+    'new_conclusion_access', new_conclusion_access
+  )::text
+  FROM public.managers
+  WHERE NULLIF(btrim(login), '') IS NOT NULL
+  ORDER BY lower(btrim(login)), id
+) TO '{managers_path}' WITH (FORMAT text)
+""".strip()
+
+
+def _build_punktb_legacy_target_sql(
+    *,
+    clients_path: Path,
+    managers_path: Path,
+    dry_run: bool,
+) -> str:
+    finish = "ROLLBACK;" if dry_run else "COMMIT;"
+    return f"""
+BEGIN;
+
+CREATE OR REPLACE FUNCTION pg_temp._intdb_uuid(seed text)
+RETURNS uuid
+LANGUAGE sql
+IMMUTABLE
+AS $$
+  SELECT (
+    substr(md5(seed), 1, 8) || '-' ||
+    substr(md5(seed), 9, 4) || '-' ||
+    substr(md5(seed), 13, 4) || '-' ||
+    substr(md5(seed), 17, 4) || '-' ||
+    substr(md5(seed), 21, 12)
+  )::uuid;
+$$;
+
+CREATE TEMP TABLE _intdb_punktb_clients_raw(raw jsonb) ON COMMIT DROP;
+CREATE TEMP TABLE _intdb_punktb_managers_raw(raw jsonb) ON COMMIT DROP;
+\\copy _intdb_punktb_clients_raw(raw) FROM '{_sql_literal_path(clients_path)}' WITH (FORMAT text)
+\\copy _intdb_punktb_managers_raw(raw) FROM '{_sql_literal_path(managers_path)}' WITH (FORMAT text)
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM assess.clients
+    WHERE NULLIF(btrim(email), '') IS NOT NULL
+    GROUP BY lower(btrim(email))
+    HAVING count(*) > 1
+  ) THEN
+    RAISE EXCEPTION 'target assess.clients has duplicate normalized emails';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM assess.specialists
+    WHERE NULLIF(btrim(email), '') IS NOT NULL
+    GROUP BY lower(btrim(email))
+    HAVING count(*) > 1
+  ) THEN
+    RAISE EXCEPTION 'target assess.specialists has duplicate normalized emails';
+  END IF;
+END
+$$;
+
+CREATE TEMP TABLE _intdb_punktb_managers ON COMMIT DROP AS
+WITH ranked AS (
+  SELECT
+    lower(btrim(raw->>'login')) AS email_norm,
+    (array_agg(raw ORDER BY (raw->>'legacy_id')::int DESC))[1] AS raw,
+    jsonb_agg(raw->>'legacy_id' ORDER BY (raw->>'legacy_id')::int) AS legacy_ids
+  FROM _intdb_punktb_managers_raw
+  WHERE NULLIF(btrim(raw->>'login'), '') IS NOT NULL
+  GROUP BY lower(btrim(raw->>'login'))
+)
+SELECT
+  COALESCE(s.user_id, au.id, pg_temp._intdb_uuid('punktb-user-email:' || email_norm)) AS user_id,
+  email_norm,
+  raw,
+  legacy_ids
+FROM ranked r
+LEFT JOIN assess.specialists s ON lower(btrim(s.email)) = r.email_norm
+LEFT JOIN auth.users au ON lower(btrim(au.email)) = r.email_norm;
+
+CREATE TEMP TABLE _intdb_punktb_clients ON COMMIT DROP AS
+WITH ranked AS (
+  SELECT
+    lower(btrim(raw->>'email')) AS email_norm,
+    (array_agg(raw ORDER BY NULLIF(raw->>'date', '')::bigint DESC NULLS LAST, (raw->>'legacy_id')::int DESC))[1] AS raw,
+    jsonb_agg(raw->>'legacy_id' ORDER BY (raw->>'legacy_id')::int) AS legacy_ids
+  FROM _intdb_punktb_clients_raw
+  WHERE NULLIF(btrim(raw->>'email'), '') IS NOT NULL
+  GROUP BY lower(btrim(raw->>'email'))
+)
+SELECT
+  COALESCE(c.user_id, au.id, pg_temp._intdb_uuid('punktb-user-email:' || email_norm)) AS user_id,
+  email_norm,
+  raw,
+  legacy_ids
+FROM ranked r
+LEFT JOIN assess.clients c ON lower(btrim(c.email)) = r.email_norm
+LEFT JOIN auth.users au ON lower(btrim(au.email)) = r.email_norm;
+
+INSERT INTO auth.users (
+  id, aud, role, email, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  is_sso_user, is_anonymous
+)
+SELECT
+  user_id,
+  'authenticated',
+  'authenticated',
+  email_norm,
+  now(),
+  '{{"provider":"email","providers":["email"]}}'::jsonb,
+  jsonb_build_object('_import', jsonb_build_object('legacy_punktb', jsonb_build_object('kind', 'specialist', 'legacy_ids', legacy_ids))),
+  now(),
+  now(),
+  false,
+  false
+FROM _intdb_punktb_managers
+ON CONFLICT (id) DO UPDATE
+SET email = EXCLUDED.email,
+    raw_user_meta_data = auth.users.raw_user_meta_data || EXCLUDED.raw_user_meta_data,
+    updated_at = EXCLUDED.updated_at;
+
+INSERT INTO auth.users (
+  id, aud, role, email, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  is_sso_user, is_anonymous
+)
+SELECT
+  user_id,
+  'authenticated',
+  'authenticated',
+  email_norm,
+  now(),
+  '{{"provider":"email","providers":["email"]}}'::jsonb,
+  jsonb_build_object('_import', jsonb_build_object('legacy_punktb', jsonb_build_object('kind', 'client', 'legacy_ids', legacy_ids))),
+  to_timestamp(COALESCE(NULLIF(raw->>'date', '')::numeric / 1000.0, extract(epoch from now()))),
+  now(),
+  false,
+  false
+FROM _intdb_punktb_clients
+ON CONFLICT (id) DO UPDATE
+SET email = EXCLUDED.email,
+    raw_user_meta_data = auth.users.raw_user_meta_data || EXCLUDED.raw_user_meta_data,
+    updated_at = EXCLUDED.updated_at;
+
+INSERT INTO assess.specialists (
+  user_id, email, first_name, family_name, phone, slug, status,
+  configured_package_codes, created_at, updated_at
+)
+SELECT
+  user_id,
+  email_norm,
+  NULLIF(raw->>'name', ''),
+  NULLIF(raw->>'surname', ''),
+  NULLIF(raw->>'phone', ''),
+  'legacy-specialist-' || substr(md5(email_norm), 1, 12),
+  CASE WHEN COALESCE((raw->>'active')::boolean, false) THEN 'in_work'::assess.specialist_status ELSE 'blocked'::assess.specialist_status END,
+  ARRAY[]::text[],
+  now(),
+  now()
+FROM _intdb_punktb_managers
+ON CONFLICT (user_id) DO UPDATE
+SET email = EXCLUDED.email,
+    first_name = EXCLUDED.first_name,
+    family_name = EXCLUDED.family_name,
+    phone = EXCLUDED.phone,
+    status = EXCLUDED.status,
+    configured_package_codes = EXCLUDED.configured_package_codes,
+    updated_at = EXCLUDED.updated_at;
+
+INSERT INTO assess.clients (
+  user_id, email, first_name, phone, slug, status, specialist_id,
+  is_phone_adult, contact_permission, created_at, updated_at
+)
+SELECT
+  c.user_id,
+  c.email_norm,
+  NULLIF(c.raw->>'name', ''),
+  NULLIF(c.raw->>'phone', ''),
+  'legacy-client-' || substr(md5(c.email_norm), 1, 12),
+  CASE WHEN COALESCE((c.raw->>'in_archive')::boolean, false) THEN 'archive'::assess.client_status ELSE 'lead'::assess.client_status END,
+  m.user_id,
+  COALESCE((c.raw->>'is_phone_adult')::boolean, false),
+  COALESCE((c.raw->>'contact_permission')::boolean, false),
+  to_timestamp(COALESCE(NULLIF(c.raw->>'date', '')::numeric / 1000.0, extract(epoch from now()))),
+  now()
+FROM _intdb_punktb_clients c
+LEFT JOIN _intdb_punktb_managers m ON (c.raw->>'manager_id') = (m.raw->>'legacy_id')
+ON CONFLICT (user_id) DO UPDATE
+SET email = EXCLUDED.email,
+    first_name = EXCLUDED.first_name,
+    phone = EXCLUDED.phone,
+    status = EXCLUDED.status,
+    specialist_id = EXCLUDED.specialist_id,
+    is_phone_adult = EXCLUDED.is_phone_adult,
+    contact_permission = EXCLUDED.contact_permission,
+    updated_at = EXCLUDED.updated_at;
+
+CREATE TEMP TABLE _intdb_punktb_results ON COMMIT DROP AS
+SELECT
+  pg_temp._intdb_uuid(
+    'punktb-result:' || c.email_norm || ':' || (cr.raw->>'legacy_id') || ':' ||
+    result_item.ordinality::text || ':' || COALESCE(result_item.item->>'diagnostic-id', '') || ':' ||
+    COALESCE(result_item.item->>'date', '')
+  ) AS result_id,
+  c.user_id AS client_id,
+  m.user_id AS specialist_id,
+  (result_item.item->>'diagnostic-id')::int AS diagnostic_id,
+  result_item.item AS item,
+  cr.raw AS client_raw,
+  result_item.ordinality AS result_index,
+  to_timestamp(COALESCE(NULLIF(result_item.item->>'date', '')::numeric / 1000.0, extract(epoch from now()))) AS result_at
+FROM _intdb_punktb_clients c
+JOIN _intdb_punktb_clients_raw cr ON lower(btrim(cr.raw->>'email')) = c.email_norm
+CROSS JOIN LATERAL jsonb_array_elements(
+  CASE WHEN jsonb_typeof(cr.raw->'results') = 'array' THEN cr.raw->'results' ELSE '[]'::jsonb END
+) WITH ORDINALITY AS result_item(item, ordinality)
+LEFT JOIN _intdb_punktb_managers m ON (cr.raw->>'manager_id') = (m.raw->>'legacy_id')
+WHERE (result_item.item->>'diagnostic-id') ~ '^[0-9]+$';
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM _intdb_punktb_results r
+    LEFT JOIN assess.diagnostics d ON d.id = r.diagnostic_id
+    WHERE d.id IS NULL
+  ) THEN
+    RAISE EXCEPTION 'legacy result references diagnostic id absent in target assess.diagnostics';
+  END IF;
+END
+$$;
+
+INSERT INTO assess.diag_results (
+  id, client_id, specialist_id, diagnostic_id, payload, open_answer,
+  status, source, result_at, created_at, updated_at, assigned_at
+)
+SELECT
+  result_id,
+  client_id,
+  specialist_id,
+  diagnostic_id,
+  COALESCE(item->'data', '{{}}'::jsonb) ||
+    jsonb_build_object(
+      '_import',
+      jsonb_build_object(
+        'legacy_punktb',
+        jsonb_build_object(
+          'legacy_client_id', client_raw->>'legacy_id',
+          'legacy_result_index', result_index,
+          'diagnostic_id', diagnostic_id,
+          'source_fingerprint', md5(item::text)
+        )
+      )
+    ),
+  NULLIF(item->>'openAnswer', ''),
+  'new_result'::assess.user_diag_status,
+  'legacy_punktb.clients.results',
+  result_at,
+  result_at,
+  now(),
+  result_at
+FROM _intdb_punktb_results
+ON CONFLICT (id) DO UPDATE
+SET client_id = EXCLUDED.client_id,
+    specialist_id = EXCLUDED.specialist_id,
+    diagnostic_id = EXCLUDED.diagnostic_id,
+    payload = EXCLUDED.payload,
+    open_answer = EXCLUDED.open_answer,
+    source = EXCLUDED.source,
+    result_at = EXCLUDED.result_at,
+    updated_at = EXCLUDED.updated_at;
+
+SELECT 'source_clients|' || count(*) FROM _intdb_punktb_clients_raw;
+SELECT 'merged_clients|' || count(*) FROM _intdb_punktb_clients;
+SELECT 'source_managers|' || count(*) FROM _intdb_punktb_managers_raw;
+SELECT 'merged_specialists|' || count(*) FROM _intdb_punktb_managers;
+SELECT 'source_results|' || count(*) FROM _intdb_punktb_results;
+SELECT 'mode|' || {_sql_literal('dry-run' if dry_run else 'apply')};
+
+{finish}
+""".strip() + "\n"
+
+
+def _punktb_legacy_source_limit_clause(limit: int | None) -> str:
+    if limit is None:
+        return ""
+    if limit < 1:
+        raise IntDbError("--limit must be >= 1.")
+    return f"AND id IN (SELECT id FROM public.clients WHERE NULLIF(btrim(email), '') IS NOT NULL ORDER BY id LIMIT {limit})"
+
+
+def _cmd_project_migrate_punktb_legacy_assess(args: argparse.Namespace) -> int:
+    env_path = TOOL_ROOT / ".env"
+    source_profile = _get_profile(env_path, args.source)
+    target_profile = _get_profile(env_path, args.target)
+    if args.apply:
+        _ensure_write_allowed(target_profile, args.approve_target, args.force_prod_write)
+    workdir = Path(args.workdir).resolve() if args.workdir else _tool_tmp_dir("punktb-legacy-assess")
+    workdir.mkdir(parents=True, exist_ok=True)
+    clients_path = workdir / "legacy_clients.jsonl"
+    managers_path = workdir / "legacy_managers.jsonl"
+    export_sql = workdir / "source_export.sql"
+    target_sql = workdir / "target_stage.sql"
+    _write_text(
+        export_sql,
+        "\n".join(
+            [
+                _psql_meta_command_line(
+                    PUNKTB_LEGACY_CLIENTS_EXPORT_SQL.format(
+                        clients_path=_sql_literal_path(clients_path),
+                        limit_clause=_punktb_legacy_source_limit_clause(args.limit),
+                    )
+                ),
+                _psql_meta_command_line(
+                    PUNKTB_LEGACY_MANAGERS_EXPORT_SQL.format(managers_path=_sql_literal_path(managers_path))
+                ),
+                "",
+            ]
+        ),
+    )
+    _run_checked(
+        _psql_base_args(source_profile) + ["-f", str(export_sql)],
+        profile=source_profile,
+        read_only=True,
+    )
+    _truncate_lines(clients_path, args.limit)
+    _write_text(
+        target_sql,
+        _build_punktb_legacy_target_sql(
+            clients_path=clients_path,
+            managers_path=managers_path,
+            dry_run=args.dry_run,
+        ),
+    )
+    result = _run_checked(
+        _psql_base_args(target_profile) + ["-f", str(target_sql)],
+        profile=target_profile,
+        read_only=False,
+        capture_output=True,
+    )
+    print(result.stdout.rstrip())
+    if args.report_json:
+        report_path = Path(args.report_json).resolve()
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(
+            json.dumps(
+                {
+                    "mode": "dry-run" if args.dry_run else "apply",
+                    "source": source_profile.name,
+                    "target": target_profile.name,
+                    "workdir": str(workdir),
+                    "stdout": result.stdout,
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+    print(f"workdir: {workdir}")
     return 0
 
 
@@ -1041,6 +1460,31 @@ def _build_parser() -> argparse.ArgumentParser:
     local_test_stop.add_argument("--workdir", required=True)
     local_test_stop.add_argument("--confirm-owner-control", required=True)
     local_test_stop.set_defaults(handler=_cmd_local_test_stop)
+
+    project_migrate = subparsers.add_parser(
+        "project-migrate",
+        help="Project-specific data migrators backed by intdb profiles and PostgreSQL CLI.",
+    )
+    project_migrate_subparsers = project_migrate.add_subparsers(
+        dest="project_migrate_command",
+        required=True,
+    )
+
+    punktb_legacy = project_migrate_subparsers.add_parser(
+        "punktb-legacy-assess",
+        help="Migrate legacy PunktB clients/managers/results into the current assessment schema.",
+    )
+    punktb_mode = punktb_legacy.add_mutually_exclusive_group(required=True)
+    punktb_mode.add_argument("--dry-run", action="store_true")
+    punktb_mode.add_argument("--apply", action="store_true")
+    punktb_legacy.add_argument("--source", required=True)
+    punktb_legacy.add_argument("--target", required=True)
+    punktb_legacy.add_argument("--approve-target")
+    punktb_legacy.add_argument("--force-prod-write", action="store_true")
+    punktb_legacy.add_argument("--workdir")
+    punktb_legacy.add_argument("--report-json")
+    punktb_legacy.add_argument("--limit", type=int, help="Limit exported legacy client rows for rehearsal debugging.")
+    punktb_legacy.set_defaults(handler=_cmd_project_migrate_punktb_legacy_assess)
 
     return parser
 

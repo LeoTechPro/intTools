@@ -12,6 +12,7 @@
 - `copy` — выгрузить query в CSV и залить в target table;
 - `migrate status` — сравнить `migration_manifest.lock` из `/int/data` с remote `public.schema_migrations`;
 - `migrate data` — применить incremental или bootstrap migration flow `/int/data`.
+- `project-migrate punktb-legacy-assess` — перенести legacy PunktB assessment data между профилями через `psql` staging flow.
 - `local-test run` — поднять temporary local Supabase runtime под owner-контролем, применить `/int/data` migrations + `init/seed.sql` и опционально прогнать SQL smoke.
 - `local-test stop` — остановить temporary local Supabase runtime без backup.
 
@@ -98,6 +99,37 @@ pwsh -File D:\int\tools\intdb\intdb.ps1 local-test run --confirm-owner-control I
 - после `supabase start` tool применяет owner scripts из явно переданного локального repo (`--repo`/`INTDB_DATA_REPO`), затем `init/seed.sql`;
 - SQL smoke можно передать через `--smoke-file`;
 - по умолчанию runtime останавливается сам; для ручной диагностики используйте `--keep-running` и затем `local-test stop`.
+
+## PunktB legacy assessment migrator
+
+Core workflow lives in `intdb`; project-specific PunktB launch parameters are thin wrappers.
+
+Rehearsal against dev target:
+
+```bash
+python D:\int\tools\intdb\lib\intdb.py project-migrate punktb-legacy-assess --dry-run --source punktb-legacy-ro --target intdata-dev-migrator
+```
+
+Thin PunktB wrapper for the same dev rehearsal:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File D:\int\tools\punkt-b\bin\punktb-legacy-migrate.ps1 -Target dev -DryRun -Limit 10
+```
+
+Release apply target remains guarded:
+
+```bash
+python D:\int\tools\intdb\lib\intdb.py project-migrate punktb-legacy-assess --apply --source punktb-legacy-ro --target punktb-prod-migrator --approve-target punktb-prod-migrator --force-prod-write
+```
+
+Properties:
+
+- source profile is executed read-only;
+- target apply uses the existing `--approve-target` and `--force-prod-write` gates;
+- dry-run stages target changes and rolls them back;
+- clients are matched by normalized email, not numeric legacy ids;
+- duplicate legacy client rows with the same normalized email merge into one target client;
+- legacy `public.clients.results` JSONB array entries are staged into `assess.diag_results` with deterministic ids and `_import.legacy_punktb` metadata.
 
 ## Safety
 

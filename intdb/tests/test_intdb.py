@@ -113,6 +113,37 @@ class IntDbTests(unittest.TestCase):
             intdb._ensure_write_allowed(profile, approve_target="intdata-prod", force_prod_write=False)
         intdb._ensure_write_allowed(profile, approve_target="intdata-prod", force_prod_write=True)
 
+    def test_punktb_legacy_target_sql_uses_rollback_for_dry_run(self) -> None:
+        sql = intdb._build_punktb_legacy_target_sql(
+            clients_path=Path("clients.jsonl"),
+            managers_path=Path("managers.jsonl"),
+            dry_run=True,
+        )
+        self.assertIn("ROLLBACK;", sql)
+        self.assertNotIn("COMMIT;", sql)
+        self.assertIn("lower(btrim(raw->>'email'))", sql)
+        self.assertIn("pg_temp._intdb_uuid('punktb-user-email:' || email_norm)", sql)
+        self.assertNotIn("punktb-client-email:", sql)
+        self.assertNotIn("punktb-specialist-email:", sql)
+        self.assertIn("auth.users", sql)
+        self.assertIn("assess.diag_results", sql)
+
+    def test_punktb_legacy_target_sql_uses_commit_for_apply(self) -> None:
+        sql = intdb._build_punktb_legacy_target_sql(
+            clients_path=Path("clients.jsonl"),
+            managers_path=Path("managers.jsonl"),
+            dry_run=False,
+        )
+        self.assertIn("COMMIT;", sql)
+        self.assertNotIn("ROLLBACK;", sql)
+
+    def test_punktb_export_sql_is_read_only_copy_select(self) -> None:
+        self.assertIn("\\copy (", intdb.PUNKTB_LEGACY_CLIENTS_EXPORT_SQL)
+        self.assertIn("FROM public.clients", intdb.PUNKTB_LEGACY_CLIENTS_EXPORT_SQL)
+        self.assertNotIn("INSERT", intdb.PUNKTB_LEGACY_CLIENTS_EXPORT_SQL.upper())
+        self.assertIn("FROM public.managers", intdb.PUNKTB_LEGACY_MANAGERS_EXPORT_SQL)
+        self.assertNotIn("UPDATE", intdb.PUNKTB_LEGACY_MANAGERS_EXPORT_SQL.upper())
+
     def test_read_manifest_versions(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo = Path(tmpdir)
