@@ -58,10 +58,11 @@ The system MUST expose repo-owned vault sanitizer and runtime GC tools through `
 ### Requirement: Firefox profile launch MUST be registry-backed
 The system MUST launch repo-owned Firefox MCP profiles through one launcher and a tracked profile registry.
 
-#### Scenario: Browser profile launch is requested
-- **WHEN** `browser_profile_launch` receives a supported profile key
+#### Scenario: Browser profile launch is requested (historical compatibility)
+- **WHEN** deprecated compatibility `browser_profile_launch` receives a supported profile key
 - **THEN** the profile capability, profile key, start URL, and viewport are resolved from `codex/config/browser-profiles.v1.json`
 - **AND** per-profile `mcp-firefox-assess-*` wrappers are not required as active bindings
+- **AND** new local browser-proof is routed through `firefox-devtools-testing`.
 
 ### Requirement: Active intTools plugins MUST use Developer Tools category
 The system MUST categorize active intTools plugins as developer/tooling surfaces rather than productivity surfaces.

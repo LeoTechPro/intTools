@@ -1,5 +1,7 @@
 # Firefox DevTools MCP Default Runtime
 
+Canonical agent workflow: `firefox-devtools-testing` in the `intdata-runtime` plugin. Use it for local browser-proof, persistent authenticated Firefox profiles, screenshots, console/network evidence, privileged scripts, prefs, and extension diagnostics.
+
 ## Назначение
 
 Этот runbook фиксирует canonical browser-proof runtime для `/int/*`: dedicated `firefox-devtools-mcp@0.9.1` с persistent profile и repo-managed launcher-ами из `/int/tools/codex/bin/**`.

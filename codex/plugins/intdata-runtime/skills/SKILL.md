@@ -1,23 +1,23 @@
 ---
 name: intdata-runtime
-description: Internal int-tools skill entrypoint for the intdata-runtime plugin. Use as the router for host diagnostics, SSH routes, Firefox browser profiles, and runtime vault maintenance.
+description: Internal int-tools skill entrypoint for the intdata-runtime plugin. Use as the router for host diagnostics, SSH routes, Firefox DevTools browser testing, and runtime vault maintenance.
 ---
 
-# Маршрутизатор intData Runtime
+# intData Runtime Router
 
-- Используй этот skill для host diagnostics, SSH route checks, dedicated Firefox MCP profiles и vault maintenance.
-- Runtime/interactive/destructive действия требуют явного owner approval и issue context.
-- По умолчанию начинай с read-only diagnostics и dry-run.
+- Use this skill for host diagnostics, SSH route checks, Firefox DevTools browser testing, and vault maintenance.
+- Runtime, interactive, and destructive actions require explicit owner approval and issue context.
+- Start with read-only diagnostics and dry-run by default.
 
 ## Capability skills
 
 - `host-diagnostics`: Runtime host diagnostics.
 - `ssh`: Runtime SSH routes.
-- `firefox-browser-profiles`: Firefox MCP profiles.
+- `firefox-devtools-testing`: Firefox DevTools browser testing and browser-proof workflow.
 - `vault-maintenance`: Runtime vault maintenance.
 
-## Общие правила
+## General rules
 
-- Сначала выбирай capability skill, затем конкретную tool-card.
-- Не вызывай mutating/high-risk tools без owner approval, `confirm_mutation=true` и `issue_context=INT-*`.
-- Если required args неизвестны, остановись как blocker и не подменяй MCP прямым shell fallback.
+- Select the capability skill first, then the concrete tool card.
+- Do not call mutating/high-risk tools without owner approval, `confirm_mutation=true`, and `issue_context=INT-*`.
+- If required args are unknown, stop as blocker and do not replace MCP with direct shell fallback.

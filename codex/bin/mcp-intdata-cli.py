@@ -166,7 +166,7 @@ RUNTIME_TOOLS = [
     _tool("ssh_host", "Print SSH host config/diagnostics, not an interactive shell.", {**COMMON_RUN_PROPS, "host": {"type": "string"}, "args": _args_prop()}, ["host"]),
     _tool(
         "browser_profile_launch",
-        "Launch an allowed Firefox MCP profile. Mutating; requires confirmation.",
+        "Deprecated compatibility: launch an allowed Firefox MCP profile. Prefer the firefox-devtools-testing skill and configured firefox-devtools MCP for browser-proof. Mutating; requires confirmation.",
         {**COMMON_RUN_PROPS, **_mutation_props(), "profile": {"type": "string", "enum": BROWSER_PROFILE_NAMES}, "args": _args_prop("Optional launcher arguments.")},
         ["confirm_mutation", "issue_context", "profile"],
     ),

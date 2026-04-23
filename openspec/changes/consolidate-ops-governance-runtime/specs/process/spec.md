@@ -12,9 +12,10 @@ The `IntData Tools` catalog MUST expose governance and runtime operator capabili
 Mutating tools in consolidated governance/runtime surfaces MUST enforce explicit mutation confirmation and issue context.
 
 #### Scenario: Mutating consolidated tool is called
-- **WHEN** `publish`, `commit_binding`, `host_bootstrap`, `recovery_bundle`, or `browser_profile_launch` is called
+- **WHEN** `publish`, `commit_binding`, `host_bootstrap`, `recovery_bundle`, or deprecated compatibility `browser_profile_launch` is called
 - **THEN** the wrapper rejects the call unless `confirm_mutation=true`
 - **AND** the wrapper rejects the call unless `issue_context` matches `INT-*`
+- **AND** new browser-proof work is routed through the `firefox-devtools-testing` workflow.
 
 ### Requirement: Consolidation migration is hard-breaking
 The consolidation rollout MUST not keep alias compatibility for removed plugin IDs and old tool names.

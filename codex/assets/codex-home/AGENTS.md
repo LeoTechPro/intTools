@@ -98,7 +98,7 @@ Ambiguity считается значимой только при неяснос
   - `intdata-runtime` (вместо `intdata-host`, `intdata-ssh`, `intdata-browser`, `intdata-vault`).
 - Публичные tool names без alias:
   - governance: `routing_validate`, `routing_resolve`, `gate_status`, `gate_receipt`, `commit_binding`;
-  - runtime: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`, `ssh_resolve`, `ssh_host`, `browser_profile_launch`.
+  - runtime: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`, `ssh_resolve`, `ssh_host`; browser testing uses the `firefox-devtools-testing` workflow (`browser_profile_launch` is deprecated compatibility only).
 - Удалённые plugin IDs/tool names запрещено использовать в новых AGENTS/skills/runbooks.
 - Local delivery publish wrappers are removed; do not use `/int/tools/delivery/bin/publish_*`, `/int/tools/codex/bin/publish_*.ps1`, or `mcp__intdata_control__.publish`.
 - Для Firefox/SSH/host launcher family canonical engine root = `/int/tools/codex/bin`; shell/cmd/PowerShell wrappers не являются source-of-truth.

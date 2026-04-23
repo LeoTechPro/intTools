@@ -56,7 +56,7 @@ TOOL_SKILLS = {
         "recovery_bundle": "host-diagnostics",
         "ssh_resolve": "ssh",
         "ssh_host": "ssh",
-        "browser_profile_launch": "firefox-browser-profiles",
+            "browser_profile_launch": "firefox-devtools-testing",
         "intdata_vault_sanitize": "vault-maintenance",
         "intdata_runtime_vault_gc": "vault-maintenance",
     },

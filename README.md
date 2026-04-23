@@ -62,6 +62,13 @@
 - runtime OpenClaw живёт в `~/.openclaw`, а versioned overlay и runbooks — в `openclaw/`.
 - На `vds.intdata.pro` canonical host-user split такой: IntData automation/deploy — `intdata`, Codex remote runtime — `agents`, OpenClaw runtime/service — `agents`; automation под `leon` для этого хоста не является допустимым default-path.
 
+### Firefox browser testing
+
+- Canonical local browser-proof workflow: `codex/plugins/intdata-runtime/skills/firefox-devtools-testing/SKILL.md`.
+- Use configured `firefox-devtools` MCP for local persistent/authenticated Firefox sessions, screenshots, console/network checks, privileged scripts, prefs, and extension diagnostics.
+- Legacy dedicated Firefox MCP wrappers and profile overlays remain source-controlled compatibility/remote fallback tooling; do not introduce new raw `npx` browser-proof wrappers.
+- Remote, VDS, CI, headless, and reproducible E2E checks may continue to use Playwright or existing remote browser tools.
+
 ## Markdown context policy
 
 - Каноническая политика сжатия markdown-контекста хранится в `data/markdown-context-policy.json`.

@@ -25,7 +25,7 @@
 - `recovery_bundle`
 - `ssh_resolve`
 - `ssh_host`
-- `browser_profile_launch`
+- `firefox-devtools-testing` workflow (`browser_profile_launch` remains deprecated compatibility)
 
 ## Guard model
 

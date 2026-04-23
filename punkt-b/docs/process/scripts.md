@@ -1,5 +1,7 @@
 # Скрипты AGENTS
 
+Local manual/authenticated browser-proof should prefer the `firefox-devtools-testing` skill from `intdata-runtime`. The `agent-browser` scripts below remain deterministic role-smoke and remote/reproducible fallback tooling.
+
 ## smoke_workspace_dashboard.js
 Playwright‑смоук для workspace‑дашборда и редиректов:
 - вход по `/lk`

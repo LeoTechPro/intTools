@@ -151,7 +151,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - Публичные tool names (без alias-совместимости):
   - governance: `routing_validate`, `routing_resolve`, `gate_status`, `gate_receipt`, `commit_binding`;
   - OpenSpec: `openspec_list`, `openspec_show`, `openspec_validate`, `openspec_status`, `openspec_instructions`, `openspec_new`, `openspec_archive`, `openspec_change_mutate`, `openspec_spec_mutate`, `openspec_exec_mutate`;
-  - runtime: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`, `ssh_resolve`, `ssh_host`, `browser_profile_launch`.
+  - runtime: `host_preflight`, `host_verify`, `host_bootstrap`, `recovery_bundle`, `ssh_resolve`, `ssh_host`; browser testing uses the `firefox-devtools-testing` workflow (`browser_profile_launch` is deprecated compatibility only).
 - Старые plugin IDs/tool names из удалённых шести плагинов не использовать в AGENTS/skills/runbooks.
 - Canonical engine roots:
   - SSH / Firefox / host launchers: `codex/bin`

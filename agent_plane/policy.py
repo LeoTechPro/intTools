@@ -23,7 +23,7 @@ MUTATING_TOOLS = {
     "openspec_exec_mutate",
     "host_bootstrap",
     "recovery_bundle",
-    "browser_profile_launch",
+    "browser_profile_launch",  # Deprecated compatibility path; new browser-proof uses firefox-devtools-testing.
 }
 
 
