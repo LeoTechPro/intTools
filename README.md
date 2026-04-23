@@ -53,6 +53,7 @@
 - self-authored/versioned Codex wrappers и tooling живут только в `codex/`, в первую очередь в `codex/bin/`; `~/.codex` не используем как source-of-truth для таких скриптов;
 - `codex/projects/` хранит legacy project overlay references; repo scripts больше не зеркалят их в `~/.codex/projects/`;
 - reusable browser tooling, Firefox MCP launcher-ы и profile-aware wrapper-скрипты живут только в `codex/bin/`;
+- Codex v2rayA recovery source lives in `codex/bin/v2raya-codex-health.sh` and `codex/bin/v2raya-core-hook-remove-quic.sh`; canonical runbook: `codex/docs/runbooks/v2raya-codex-recovery.md`;
 - tracked Firefox MCP overlays для конкретных контуров живут только в `codex/projects/*/.mcp.json`;
 - machine-readable routing registry для repo-owned high-risk capabilities живёт в `codex/config/agent-tool-routing.v1.json`, а resolver/validator CLI — в `codex/bin/agent_tool_routing.py`;
 - canonical runtime layout dedicated Firefox MCP: `/int/tools/.runtime/firefox-mcp/profiles/<profile>/`, `/int/tools/.runtime/firefox-mcp/logs/<profile>/`, `/int/tools/.runtime/firefox-mcp/run/<profile>.json`;
