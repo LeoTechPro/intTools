@@ -75,7 +75,7 @@ The repository MUST provide minimal client surfaces for Codex App, OpenClaw, and
 The repository MUST provide Russian-facing plugin metadata and capability skills for `intbrain`, `intdata-control`, `intdata-runtime`, and `intdb`. Each active MCP tool MUST have exactly one canonical tool-card inside its assigned capability skill.
 
 #### Scenario: Skill guidance is verified
-- **WHEN** `scripts/codex/verify_int_tools_plugins.py --report-json` runs
+- **WHEN** `codex/scripts/verify_int_tools_plugins.py --report-json` runs
 - **THEN** the report includes a `profile/tool -> skill -> missing_guidance` matrix
 - **AND** every active tool-card includes `Когда`, `Required inputs`, `Optional/schema inputs`, `Режим`, `Approval / issue requirements`, `Не использовать когда`, `Пример вызова`, and `Fallback/blocker`
 - **AND** every required argument from the MCP schema is listed in the tool-card

@@ -4,9 +4,9 @@
 # Requires: docker compose (v2), env file with required variables.
 #
 # Usage examples:
-#   scripts/devops/setup_keycloak_killbill.sh start --env .env.dev
-#   scripts/devops/setup_keycloak_killbill.sh stop
-#   scripts/devops/setup_keycloak_killbill.sh logs keycloak
+#   delivery/devops/setup_keycloak_killbill.sh start --env .env.dev
+#   delivery/devops/setup_keycloak_killbill.sh stop
+#   delivery/devops/setup_keycloak_killbill.sh logs keycloak
 #
 
 set -euo pipefail
@@ -24,7 +24,7 @@ DOCKER_COMPOSE_CMD="docker compose"
 DEFAULT_PROFILES="keycloak"
 CLEAR_THEME_CACHE=false
 RUN_SELENIUM_SMOKE=false
-SELENIUM_SMOKE_SCRIPT="$ID_ROOT/scripts/devops/run_selenium_smoke.sh"
+SELENIUM_SMOKE_SCRIPT="$ID_ROOT/delivery/devops/run_selenium_smoke.sh"
 REQUIRED_VARS=(
   ID_KEYCLOAK_DB_NAME
   ID_KEYCLOAK_DB_USER
@@ -56,7 +56,7 @@ Commands:
 Options:
   --env FILE   Path to env file (default: .env in repo root)
   --clear-theme-cache  Remove Keycloak static theme cache after up/restart
-  --selenium-smoke     Run Selenium smoke (scripts/devops/run_selenium_smoke.sh)
+  --selenium-smoke     Run Selenium smoke (delivery/devops/run_selenium_smoke.sh)
 
 Environment variables must define (see README):
   ID_KEYCLOAK_DB_NAME, ID_KEYCLOAK_DB_USER, ID_KEYCLOAK_DB_PASSWORD, ...
@@ -114,7 +114,7 @@ ensure_requirements() {
 load_env() {
   local env_path="$1"
   local default_env="$ID_ROOT/.env"
-  local legacy_env="$ROOT_DIR/scripts/devops/id-stack.env"
+  local legacy_env="$ROOT_DIR/delivery/devops/id-stack.env"
 
   if [[ -z "$env_path" ]]; then
     if [[ -f "$default_env" ]]; then
@@ -862,7 +862,7 @@ run_selenium_smoke() {
 }
 
 generate_killbill_overrides() {
-  local dir="$ROOT_DIR/scripts/devops/killbill.overrides"
+  local dir="$ROOT_DIR/delivery/devops/killbill.overrides"
   local target="$dir/killbill.properties"
   local shiro_target="$dir/shiro.ini"
 

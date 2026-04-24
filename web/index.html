@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="intData Tools - общий набор инструментов для управляемой автоматизации, runtime-проверок и агентской разработки."
+      content="intData Tools - публичный каталог инструментов, runtime-слоёв, governance-контуров и операционных утилит."
     />
     <title>intData Tools</title>
     <link rel="stylesheet" href="./styles.css" />
@@ -18,42 +18,43 @@
           <span>intData Tools</span>
         </a>
         <div class="nav-links">
-          <a href="#capabilities">Инструменты</a>
-          <a href="#workflow">Процесс</a>
-          <a href="#safety">Безопасность</a>
-          <a href="#reference">Памятка</a>
+          <a href="#catalog">Каталог</a>
+          <a href="#principles">Принципы</a>
+          <a href="#process">Процесс</a>
+          <a href="#safety">Публикация</a>
         </div>
       </nav>
 
       <section class="hero" id="top">
         <div class="hero-copy">
-          <p class="eyebrow">Общий операторский toolkit</p>
-          <h1>Инструменты для управляемой автоматизации и агентской разработки.</h1>
+          <p class="eyebrow">Операторский слой</p>
+          <h1>Не склад скриптов, а карта инструментов.</h1>
           <p class="lede">
-            intData Tools собирает переиспользуемые команды, runbook-и, проверки и рабочие контракты, которые помогают доводить задачу от намерения до проверенного результата.
+            intData Tools собирает governance, DBA, runtime, delivery и agent tooling в один управляемый контур.
+            Каждый видимый каталог в корне должен быть понятным инструментом, адаптером, runtime-слоем или явно помеченным референсом.
           </p>
           <div class="hero-actions" aria-label="Быстрые ссылки">
-            <a class="button primary" href="#capabilities">Смотреть инструменты</a>
-            <a class="button secondary" href="#safety">Модель безопасности</a>
+            <a class="button primary" href="#catalog">Открыть каталог</a>
+            <a class="button secondary" href="#safety">Правила публикации</a>
           </div>
         </div>
 
-        <aside class="status-panel" aria-label="Принципы tooling">
+        <aside class="status-panel" aria-label="Статус каталога">
           <div class="panel-row">
             <span class="signal live"></span>
-            <span>Изменения через спеки</span>
+            <span>Корень разбит на инструменты</span>
           </div>
           <div class="panel-row">
             <span class="signal"></span>
-            <span>Работа привязана к задачам</span>
+            <span>Публичные описания без секретов</span>
           </div>
           <div class="panel-row">
             <span class="signal"></span>
-            <span>Проверка реального runtime</span>
+            <span>Референсы отделены от owned tooling</span>
           </div>
           <div class="panel-row">
             <span class="signal"></span>
-            <span>Публичные docs без секретов</span>
+            <span>Сайт готов расти в web-утилиты</span>
           </div>
         </aside>
       </section>
@@ -62,119 +63,102 @@
     <main>
       <section class="section intro" aria-labelledby="intro-title">
         <div>
-          <p class="section-kicker">Что это</p>
-          <h2 id="intro-title">Практический слой управления для агентов и операторов.</h2>
+          <p class="section-kicker">Модель</p>
+          <h2 id="intro-title">Видимый каталог в корне равен отдельной ответственности.</h2>
         </div>
         <p>
-          Tools-слой держит общую автоматизацию отдельно от продуктового кода, но даёт командам повторяемые входные точки для governance, DBA-работ, runtime-диагностики, browser-proof, release checks и handoff.
+          Здесь нет приватной карты инфраструктуры. Сайт описывает только назначение инструментов, границы ответственности и безопасные сценарии использования. Детальные пути, секреты, credentials и частные hostnames остаются вне публичной документации.
         </p>
       </section>
 
-      <section class="section" id="capabilities" aria-labelledby="capabilities-title">
+      <section class="section catalog-section" id="catalog" aria-labelledby="catalog-title">
         <div class="section-heading">
-          <p class="section-kicker">Карта возможностей</p>
-          <h2 id="capabilities-title">Узкие инструменты с понятной ответственностью.</h2>
+          <p class="section-kicker">Каталог</p>
+          <h2 id="catalog-title">Инструменты, адаптеры и референсы.</h2>
+          <p>
+            Каталог строится из открытого JSON-файла. Если в корне появляется новый видимый каталог, он должен получить понятное имя, бренд и описание.
+          </p>
         </div>
 
-        <div class="tool-grid">
-          <article class="tool-card" data-category="governance">
-            <span class="card-code">01</span>
-            <h3>Control</h3>
-            <p>OpenSpec, дисциплина задач, locks, gates и проверки публикации для tracked tooling-изменений.</p>
-          </article>
-          <article class="tool-card" data-category="runtime">
-            <span class="card-code">02</span>
-            <h3>Runtime</h3>
-            <p>Диагностика хостов, remote checks, browser profiles, recovery bundles и безопасные runtime helpers.</p>
-          </article>
-          <article class="tool-card" data-category="database">
-            <span class="card-code">03</span>
-            <h3>DBA</h3>
-            <p>Защищённые DB-входы, migration helpers, read-only checks, smoke-тесты и role-aware workflows.</p>
-          </article>
-          <article class="tool-card" data-category="agent">
-            <span class="card-code">04</span>
-            <h3>Agent Plane</h3>
-            <p>Нейтральные поверхности оркестрации агентов, policy-aware dispatch, audit trails и local harnesses.</p>
-          </article>
-          <article class="tool-card" data-category="delivery">
-            <span class="card-code">05</span>
-            <h3>Delivery</h3>
-            <p>Переиспользуемые release checks, pre-push gates, deployment runbooks и handoff templates.</p>
-          </article>
-          <article class="tool-card" data-category="browser">
-            <span class="card-code">06</span>
-            <h3>Browser Proof</h3>
-            <p>Повторяемые визуальные и интерактивные проверки локальных приложений, публичных страниц и рабочих сценариев.</p>
-          </article>
+        <div class="catalog-toolbar" aria-label="Фильтры каталога">
+          <button class="filter-button is-active" type="button" data-filter="all">Все</button>
+          <button class="filter-button" type="button" data-filter="governance">Governance</button>
+          <button class="filter-button" type="button" data-filter="runtime">Runtime</button>
+          <button class="filter-button" type="button" data-filter="delivery">Delivery</button>
+          <button class="filter-button" type="button" data-filter="adapter">Адаптеры</button>
+          <button class="filter-button" type="button" data-filter="reference">Референсы</button>
+        </div>
+
+        <div class="catalog-grid" id="catalog-grid" aria-live="polite">
+          <p class="catalog-loading">Загружаю каталог…</p>
         </div>
       </section>
 
-      <section class="section split" id="workflow" aria-labelledby="workflow-title">
+      <section class="section split" id="principles" aria-labelledby="principles-title">
         <div>
-          <p class="section-kicker">Процесс</p>
-          <h2 id="workflow-title">Короткий цикл с жёсткими gate-ами.</h2>
+          <p class="section-kicker">Принципы</p>
+          <h2 id="principles-title">Порядок важнее количества.</h2>
           <p>
-            Работа начинается с зафиксированного scope, проходит через задачу и change package, когда меняется contract, и заканчивается только после проверки и явного publication-state.
+            Инструмент должен иметь имя, владельческую границу, понятные входы и проверяемый результат. Если каталог нужен только как пример чужого подхода, он остаётся референсом и не маскируется под наш production tooling.
           </p>
         </div>
         <ol class="timeline">
-          <li><span>01</span>Определить scope, владельца, репозиторий и границу риска.</li>
-          <li><span>02</span>Использовать issue и spec gates, когда меняется tracked tooling behavior.</li>
-          <li><span>03</span>Взять locks, править согласованные файлы и сохранять несвязанный state.</li>
-          <li><span>04</span>Запустить точечные проверки, сделать traceable commit и осознанно публиковать.</li>
+          <li><span>01</span>Корневой каталог обязан объяснять самостоятельную задачу.</li>
+          <li><span>02</span>Общие ops-файлы живут в delivery, Codex-facing скрипты — в codex.</li>
+          <li><span>03</span>Разовые gate/artifact каталоги не остаются в корне.</li>
+          <li><span>04</span>Публичный сайт показывает назначение, но не раскрывает приватную инфраструктуру.</li>
         </ol>
       </section>
 
       <section class="section safety" id="safety" aria-labelledby="safety-title">
         <div class="section-heading">
-          <p class="section-kicker">Модель безопасности</p>
+          <p class="section-kicker">Публикация</p>
           <h2 id="safety-title">Публичная документация остаётся публичной.</h2>
         </div>
         <div class="safety-grid">
           <div>
             <h3>Можно</h3>
-            <p>Назначение инструментов, группы возможностей, операторский процесс, принципы безопасности и публичный язык проекта.</p>
+            <p>Назначение инструментов, типовые задачи, категории, брендинг, публичные принципы процесса и безопасные общие ограничения.</p>
           </div>
           <div>
             <h3>Нельзя</h3>
-            <p>Секреты, приватные пути, приватные hostnames, credentials, внутренности БД и персональные данные.</p>
+            <p>Секреты, credentials, приватные директории локальных машин, приватные hostnames, персональные данные и внутренние строки подключения.</p>
           </div>
           <div>
-            <h3>Рабочая позиция</h3>
-            <p>Использовать узкие роли, проверять target, предпочитать read-only доступ к source data и фиксировать результат.</p>
+            <h3>Нужно</h3>
+            <p>Держать сайт синхронным с корнем репозитория и явно помечать внешние reference-каталоги.</p>
           </div>
         </div>
       </section>
 
-      <section class="section reference" id="reference" aria-labelledby="reference-title">
+      <section class="section reference" id="process" aria-labelledby="process-title">
         <div>
-          <p class="section-kicker">Памятка</p>
-          <h2 id="reference-title">Полезная модель в голове.</h2>
+          <p class="section-kicker">Процесс</p>
+          <h2 id="process-title">Как меняется tools-контур.</h2>
         </div>
         <div class="reference-list">
           <button class="reference-item is-open" type="button" aria-expanded="true">
-            <span>Governance</span>
-            <small>Спеки, задачи, locks, gates</small>
+            <span>Spec</span>
+            <small>Изменение поведения начинается с change package</small>
           </button>
           <button class="reference-item" type="button" aria-expanded="false">
-            <span>Runtime</span>
-            <small>Хосты, браузеры, диагностика</small>
+            <span>Lock</span>
+            <small>Tracked-файлы правятся под scoped lock</small>
           </button>
           <button class="reference-item" type="button" aria-expanded="false">
-            <span>DBA</span>
-            <small>Входы, миграции, smoke</small>
+            <span>Verify</span>
+            <small>Перед публикацией проверяем фактический результат</small>
           </button>
         </div>
         <p class="reference-copy" id="reference-copy">
-          Governance-инструменты удерживают tracked changes управляемыми: scoped issue, согласованная спека при изменении поведения, lock на файлы и проверка перед публикацией.
+          Spec фиксирует требование до реализации: что меняется, почему это нужно, где границы и какие проверки доказывают результат.
         </p>
       </section>
     </main>
 
     <footer class="footer">
       <span>intData Tools</span>
-      <span>Публичный обзор. Без секретов и приватной карты инфраструктуры.</span>
+      <span>Публичный обзор без секретов, приватных путей и приватной карты инфраструктуры.</span>
     </footer>
 
     <script src="./app.js"></script>

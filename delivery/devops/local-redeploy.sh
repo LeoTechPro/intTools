@@ -11,7 +11,7 @@ TIMESTAMP="$(date -u +"%Y%m%dT%H%M%SZ")"
 REPORT_ROOT="$ROOT/logs/devops/$TIMESTAMP"
 mkdir -p "$REPORT_ROOT"
 
-LOG_SCAN="$ROOT/scripts/devops/log-scan.py"
+LOG_SCAN="$ROOT/delivery/devops/log-scan.py"
 PATTERN_LABELS='ERROR|FATAL|CRITICAL|Traceback|Unhandled|panic|OOM|bind: address already in use|Migrations failed|connection refused'
 
 CANDIDATE_SYSTEMD_UNITS=("intdata-web" "intdata-web-dev" "nexus-intdata-web" "nexus-intdata-web-dev" "intdata-worker" "nexus-intdata-worker")
@@ -99,10 +99,10 @@ elif [[ "$MODE" == "systemd" ]]; then
     run_cmd "Restart systemd unit $unit" sudo -n systemctl restart "$unit"
   done
 else
-  if [[ -x "$ROOT/scripts/devops/rebuild_service.sh" ]]; then
-    run_cmd "Fallback rebuild_service.sh" "$ROOT/scripts/devops/rebuild_service.sh"
+  if [[ -x "$ROOT/delivery/devops/rebuild_service.sh" ]]; then
+    run_cmd "Fallback rebuild_service.sh" "$ROOT/delivery/devops/rebuild_service.sh"
   else
-    add_summary "✖ Fallback: отсутствует scripts/devops/rebuild_service.sh"
+    add_summary "✖ Fallback: отсутствует delivery/devops/rebuild_service.sh"
     status=1
   fi
 fi

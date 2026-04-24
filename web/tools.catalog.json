@@ -1,0 +1,116 @@
+{
+  "tools": [
+    {
+      "root": "agent_plane",
+      "name": "Agent Plane",
+      "category": "runtime",
+      "kind": "owned",
+      "summary": "Нейтральный слой оркестрации агентских инструментов: policy-aware вызовы, audit trail и локальные harness-сценарии без привязки к одному агенту.",
+      "tags": ["агенты", "policy", "audit"]
+    },
+    {
+      "root": "codex",
+      "name": "Codex Tooling",
+      "category": "runtime",
+      "kind": "owned",
+      "summary": "Версионированные wrapper-скрипты, конфигурации, browser tooling, recovery runbooks и проверяемые маршруты для Codex runtime.",
+      "tags": ["codex", "browser-proof", "runtime"]
+    },
+    {
+      "root": "dba",
+      "name": "intDBA",
+      "category": "dba",
+      "kind": "owned",
+      "summary": "Операторский DBA-инструмент для guarded SQL, миграционных проверок, dump/restore сценариев и role-aware smoke-проходов.",
+      "tags": ["postgres", "migrations", "smoke"]
+    },
+    {
+      "root": "delivery",
+      "name": "Delivery Ops",
+      "category": "delivery",
+      "kind": "owned",
+      "summary": "Host-level configs, devops/docops helpers, monitoring templates и release/runbook материалы для внешнего delivery-контура.",
+      "tags": ["deploy", "configs", "runbooks"]
+    },
+    {
+      "root": "gatesctl",
+      "name": "GatesCtl",
+      "category": "governance",
+      "kind": "owned",
+      "summary": "Runtime для gate receipts, approvals и commit binding, который делает публикацию проверяемой и трассируемой.",
+      "tags": ["gates", "receipts", "commit"]
+    },
+    {
+      "root": "gemini-openai-proxy",
+      "name": "Gemini OpenAI Proxy",
+      "category": "adapter",
+      "kind": "vendor-copy",
+      "summary": "Локальный OpenAI-compatible proxy для сценариев, где нужен адаптер между Gemini workflows и OpenAI-совместимым интерфейсом.",
+      "tags": ["proxy", "adapter", "llm"]
+    },
+    {
+      "root": "lockctl",
+      "name": "LockCtl",
+      "category": "governance",
+      "kind": "owned",
+      "summary": "Machine-local writer-lock для scoped файловых правок, чтобы агенты не конфликтовали в одном tooling repo.",
+      "tags": ["locks", "coordination", "safety"]
+    },
+    {
+      "root": "ngt-memory",
+      "name": "NGT Memory",
+      "category": "reference",
+      "kind": "reference",
+      "summary": "Внешний reference-каталог для изучения подходов к agent-memory. Не является owned production tooling intData.",
+      "tags": ["reference", "memory", "research"]
+    },
+    {
+      "root": "openclaw",
+      "name": "OpenClaw Overlay",
+      "category": "runtime",
+      "kind": "owned",
+      "summary": "Версионированный overlay и runbooks для локального OpenClaw runtime, интеграций и безопасного operator workflow.",
+      "tags": ["openclaw", "overlay", "runtime"]
+    },
+    {
+      "root": "openspec",
+      "name": "OpenSpec Governance",
+      "category": "governance",
+      "kind": "owned",
+      "summary": "Спецификации, proposals и acceptance-контракты для tracked tooling/process изменений внутри intData Tools.",
+      "tags": ["specs", "contracts", "acceptance"]
+    },
+    {
+      "root": "probe",
+      "name": "Probe Tools",
+      "category": "adapter",
+      "kind": "owned",
+      "summary": "Maintenance и audit-утилиты для probe-мониторинга, машинных проверок и исторических операционных отчётов.",
+      "tags": ["probe", "audit", "monitoring"]
+    },
+    {
+      "root": "punkt-b",
+      "name": "PunktB Ops",
+      "category": "adapter",
+      "kind": "owned",
+      "summary": "Product-adapter tooling для миграций, QA, runbooks и безопасной синхронизации состояний вокруг PunktB контуров.",
+      "tags": ["punktb", "migration", "qa"]
+    },
+    {
+      "root": "vault",
+      "name": "Vault Maintenance",
+      "category": "runtime",
+      "kind": "owned",
+      "summary": "Санитарные проверки, cleanup helpers и runtime-vault maintenance для управляемого хранения операционных артефактов.",
+      "tags": ["vault", "cleanup", "maintenance"]
+    },
+    {
+      "root": "web",
+      "name": "Tools Web",
+      "category": "interface",
+      "kind": "owned",
+      "summary": "Публичный сайт intData Tools и будущая точка входа для web-утилит, каталогов и operator-facing интерфейсов.",
+      "tags": ["site", "catalog", "ui"]
+    }
+  ]
+}

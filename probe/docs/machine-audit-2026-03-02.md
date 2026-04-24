@@ -6,8 +6,8 @@ Scope: `Probe Monitor` + `openclaw gateway`.
 
 | Asset | Current Location | Git Status | Risk | Mitigation |
 |---|---|---|---|---|
-| Orphan cleaner logic | `/int/scripts/codex/cleanup_agent_orphans.sh` | Tracked | Script can be lost on host failure | Keep canonical script in `scripts/codex` and install cron from repo |
-| Orphan cleaner schedule | `crontab -l` (`probe-agent-orphan-cleaner`) | Outside git | Manual drift, duplicates, loss after rebuild | Manage via `/int/scripts/codex/install_orphan_cleaner_cron.sh` |
+| Orphan cleaner logic | `/int/tools/codex/scripts/cleanup_agent_orphans.sh` | Tracked | Script can be lost on host failure | Keep canonical script in `codex/scripts` and install cron from repo |
+| Orphan cleaner schedule | `crontab -l` (`probe-agent-orphan-cleaner`) | Outside git | Manual drift, duplicates, loss after rebuild | Manage via `/int/tools/codex/scripts/install_orphan_cleaner_cron.sh` |
 | OpenClaw gateway unit | `~/.config/systemd/user/openclaw-gateway.service` | Outside git (generated) | Unit drift and non-reproducible setup | Keep canonical drop-ins and runbooks in `/int/tools/openclaw`; restart via systemd |
 | OpenClaw runtime config | `~/.openclaw/openclaw.json` | Outside git (runtime) | Wrong ACL/runtimes can break bot routing | Keep live config in `~/.openclaw` and sync versioned tooling from `/int/tools/openclaw` |
 | OpenClaw runtime state | `~/.openclaw/state` | Outside git (runtime) | Session memory loss on disk failure | Include in runtime backup checklist |

@@ -76,7 +76,7 @@ docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" --profile openbao up -d
 echo "[openbao] capture logs → $REPORT_DIR"
 docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" --profile openbao logs openbao > "$REPORT_DIR/openbao.log" 2>&1 || true
 
-LOG_SCAN="$ROOT_DIR/scripts/devops/log-scan.py"
+LOG_SCAN="$ROOT_DIR/delivery/devops/log-scan.py"
 if [[ -f "$LOG_SCAN" ]]; then
   python3 "$LOG_SCAN" "$REPORT_DIR/openbao.log" || true
 fi

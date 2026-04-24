@@ -43,5 +43,5 @@ Owning Multica issue: `INT-226`.
 - Routing validation passes and fresh `ssh_resolve` uses `int_ssh_resolve`.
 - Plugin manifests and skills are Russian-facing where possible while technical tool names and schema fields remain stable.
 - Active MCP counts are `intbrain=27`, `intdata-control=24`, `intdata-runtime=9`, and `intdb=1`; Multica is no longer exposed through `intdata-control`.
-- `scripts/codex/verify_int_tools_plugins.py --report-json` reports `ok=true` with zero missing guidance.
+- `codex/scripts/verify_int_tools_plugins.py --report-json` reports `ok=true` with zero missing guidance.
 - Superseded by `remove-local-sync-gate-and-codex-home-mutation`: removed/forbidden `sync_runtime_from_repo.*` and `detach_home_git.sh`; `codex-host-bootstrap` does not mutate Codex home and repo-owned runtime outputs default to `/int/tools/.runtime/**`.

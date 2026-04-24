@@ -3,7 +3,7 @@
 Lightweight article fetcher → Markdown with YAML front‑matter.
 
 Usage:
-  python scripts/docops/fetch_url.py "<URL>" AGENTS/issues.json  # пример экспорта в зеркало
+  python delivery/docops/fetch_url.py "<URL>" AGENTS/issues.json  # пример экспорта в зеркало
 
 Implements fetch_to_markdown(url, out_path) with graceful fallbacks:
 - Prefer trafilatura if available
@@ -240,7 +240,7 @@ def fetch_to_markdown(url: str, out_path: str) -> None:
             "# Второй мозг — заглушка\n\n"
             "> Автоматическая загрузка не удалась. Заполните файл, запустив скрипт повторно.\n\n"
             "## TODO\n\n"
-            f"```bash\npython scripts/docops/fetch_url.py {json.dumps(url)} {json.dumps(out_path)}\n```\n"
+            f"```bash\npython delivery/docops/fetch_url.py {json.dumps(url)} {json.dumps(out_path)}\n```\n"
             f"\n<!-- error: {type(e).__name__}: {str(e)} -->\n"
         )
         content = stub
@@ -253,7 +253,7 @@ def fetch_to_markdown(url: str, out_path: str) -> None:
 
 def _main(argv: list[str]) -> int:
     if len(argv) != 3:
-        print("Usage: python scripts/docops/fetch_url.py <URL> <OUT_PATH>")
+        print("Usage: python delivery/docops/fetch_url.py <URL> <OUT_PATH>")
         return 2
     url, out_path = argv[1], argv[2]
     fetch_to_markdown(url, out_path)

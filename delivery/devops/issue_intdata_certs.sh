@@ -8,8 +8,8 @@ set -Eeuo pipefail
 #   - nginx обслуживает /.well-known/acme-challenge/ из /var/www/<domain>.
 #
 # Примеры использования:
-#   sudo ./scripts/devops/issue_intdata_certs.sh
-#   WEBROOT_BASE=/srv/www sudo ./scripts/devops/issue_intdata_certs.sh nexus.intdata.pro
+#   sudo ./delivery/devops/issue_intdata_certs.sh
+#   WEBROOT_BASE=/srv/www sudo ./delivery/devops/issue_intdata_certs.sh nexus.intdata.pro
 #
 # При успешном выпуске выполняется `nginx -t` и перезагрузка nginx.
 

@@ -14,7 +14,7 @@ SMTP_USER="${MAILPIT_SMTP_USER:-${SMTP_USER:-intdata-smtp}}"
 UI_USER="${MAILPIT_UI_USER:-intdata-ui}"
 UI_PASSWORD="${MAILPIT_UI_PASSWORD:-}"
 
-LOG_SCAN="${ROOT_DIR}/scripts/devops/log-scan.py"
+LOG_SCAN="${ROOT_DIR}/delivery/devops/log-scan.py"
 
 mkdir -p "$REPORT_DIR"
 

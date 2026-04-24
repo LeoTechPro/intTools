@@ -100,13 +100,13 @@
 
 ## 2026-04-02
 ### Docs+Policy: markdown-context compression wave A-C
-- Добавлен канонический policy-файл [data/markdown-context-policy.json](/int/tools/data/markdown-context-policy.json) с общими правилами контекст-фильтрации (`max_bytes`, `exclude_exact_paths`, `exclude_globs`) для `/int`.
+- Добавлен канонический policy-файл [codex/config/markdown-context-policy.json](/int/tools/codex/config/markdown-context-policy.json) с общими правилами контекст-фильтрации (`max_bytes`, `exclude_exact_paths`, `exclude_globs`) для `/int`.
 - В [README.md](/int/tools/README.md) добавлен отдельный раздел `Markdown context policy` с единым контуром denylist и правилом лексической чистки по `missing/not found/отсутствует`.
 - В [AGENTS.md](/int/tools/AGENTS.md) git-gate переписан в компактную позитивную формулировку без шумовой риторики про отсутствие upstream.
 
 ## 2026-03-31
 ### review-fix: drop-сопоставление PATH канонизирует разделители
-- В `scripts/codex/bootstrap_windows_toolchain.ps1` добавлена канонизация ключей сравнения в `Normalize-UserPath` (`/` -> `\`, схлопывание повторных `\`) для `candidate`, `compareKey` и `DropEntries`.
+- В `codex/scripts/bootstrap_windows_toolchain.ps1` добавлена канонизация ключей сравнения в `Normalize-UserPath` (`/` -> `\`, схлопывание повторных `\`) для `candidate`, `compareKey` и `DropEntries`.
 - Исправлен подтверждённый кейс, когда `%LOCALAPPDATA%/OpenAI/Codex/bin` не отбрасывался при `DropEntries` с backslash-форматом.
 - Scope изменения ограничен только remediation по подтверждённому `review-find` пункту.
 
@@ -116,7 +116,7 @@
 - В `.gitignore` добавлен `mcp-memory-bank/`, чтобы локальные unpacked/wheel артефакты не попадали в git-индекс и не держали рабочее дерево грязным на хостах.
 
 ### review-fix: PATH normalizer сохраняет env-токены и не теряет валидные записи
-- В `scripts/codex/bootstrap_windows_toolchain.ps1` обновлён `Normalize-UserPath`: для `%ENV%`-путей проверка существования идёт через `ExpandEnvironmentVariables()`, но в итоговый PATH сохраняется исходный raw-токен.
+- В `codex/scripts/bootstrap_windows_toolchain.ps1` обновлён `Normalize-UserPath`: для `%ENV%`-путей проверка существования идёт через `ExpandEnvironmentVariables()`, но в итоговый PATH сохраняется исходный raw-токен.
 - Если `%VAR%` не раскрывается (например, `%UNKNOWN_VAR%`), запись больше не удаляется автоматически при нормализации.
 - Drop-сравнение сделано безопасным для raw/expanded вариантов, чтобы исключить ложное удаление валидных PATH-элементов.
 - Контракт bootstrap (`code=0/10/20`) не менялся; при stale process PATH всё ещё нужен перезапуск терминала/Codex-сессии.
@@ -132,12 +132,12 @@
 - В `gatesctl/gatesctl.py` и `punkt-b`-утилитах добавлен py-launch fallback: если `LOCKCTL_BIN` указывает на `lockctl.py`, команда запускается через `sys.executable`, чтобы на Windows не возникал `WinError 193`.
 
 ### review-fix: точечные правки bootstrap/preflight по подтверждённым findings
-- В `scripts/codex/codex_preflight.ps1` удалена принудительная перезапись process `PATH` (`User + Machine`): preflight больше не искажает фактический runtime-резолв бинарей в текущей сессии.
-- В `scripts/codex/bootstrap_windows_toolchain.ps1` убран user-specific hardcode (`C:\\Users\\intData\\...`) и введены вычисления путей через `$env:LOCALAPPDATA`/`$PSScriptRoot`, чтобы скрипт был переносимым между профилями.
+- В `codex/scripts/codex_preflight.ps1` удалена принудительная перезапись process `PATH` (`User + Machine`): preflight больше не искажает фактический runtime-резолв бинарей в текущей сессии.
+- В `codex/scripts/bootstrap_windows_toolchain.ps1` убран user-specific hardcode (`C:\\Users\\intData\\...`) и введены вычисления путей через `$env:LOCALAPPDATA`/`$PSScriptRoot`, чтобы скрипт был переносимым между профилями.
 - В `bootstrap_windows_toolchain.ps1` добавлен reuse существующего portable CMake (`Resolve-PortableCMakeBin`) до сетевой установки, что устраняет повторную переустановку при повторном запуске.
 
 ### Windows Codex toolchain bootstrap + preflight
-- Добавлены скрипты `scripts/codex/bootstrap_windows_toolchain.ps1` и `scripts/codex/codex_preflight.ps1` для воспроизводимой настройки Windows CLI-инструментов и быстрой диагностики статуса (`ok|missing|blocked|fix_suggested`, таблица/JSON).
+- Добавлены скрипты `codex/scripts/bootstrap_windows_toolchain.ps1` и `codex/scripts/codex_preflight.ps1` для воспроизводимой настройки Windows CLI-инструментов и быстрой диагностики статуса (`ok|missing|blocked|fix_suggested`, таблица/JSON).
 - `bootstrap_windows_toolchain.ps1` фиксирует контракт exit-codes: `0` (готово), `10` (нужен elevated shell), `20` (частичные ошибки), пишет PATH snapshot/results в `/int/.tmp/toolchain-bootstrap/<UTC>/`.
 - Реализована mixed-логика установки: `winget` для основного стека, `choco -> winget` fallback для `make`, portable fallback для `cmake`, alias fallback для `7z` через `M2Team.NanaZip` в user-scope.
 - Реализована PATH-normalization: приоритет `WinGet\Links`/`WindowsApps`, очистка несуществующих user PATH entries, удаление stale `OpenAI\\Codex\\bin`.

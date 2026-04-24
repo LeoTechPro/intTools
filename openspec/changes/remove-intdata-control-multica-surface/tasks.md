@@ -14,7 +14,7 @@
 
 ## 4. Validation
 - [x] 4.1 Validate this OpenSpec change strictly.
-- [x] 4.2 Run `python scripts/codex/verify_int_tools_plugins.py --report-json`.
+- [x] 4.2 Run `python codex/scripts/verify_int_tools_plugins.py --report-json`.
 - [x] 4.3 Run `python -m unittest agent_plane.tests.test_agent_plane`.
 - [x] 4.4 Run focused static checks for removed local Multica tool names.
 

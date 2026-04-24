@@ -23,9 +23,11 @@
 - `agent_plane/` — neutral Agent Tool/Policy/State Plane для равноправных фасадов Agno/OpenClaw/Codex App;
 - `codex/` — versioned host-tooling, managed assets и project overlays для Codex CLI;
 - `openclaw/` — versioned overlay для локального OpenClaw runtime;
-- `data/` — внешний tooling/configs слой для backend-core `/int/data`;
+- `delivery/` — внешний host-config, devops, docops и delivery слой для intData-family контуров;
 - `probe/` — maintenance и audit-утилиты для `/int/probe`;
+- `punkt-b/` — product-adapter tooling для PunktB контуров;
 - `gemini-openai-proxy/` — internal-vendor copy локального OpenAI-compatible proxy для Gemini;
+- `web/` — публичный статический сайт и каталог intData Tools;
 - `openspec/changes/` и `openspec/specs/` — proposal/spec материалы этого repo.
 
 ## Внешние референсы
@@ -72,7 +74,7 @@
 
 ## Markdown context policy
 
-- Каноническая политика сжатия markdown-контекста хранится в `data/markdown-context-policy.json`.
+- Каноническая политика сжатия markdown-контекста хранится в `codex/config/markdown-context-policy.json`.
 - Для `.md` индексаторов и RAG-проходов используем единый denylist-контур: `max_bytes`, `exclude_exact_paths`, `exclude_globs`.
 - Политика по формулировкам `missing/not found/отсутствует`: оставляем только behavior-critical контекст (контракты API, коды ошибок, диагностические инциденты).
 
@@ -94,8 +96,8 @@
 - `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intbrain` (или `/int/tools/codex/bin/mcp-intdata-cli.sh --profile intbrain`) — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
 - `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
-- `pwsh -File /int/tools/scripts/codex/bootstrap_windows_toolchain.ps1 -AllowUserFallback` — idempotent bootstrap Windows CLI-toolchain (`rg`, `fd`, `yq`, `uv`, `pnpm`, `terraform`, `make`, PATH-normalization, fallback для `cmake/7z`);
-- `pwsh -File /int/tools/scripts/codex/codex_preflight.ps1` — preflight-проверка ключевых CLI с machine-readable режимом `-Json`;
+- `pwsh -File /int/tools/codex/scripts/bootstrap_windows_toolchain.ps1 -AllowUserFallback` — idempotent bootstrap Windows CLI-toolchain (`rg`, `fd`, `yq`, `uv`, `pnpm`, `terraform`, `make`, PATH-normalization, fallback для `cmake/7z`);
+- `pwsh -File /int/tools/codex/scripts/codex_preflight.ps1` — preflight-проверка ключевых CLI с machine-readable режимом `-Json`;
 - `/int/tools/codex/bin/openspec` — tracked Linux operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `intdata-control` OpenSpec tools first;
 - `pwsh -File D:\int\tools\codex\bin\openspec.ps1` — tracked Windows PowerShell operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `intdata-control` OpenSpec tools first;
 - `D:\int\tools\codex\bin\openspec.cmd` — tracked Windows CMD operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `intdata-control` OpenSpec tools first;
@@ -387,34 +389,35 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 - для `WRITE_CLASS=prod` дополнительно обязателен `--force-prod-write`;
 - `dba` is exposed through `/int/tools/dba` and the `dba` MCP profile; `intDBA` remains the preferred human-facing utility name, while `codex/bin/intdb.*` compatibility wrappers are not active surfaces.
 
-### `data/`
+### `delivery/`
 
-#### data tooling
+#### Delivery Ops
 
-`/int/tools/data` — внешний ops/process/tooling contour для `data backend-core`.
+`/int/tools/delivery` — внешний host-config, devops, docops, monitoring и delivery contour для intData-family сервисов.
 
 ##### Что живёт здесь
 
-- host-level configs и proxy/systemd templates, которые больше не считаются частью product repo `/int/data`
-- devops/docops/dev helpers для `data`
-- cross-repo and machine-wide scripts, которые обслуживают `data` как платформенный backend
+- host-level configs и proxy/systemd templates, которые не являются product-core;
+- devops/docops/dev helpers для инфраструктурных и release задач;
+- cross-repo and machine-wide scripts, которые обслуживают delivery/runtime контуры.
 
 ##### Что не живёт здесь
 
-- canonical schema/functions/contracts backend-core
-- runtime-state и секреты
-- исходники отдельных сервисов `chat`, `bot`, `itsm`, `erp`
+- canonical schema/functions/contracts backend-core;
+- runtime-state и секреты;
+- исходники отдельных продуктовых сервисов.
 
 ##### Структура
 
-- `configs/` — host-level configs и templates
-- `devops/` — ops helpers
-- `devs/` — developer helpers
-- `docops/` — docs/process helpers
+- `configs/` — host-level configs и templates;
+- `devops/` — ops helpers;
+- `devs/` — developer helpers;
+- `docops/` — docs/process helpers;
+- `monitoring/` — monitoring templates.
 
-`/int/data` остаётся owner только backend-core. Всё, что является внешним tooling или host-config слоем, должно жить здесь.
+`/int/data` остаётся owner только backend-core. Всё, что является внешним tooling, host-config или rollout слоем, должно жить в `delivery/`.
 
-### `data/configs/`
+### `delivery/configs/`
 
 #### intdata host configs
 
@@ -432,27 +435,27 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 
 Если конфиг обслуживает хост, reverse proxy, systemd или внешний rollout path, его место здесь, а не в `/int/data`.
 
-### `data/configs/nginx/`
+### `delivery/configs/nginx/`
 
 #### Конфигурации nginx (reverse proxy перед Apache)
 
 Каталог содержит итоговые конфиги `nginx`, сформированные на основе действующих `apache2` vhost'ов.
 Исключения:
-- [`api.intdata.pro.conf`](/int/tools/data/configs/nginx/api.intdata.pro.conf) ведётся отдельно как host-level custom vhost для Supabase API и не генерируется из Apache.
-- [`tools.intdata.pro.conf`](/int/tools/data/configs/nginx/tools.intdata.pro.conf) обслуживает статический публичный frontend из [`web/`](/int/tools/web/index.html).
+- [`api.intdata.pro.conf`](/int/tools/delivery/configs/nginx/api.intdata.pro.conf) ведётся отдельно как host-level custom vhost для Supabase API и не генерируется из Apache.
+- [`tools.intdata.pro.conf`](/int/tools/delivery/configs/nginx/tools.intdata.pro.conf) обслуживает статический публичный frontend из [`web/`](/int/tools/web/index.html).
 
 ###### Назначение
 
 - nginx принимает внешние HTTP/HTTPS-подключения (80/443), выполняет TLS-терминацию, безопасные заголовки и лимиты.
 - Apache остаётся backend-сервером и слушает только на `127.0.0.1:8080` / `127.0.0.1:8443`.
-- Конфиги генерируются скриптом `scripts/devops/generate_nginx_from_apache.py`, который подтягивает `ServerName`, `ServerAlias`, TLS-сертификаты и формирует пару `server {}` блоков (HTTP/HTTPS) для каждого vhost'а.
+- Конфиги генерируются скриптом `delivery/devops/generate_nginx_from_apache.py`, который подтягивает `ServerName`, `ServerAlias`, TLS-сертификаты и формирует пару `server {}` блоков (HTTP/HTTPS) для каждого vhost'а.
 
 ###### Процесс обновления
 
 1. Убедитесь, что `/etc/apache2/sites-available/` содержит актуальные конфиги.
 2. Запустите генератор из корня репозитория:
    ```bash
-   python3 scripts/devops/generate_nginx_from_apache.py
+   python3 delivery/devops/generate_nginx_from_apache.py
    ```
    Файлы появятся в `configs/nginx/generated/`.
 3. Примените конфиги на хосте:
@@ -488,7 +491,7 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 3. Выпустите сертификаты (пример для одного домена, перечислите нужные `-d`; переменная `CERTBOT_EMAIL` обязательна). Проще всего использовать автоматизированный скрипт:
    ```bash
    export CERTBOT_EMAIL=ops@intdata.pro
-   sudo scripts/devops/issue_intdata_certs.sh
+   sudo delivery/devops/issue_intdata_certs.sh
    ```
    Либо вызвать вручную:
    ```bash
@@ -505,20 +508,20 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 
 При необходимости можно объединять несколько доменов в один сертификат (`-d` через пробел), однако удобно поддерживать отдельные связки, чтобы разграничить сроки продления.
 
-### `data/configs/systemd/`
+### `delivery/configs/systemd/`
 
 #### configs/systemd
 
-Шаблоны systemd-юнитов и вспомогательные обёртки. См. раздел `data/configs/` ниже и [AGENTS.md](/int/tools/data/AGENTS.md#configs) за регламент.
+Шаблоны systemd-юнитов и вспомогательные обёртки. См. раздел `delivery/configs/` ниже и [delivery/AGENTS.md](/int/tools/delivery/AGENTS.md) за регламент.
 
 ##### Новые юниты
 - `meta-intdata-mailpit-dev.service` — orchestrator для docker-compose Mailpit (QA SMTP/UI).
 
-### `data/devops/`
+### `delivery/devops/`
 
-#### [scripts/devops](/int/tools/data/scripts/devops)
+#### [delivery/devops](/int/tools/delivery/devops)
 
-Скрипты DevOps-цикла (rebuild, restart, smoke) и инфраструктурные инструменты. Общие принципы описаны в разделах `data/` и `data/devops/` ниже.
+Скрипты DevOps-цикла (rebuild, restart, smoke) и инфраструктурные инструменты. Общие принципы описаны в разделах `delivery/` и `delivery/devops/` ниже.
 
 - **configure_erp_sso.sh** — настраивает Keycloak-провайдеры для Odoo/ERPNext. Требует заполненного `erp/.env` и запущенных контейнеров (`docker compose -f erp/docker-compose.yaml up -d`).
 
@@ -526,7 +529,7 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 
 - **/int/id/docker-compose.yaml** с профилем `keycloak` — standalone стек Keycloak + Kill Bill + Kaui + PostgreSQL.
 - **setup_keycloak_killbill.sh** — управляющий скрипт (`start|stop|restart|logs|down|status`), принимает `--env` для указания файла переменных, проверяет обязательные секреты и автоматически бутстрапит Realm/тенант после запуска.
-- Дополнительные флаги: `--clear-theme-cache` (очищает `kc-gzip-cache` в контейнере Keycloak после `up/restart`) и `--selenium-smoke` (запускает `scripts/devops/run_selenium_smoke.sh` для браузерного smoke).
+- Дополнительные флаги: `--clear-theme-cache` (очищает `kc-gzip-cache` в контейнере Keycloak после `up/restart`) и `--selenium-smoke` (запускает `delivery/devops/run_selenium_smoke.sh` для браузерного smoke).
 - **killbill.overrides/killbill.properties.example** — пример overrides для Kill Bill (скопируйте в `killbill.properties` и подставьте секреты).
 - **/int/id/scripts/devops/run_selenium_smoke.sh** — опциональный Selenium UI smoke для standalone repo Identity; выполняется только если selenium tests добавлены локально.
 
@@ -579,7 +582,7 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 
 ###### Selenium UI smoke (standalone)
 
-- Скрипт `scripts/devops/run_selenium_smoke.sh` выполняет headless smoke веб-интерфейсов (маркер `selenium`):
+- Скрипт `delivery/devops/run_selenium_smoke.sh` выполняет headless smoke веб-интерфейсов (маркер `selenium`):
   1. создаёт/переиспользует виртуальное окружение `venv/`;
   2. устанавливает зависимости из `tests/requirements.txt`;
   3. запускает `pytest -m selenium tests/web/test_ui_selenium_smoke.py`, передавая дополнительные аргументы pytest из командной строки.
@@ -608,8 +611,8 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 - Создать секреты в vault/1Password (настоящие пароли не коммитить).
 - Подготовить инфраструктурные БД (prod/stage) через команды DBA.
 - Настроить systemd unit или orchestrator (k8s) на базе compose-файла.
-- Добавить health-check в `scripts/devops/smoke.sh` после интеграции с /id.
-- После обновления smoke (`scripts/devops/smoke.sh`) будет проверять Keycloak (`/.well-known/openid-configuration`) и Kill Bill (`/1.0/healthcheck`). Убедитесь, что переменные `ID_KEYCLOAK_HTTP_PORT_LEGACY`, `ID_KEYCLOAK_REALM`, `ID_KILLBILL_HTTP_PORT` заданы при запуске.
+- Добавить health-check в `delivery/devops/smoke.sh` после интеграции с /id.
+- После обновления smoke (`delivery/devops/smoke.sh`) будет проверять Keycloak (`/.well-known/openid-configuration`) и Kill Bill (`/1.0/healthcheck`). Убедитесь, что переменные `ID_KEYCLOAK_HTTP_PORT_LEGACY`, `ID_KEYCLOAK_REALM`, `ID_KILLBILL_HTTP_PORT` заданы при запуске.
 
 ##### Mailpit (единый SMTP шлюз)
 
@@ -638,7 +641,7 @@ export MAILPIT_CONFIG_DIR='/etc/intdata/mailpit'
 export MAILPIT_LOG_DIR='/var/log/intdata/mailpit'
 
 #### 3. Запустите цикл:
-scripts/devops/run-mailpit.sh
+delivery/devops/run-mailpit.sh
 
 #### 4. Убедитесь, что mailpit работает:
 docker compose -f id/docker-compose.yaml --profile mailpit ps
@@ -659,7 +662,7 @@ sudo certbot certonly \
 ```
 
 - Симлинки в `/etc/intdata/mailpit/tls/` должны указывать на `/etc/letsencrypt/live/mail.intdata.pro-0001/{fullchain,privkey}.pem` для UI и SMTP (`mail.*`, `smtp.*`).
-- После выпуска выполните `systemctl reload nginx apache2` и `scripts/devops/run-mailpit.sh` для обновления контейнера.
+- После выпуска выполните `systemctl reload nginx apache2` и `delivery/devops/run-mailpit.sh` для обновления контейнера.
 
 ###### SMTP (Яндекс Почта)
 - Проектные сервисы отправляют письма через `smtp.yandex.ru` (порт `465`, SSL), аккаунт `prointdata@yandex.ru`, пароль приложения задаёт владелец.
@@ -691,7 +694,7 @@ PY
 
 ```bash
 OPENBAO_ENV_FILE=.env \
-scripts/devops/run-openbao.sh
+delivery/devops/run-openbao.sh
 ```
 
 - После старта выполните `python -m id.api.cli sync-openbao --env-file .env`, чтобы выгрузить секреты модулей в OpenBao и обновить секцию `OPENBAO SYNC` в `.env`.
@@ -705,40 +708,40 @@ scripts/devops/run-openbao.sh
 ##### Утилиты и вспомогательные скрипты
 
 - **check_duplicates.py** — ищет дубликаты файлов по SHA-1. По умолчанию сканирует `/int/brain/web/static/diagnostics`, игнорируя `.git`, `node_modules`, build-артефакты. Код возврата `0`, если дублей нет, и `1`, если найдены совпадения. Пример:\
-  `python3 scripts/devops/check_duplicates.py shared/assets -e build -e cache`.
+  `python3 delivery/devops/check_duplicates.py shared/assets -e build -e cache`.
 
-- **dev-redeploy.sh** — стандартный DevOps-цикл для ветки `dev`: подтягивает `.env`, запускает rebuild/restart сервисов, собирает логи в `logs/devops/<UTC>/`, прогоняет `log-scan.py`, выполняет HTTP-smoke и дополнительно запускает [`smoke.sh`](/int/tools/data/devops/smoke.sh) (включая OpenBao). Использование:\
-  `scripts/devops/dev-redeploy.sh`.
+- **dev-redeploy.sh** — стандартный DevOps-цикл для ветки `dev`: подтягивает `.env`, запускает rebuild/restart сервисов, собирает логи в `logs/devops/<UTC>/`, прогоняет `log-scan.py`, выполняет HTTP-smoke и дополнительно запускает [`smoke.sh`](/int/tools/delivery/devops/smoke.sh) (включая OpenBao). Использование:\
+  `delivery/devops/dev-redeploy.sh`.
 
 - **generate_nginx_from_apache.py** — миграционная утилита: читает активные Apache vhost’ы и генерирует эквивалентные прокси-конфиги nginx (HTTP+HTTPS) в `configs/nginx/generated/`. Требует root-доступ. Запуск:\
-  `sudo python3 scripts/devops/generate_nginx_from_apache.py`.
+  `sudo python3 delivery/devops/generate_nginx_from_apache.py`.
 
 - **import_archive_to_project.py** — импортирует оффлайн-черновики из `AGENTS/issues.json` (`offline_queue`) в GitHub Project V2: создаёт Draft Issue, переносит статус и основные поля (Status/Role/Module/Type) и очищает запись в зеркале. Нужен `GITHUB_TOKEN` (или `gh auth token`). Пример:\
-  `python3 scripts/devops/import_archive_to_project.py --project-number 1`.
+  `python3 delivery/devops/import_archive_to_project.py --project-number 1`.
 
 - **install_services.sh** — устанавливает/обновляет systemd unit’ы из `configs/systemd/` (копирование в `/etc/systemd/system`, `daemon-reload`, `enable`). Запуск только от root:\
-  `sudo scripts/devops/install_services.sh`.
+  `sudo delivery/devops/install_services.sh`.
 
 - **local-redeploy.sh** — локальный перезапуск dev-стека без полного DevOps-цикла: обновляет зависимости, кэширует фронт, перезапускает docker-compose сервисы. Применяется во время разработки:\
-  `scripts/devops/local-redeploy.sh`.
+  `delivery/devops/local-redeploy.sh`.
 
 - **log-scan.py** — ищет критические записи в логах (паттерн `ERROR|FATAL|CRITICAL|Traceback|...`). Используется внутри `dev-redeploy.sh`, но может запускаться отдельно:\
-  `python3 scripts/devops/log-scan.py logs/devops/<timestamp>`.
+  `python3 delivery/devops/log-scan.py logs/devops/<timestamp>`.
 
 - **project_deadline_guardian.py** — контролирует дедлайны карточек GitHub Project: переводит просроченные элементы в статус `Expired` и уведомляет указанных пользователей (см. workflow `project_deadline_guardian.yml`).
 
 - **rebuild_service.sh** — точечный пересбор docker-compose сервиса: вызовет `docker compose build <service>` + `up -d`. Указываем compose-name из корневого `docker-compose.yml`:\
-  `scripts/devops/rebuild_service.sh nexus-web`.
+  `delivery/devops/rebuild_service.sh nexus-web`.
 
 - **rebuild_smart_sidebar.sh** — пересборка фронтенда Nexus из canonical repo `/int/brain/web`, затем синхронизация артефактов в target web-root. Использование:\
-  `scripts/devops/rebuild_smart_sidebar.sh`.
+  `delivery/devops/rebuild_smart_sidebar.sh`.
 
 - **run_task_reminder_worker.py** — entrypoint для фонового воркера напоминаний (используется в systemd/cron). Интервал опроса берёт из `TASK_REMINDER_INTERVAL` (секунды). Запуск:\
-  `python3 scripts/devops/run_task_reminder_worker.py`.
+  `python3 delivery/devops/run_task_reminder_worker.py`.
 
 - **sync_discussions_mirror.py** — выгружает GitHub Discussions по категориям в JSON (например, `AGENTS/announcements.json`, `AGENTS/research.json`). По умолчанию берёт только активные обсуждения; флаг `--include-closed` добавляет закрытые. Примеры:\
-  `python3 scripts/devops/sync_discussions_mirror.py --slug announcements --output AGENTS/announcements.json`\
-  `python3 scripts/devops/sync_discussions_mirror.py --slug research --output AGENTS/research.json --include-closed`.
+  `python3 delivery/devops/sync_discussions_mirror.py --slug announcements --output AGENTS/announcements.json`\
+  `python3 delivery/devops/sync_discussions_mirror.py --slug research --output AGENTS/research.json --include-closed`.
 
 - **run-openbao.sh**, **run-mailpit.sh**, **run_selenium_smoke.sh**, **setup_keycloak_killbill.sh**, **smoke.sh** — описаны в разделах выше (OpenBao, Mailpit, Selenium smoke, IAM стек, DevOps smoke).
 

@@ -170,8 +170,8 @@ else
   done < <(cd "$REPO_ROOT" && find . -maxdepth 2 -type f \( -name 'docker-compose*.yml' -o -name 'docker-compose*.yaml' -o -name '*compose*.yml' -o -name '*compose*.yaml' \))
   if [[ ${#auto_compose[@]} -gt 0 ]]; then
     run_compose auto_compose compose_profiles_list
-  elif [[ -x "$REPO_ROOT/scripts/devops/local-redeploy.sh" ]]; then
-    "$REPO_ROOT/scripts/devops/local-redeploy.sh" restart >>"$SUMMARY_FILE" 2>&1 || critical=1
+  elif [[ -x "$REPO_ROOT/delivery/devops/local-redeploy.sh" ]]; then
+    "$REPO_ROOT/delivery/devops/local-redeploy.sh" restart >>"$SUMMARY_FILE" 2>&1 || critical=1
   else
     echo "ERROR: runtime autodetect failed (no docker compose files or systemd units)." >&2
     exit 1
@@ -214,7 +214,7 @@ if [[ ${#smoke_urls[@]} -gt 0 ]]; then
   done
 fi
 
-smoke_script="$REPO_ROOT/scripts/devops/smoke.sh"
+smoke_script="$REPO_ROOT/delivery/devops/smoke.sh"
 if [[ -x "$smoke_script" ]]; then
   smoke_script_log="$REPORT_DIR/smoke-script.log"
   if "$smoke_script" >"$smoke_script_log" 2>&1; then
