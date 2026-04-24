@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+message_file="${1:-}"
+
+if [[ -z "$message_file" || ! -f "$message_file" ]]; then
+  echo "Commit rejected: cannot read commit message." >&2
+  exit 1
+fi
+
+if ! grep -Eiq '\bINT-[0-9]+\b' "$message_file"; then
+  echo "Commit rejected: message must contain a Multica issue id in INT-* format." >&2
+  exit 1
+fi
+
+if ! grep -Fq 'Co-authored-by: Codex <noreply@openai.com>' "$message_file"; then
+  echo "Commit rejected: message must end with Co-authored-by: Codex <noreply@openai.com>." >&2
+  exit 1
+fi
+
+last_non_empty="$(awk 'NF { line=$0 } END { print line }' "$message_file")"
+if [[ "$last_non_empty" != "Co-authored-by: Codex <noreply@openai.com>" ]]; then
+  echo "Commit rejected: Codex co-author trailer must be the last non-empty line." >&2
+  exit 1
+fi
