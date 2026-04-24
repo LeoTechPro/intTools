@@ -1,0 +1,67 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
+            "statusMessage": "Injecting intData contour context",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
+            "statusMessage": "Checking intData contour context",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
+            "statusMessage": "Guarding intData contour command",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
+            "statusMessage": "Recording intData contour command",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
+            "statusMessage": "Recording intData contour stop",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
