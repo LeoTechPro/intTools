@@ -25,7 +25,8 @@
 - `openclaw/` — versioned overlay для локального OpenClaw runtime;
 - `delivery/` — внешний host-config, devops, docops и delivery слой для intData-family контуров;
 - `probe/` — maintenance и audit-утилиты для `/int/probe`;
-- `punkt-b/` — product-adapter tooling для PunktB контуров;
+- `repo-ops/` — универсальные repo-operations утилиты, которые не должны жить внутри product-adapter каталогов;
+- `punkt-b/` — product-adapter tooling для PunktB контуров; reusable scripts выносятся в `repo-ops/`, `dba/`, `gatesctl/`, `lockctl/` или `delivery/`;
 - `gemini-openai-proxy/` — internal-vendor copy локального OpenAI-compatible proxy для Gemini;
 - `web/` — публичный статический сайт и каталог intData Tools;
 - `openspec/changes/` и `openspec/specs/` — proposal/spec материалы этого repo.

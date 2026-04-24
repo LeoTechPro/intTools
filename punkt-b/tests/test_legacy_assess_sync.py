@@ -7,7 +7,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 
-MODULE_PATH = Path("D:/int/tools/punctb/legacy_assess_sync.py")
+MODULE_PATH = Path(__file__).resolve().parents[1] / "legacy_assess_sync.py"
 SPEC = importlib.util.spec_from_file_location("legacy_assess_sync", MODULE_PATH)
 legacy_assess_sync = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None

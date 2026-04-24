@@ -89,11 +89,19 @@
       "tags": ["probe", "audit", "monitoring"]
     },
     {
+      "root": "repo-ops",
+      "name": "Repo Ops",
+      "category": "governance",
+      "kind": "owned",
+      "summary": "Нейтральные repo-operations утилиты для cleanup, compatibility wrappers и будущих параметризованных issue/gate/release helpers без привязки к одному продукту.",
+      "tags": ["repo", "cleanup", "workflow"]
+    },
+    {
       "root": "punkt-b",
       "name": "PunktB Ops",
       "category": "adapter",
       "kind": "owned",
-      "summary": "Product-adapter tooling для миграций, QA, runbooks и безопасной синхронизации состояний вокруг PunktB контуров.",
+      "summary": "Product-adapter tooling для PunktB: wrappers, product runbooks, миграционные адаптеры и сценарии smoke. Универсальные части постепенно выносятся в нейтральные инструменты.",
       "tags": ["punktb", "migration", "qa"]
     },
     {
