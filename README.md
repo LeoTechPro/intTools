@@ -19,7 +19,7 @@
 - `lockctl/` — machine-local runtime writer-lock для Codex/OpenClaw;
 - `gatesctl/` — machine-wide runtime для gate receipts, approvals и commit binding;
 - `vault/installers/` — канонический machine-wide vault tooling (`vault_sanitize.py`, `runtime_vault_gc.py`) для контуров `/2brain` + `/int/brain`;
-- `intdb/` — self-contained operator CLI для remote Postgres/Supabase профилей, dump/restore и migration flow `/int/data`;
+- `dba/` — self-contained operator CLI `intDBA` для remote Postgres/Supabase профилей, dump/restore и migration flow `/int/data`;
 - `agent_plane/` — neutral Agent Tool/Policy/State Plane для равноправных фасадов Agno/OpenClaw/Codex App;
 - `codex/` — versioned host-tooling, managed assets и project overlays для Codex CLI;
 - `openclaw/` — versioned overlay для локального OpenClaw runtime;
@@ -83,8 +83,8 @@
 - `python /int/tools/vault/installers/vault_sanitize.py --dry-run --profile strict` — dry-run санитарной миграции vault;
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --brain-root /int/brain` — dry-run архивации и очистки canonical runtime-root (`/int/.tmp/brain-runtime-vault`);
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --runtime-root /int/brain/runtime/vault` — compatibility-режим для legacy runtime-path (с deprecation warning);
-- `python /int/tools/intdb/lib/intdb.py doctor --profile intdata-dev` — проверка native PostgreSQL CLI, TCP и SQL для локально настроенного DB profile;
-- `ssh agents@vds.intdata.pro 'cd /int/tools && python /int/tools/intdb/lib/intdb.py migrate status --target intdata-dev'` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `agents@vds.intdata.pro:/int/data`;
+- `python /int/tools/dba/lib/dba.py doctor --profile intdata-dev` — проверка native PostgreSQL CLI, TCP и SQL для локально настроенного DB profile;
+- `ssh agents@vds.intdata.pro 'cd /int/tools && python /int/tools/dba/lib/dba.py migrate status --target intdata-dev'` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `agents@vds.intdata.pro:/int/data`;
 - В owner-facing командах `push/publish/выкатывай/публикуй` агент не вправе сам сокращать уже подготовленный состав publication: локальный commit по своему/scope допустим как обычно, но перед самой публикацией выборочно скрывать/откладывать "чужие" правки из publication-state запрещено.
 - `ssh vds-intdata-intdata` — canonical remote shell для IntData deploy/apply/smoke на `vds.intdata.pro`;
 - `ssh vds-intdata-agents` — canonical remote shell для consolidated Codex/OpenClaw runtime на `vds.intdata.pro` (`agents`);
@@ -173,7 +173,7 @@
 
 - Marketplace source-of-truth: `.agents/plugins/marketplace.json`.
 - Packaged plugins live in `codex/plugins/<plugin>/` and use `INSTALLED_BY_DEFAULT` + `ON_INSTALL`.
-- Core plugins: `intbrain`, `intdata-control`, `intdb`, `intdata-runtime`.
+- Core plugins: `intbrain`, `intdata-control`, `dba`, `intdata-runtime`.
 - Active plugin category: `Developer Tools`.
 - Removed active plugin IDs: `lockctl`, `multica`, `openspec`, `intdata-governance`, `intdata-vault`, `mempalace`, `cabinet`.
 - Cabinet is absorbed through IntBrain inventory/import tooling; the standalone local product directory is not deleted until count-check and owner acceptance are recorded in INT-222.
@@ -358,19 +358,19 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 
 Это гарантирует, что конфиги и launcher'ы не зависят от `~/.codex/tools`.
 
-### `intdb/`
+### `dba/`
 
-#### intdb
+#### intDBA
 
-`/int/tools/intdb` — self-contained operator CLI для remote Postgres/Supabase профилей с этой машины.
+`/int/tools/dba` — self-contained operator CLI `intDBA` для remote Postgres/Supabase профилей с этой машины.
 
 ##### Контракт
 
 - tracked bootstrap живёт рядом с инструментом: `README.md`, `AGENTS.md`, `.env.example`, launchers и tests;
 - локальный `.env` допустим только как untracked runtime-файл рядом с инструментом;
 - временные dump/log/CSV-артефакты живут только в ignored путях `.tmp/` и `logs/`;
-- `INTDB_DATA_REPO` может задаваться как через process env, так и через локальный `intdb/.env`; типовые runtime-ошибки должны выходить как обычные `intdb:` сообщения без traceback;
-- на Windows `intdb` не должен автоматически подхватывать `D:\int\data`; для dev backend работы используется `agents@vds.intdata.pro:/int/data`, а локальный disposable flow требует явный `--repo`/`INTDB_DATA_REPO`;
+- `DBA_DATA_REPO` может задаваться как через process env, так и через локальный `dba/.env`; типовые runtime-ошибки должны выходить как обычные `intDBA:` сообщения без traceback;
+- на Windows `dba` не должен автоматически подхватывать `D:\int\data`; для dev backend работы используется `agents@vds.intdata.pro:/int/data`, а локальный disposable flow требует явный `--repo`/`DBA_DATA_REPO`;
 - native migration-path тоже должен быть самодостаточным: `bootstrap` использует тот же profile-password, а `incremental` при необходимости сам прокидывает найденный PostgreSQL `bin` в `PATH` дочернего `bash`;
 - для `/int/data` tool не дублирует schema ownership и migration engine, а переиспользует owner flow через `init/010_supabase_migrate.sh`, `init/schema.sql` и `migration_manifest.lock`.
 
@@ -385,7 +385,7 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 
 - mutating-команды требуют `--approve-target <profile>`;
 - для `WRITE_CLASS=prod` дополнительно обязателен `--force-prod-write`;
-- `intdb` is exposed through `/int/tools/intdb` and the `intdb` MCP profile; `codex/bin/intdb.*` compatibility wrappers are not active surfaces.
+- `dba` is exposed through `/int/tools/dba` and the `dba` MCP profile; `intDBA` remains the preferred human-facing utility name, while `codex/bin/intdb.*` compatibility wrappers are not active surfaces.
 
 ### `data/`
 

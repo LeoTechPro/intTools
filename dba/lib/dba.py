@@ -690,12 +690,12 @@ WITH normalized_clients AS (
   SELECT
     c.*,
     regexp_split_to_array(
-      regexp_replace(btrim(COALESCE(c.first_name, '')), '\s+', ' ', 'g'),
+      regexp_replace(btrim(COALESCE(c.first_name, '')), '\\s+', ' ', 'g'),
       ' '
     ) AS fio_parts,
     array_length(
       regexp_split_to_array(
-        regexp_replace(btrim(COALESCE(c.first_name, '')), '\s+', ' ', 'g'),
+        regexp_replace(btrim(COALESCE(c.first_name, '')), '\\s+', ' ', 'g'),
         ' '
       ),
       1
