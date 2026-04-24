@@ -138,7 +138,7 @@ def deny(reason: str) -> None:
 
 
 def allow_with_context(event: str, ctx: dict[str, Any]) -> None:
-    if event in {"SessionStart", "UserPromptSubmit"}:
+    if event in {"SessionStart", "UserPromptSubmit"} and ctx.get("contour"):
         print(
             json.dumps(
                 {

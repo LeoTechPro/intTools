@@ -7,7 +7,7 @@
           {
             "type": "command",
             "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
-            "statusMessage": "Injecting intData contour context",
+            "statusMessage": "Codex global context hook",
             "timeout": 10
           }
         ]
@@ -19,7 +19,7 @@
           {
             "type": "command",
             "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
-            "statusMessage": "Checking intData contour context",
+            "statusMessage": "Codex global context hook",
             "timeout": 10
           }
         ]
@@ -32,7 +32,7 @@
           {
             "type": "command",
             "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
-            "statusMessage": "Guarding intData contour command",
+            "statusMessage": "Codex global command guard",
             "timeout": 10
           }
         ]
@@ -45,7 +45,7 @@
           {
             "type": "command",
             "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
-            "statusMessage": "Recording intData contour command",
+            "statusMessage": "Codex global command audit",
             "timeout": 10
           }
         ]
@@ -57,7 +57,7 @@
           {
             "type": "command",
             "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
-            "statusMessage": "Recording intData contour stop",
+            "statusMessage": "Codex global session audit",
             "timeout": 10
           }
         ]
