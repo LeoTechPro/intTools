@@ -193,6 +193,11 @@ class IntDbTests(unittest.TestCase):
         self.assertIn("CREATE TEMP TABLE _stage_refresh_results", sql)
         self.assertIn("INSERT INTO assess.specialists", sql)
         self.assertIn("INSERT INTO assess.clients", sql)
+        self.assertIn("family_name", sql)
+        self.assertIn("patronymic", sql)
+        self.assertIn("birthdate", sql)
+        self.assertIn("WITH normalized_clients AS", sql)
+        self.assertIn("regexp_split_to_array", sql)
         self.assertIn("INSERT INTO assess.diag_results", sql)
         self.assertIn("pg_temp._intdb_uuid('punktb-user-email:' || lower(btrim(s.email)))", sql)
         self.assertIn("ON CONFLICT (id) DO UPDATE", sql)
@@ -223,7 +228,7 @@ class IntDbTests(unittest.TestCase):
             values={
                 "PGHOST": "vds.intdata.pro",
                 "PGDATABASE": "intdata",
-                "PGUSER": "db_admin_dev",
+                "PGUSER": "agents",
                 "PGPASSWORD": "secret",
             },
         )

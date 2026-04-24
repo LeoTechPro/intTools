@@ -577,8 +577,8 @@ def _validate_punktb_prod_dev_refresh_profiles(source: Profile, target: Profile)
         raise IntDbError("punktb-prod-dev-refresh source must be db_readonly_prod or db_migrator_prod on punkt_b_prod.")
     if target.key != PUNKTB_PROD_DEV_REFRESH_TARGET_PROFILE:
         raise IntDbError("punktb-prod-dev-refresh target must be intdata-dev-admin.")
-    if target.database != "intdata" or target.user != "db_admin_dev":
-        raise IntDbError("punktb-prod-dev-refresh target must be db_admin_dev on intdata.")
+    if target.database != "intdata" or target.user not in {"db_admin_dev", "agents"}:
+        raise IntDbError("punktb-prod-dev-refresh target must be db_admin_dev or agents on intdata.")
 
 
 def _build_table_count_sql(label: str, tables: Sequence[str]) -> str:
@@ -610,7 +610,7 @@ FROM (
     return f"""
 \\set ON_ERROR_STOP on
 BEGIN;
-SET LOCAL lock_timeout = '5s';
+SET LOCAL lock_timeout = '60s';
 SET LOCAL statement_timeout = '15min';
 
 CREATE OR REPLACE FUNCTION pg_temp._intdb_uuid(seed text)
@@ -686,6 +686,22 @@ LEFT JOIN assess.specialists existing_s ON lower(btrim(existing_s.email)) = lowe
 LEFT JOIN auth.users existing_au ON lower(btrim(existing_au.email)) = lower(btrim(s.email));
 
 CREATE TEMP TABLE _stage_refresh_clients ON COMMIT DROP AS
+WITH normalized_clients AS (
+  SELECT
+    c.*,
+    regexp_split_to_array(
+      regexp_replace(btrim(COALESCE(c.first_name, '')), '\s+', ' ', 'g'),
+      ' '
+    ) AS fio_parts,
+    array_length(
+      regexp_split_to_array(
+        regexp_replace(btrim(COALESCE(c.first_name, '')), '\s+', ' ', 'g'),
+        ' '
+      ),
+      1
+    ) AS fio_len
+  FROM _stage_assess_clients c
+)
 SELECT
   COALESCE(
     existing_c.user_id,
@@ -696,8 +712,11 @@ SELECT
     END
   ) AS user_id,
   lower(NULLIF(btrim(c.email), '')) AS email_norm,
-  c.first_name,
+  NULLIF(btrim(namefix.first_name), '') AS first_name,
+  NULLIF(btrim(namefix.family_name), '') AS family_name,
+  NULLIF(btrim(namefix.patronymic), '') AS patronymic,
   c.phone,
+  c.birthdate,
   c.slug,
   c.status,
   specialist_map.user_id AS specialist_id,
@@ -705,7 +724,38 @@ SELECT
   c.contact_permission,
   COALESCE(c.created_at, now()) AS created_at,
   COALESCE(c.updated_at, now()) AS updated_at
-FROM _stage_assess_clients c
+FROM normalized_clients c
+CROSS JOIN LATERAL (
+  SELECT
+    CASE
+      WHEN NULLIF(btrim(c.family_name), '') IS NOT NULL OR NULLIF(btrim(c.patronymic), '') IS NOT NULL THEN c.first_name
+      WHEN c.fio_len = 3 AND lower(c.fio_parts[2]) ~ '(ович|евич|вич|ич|овна|евна|ична|вна|чна|оглы|кызы)$' THEN c.fio_parts[1]
+      WHEN c.fio_len = 3 AND lower(c.fio_parts[1]) ~ '(ович|евич|вич|ич|овна|евна|ична|вна|чна|оглы|кызы)$' THEN c.fio_parts[3]
+      WHEN c.fio_len = 2 AND lower(c.fio_parts[2]) ~ '(ович|евич|вич|ич|овна|евна|ична|вна|чна|оглы|кызы)$' THEN c.fio_parts[1]
+      WHEN c.fio_len = 2 AND lower(c.fio_parts[1]) ~ '(ович|евич|вич|ич|овна|евна|ична|вна|чна|оглы|кызы)$' THEN c.fio_parts[2]
+      WHEN c.fio_len = 2 THEN c.fio_parts[2]
+      ELSE c.first_name
+    END AS first_name,
+    CASE
+      WHEN NULLIF(btrim(c.family_name), '') IS NOT NULL THEN c.family_name
+      WHEN c.fio_len = 3 AND lower(c.fio_parts[2]) ~ '(ович|евич|вич|ич|овна|евна|ична|вна|чна|оглы|кызы)$' THEN c.fio_parts[3]
+      WHEN c.fio_len = 3 AND lower(c.fio_parts[1]) ~ '(ович|евич|вич|ич|овна|евна|ична|вна|чна|оглы|кызы)$' THEN c.fio_parts[2]
+      WHEN c.fio_len = 3 THEN c.fio_parts[1]
+      WHEN c.fio_len = 2 AND lower(c.fio_parts[2]) ~ '(ович|евич|вич|ич|овна|евна|ична|вна|чна|оглы|кызы)$' THEN NULL
+      WHEN c.fio_len = 2 AND lower(c.fio_parts[1]) ~ '(ович|евич|вич|ич|овна|евна|ична|вна|чна|оглы|кызы)$' THEN NULL
+      WHEN c.fio_len = 2 THEN c.fio_parts[1]
+      ELSE c.family_name
+    END AS family_name,
+    CASE
+      WHEN NULLIF(btrim(c.patronymic), '') IS NOT NULL THEN c.patronymic
+      WHEN c.fio_len = 3 AND lower(c.fio_parts[2]) ~ '(ович|евич|вич|ич|овна|евна|ична|вна|чна|оглы|кызы)$' THEN c.fio_parts[2]
+      WHEN c.fio_len = 3 AND lower(c.fio_parts[1]) ~ '(ович|евич|вич|ич|овна|евна|ична|вна|чна|оглы|кызы)$' THEN c.fio_parts[1]
+      WHEN c.fio_len = 3 THEN c.fio_parts[3]
+      WHEN c.fio_len = 2 AND lower(c.fio_parts[2]) ~ '(ович|евич|вич|ич|овна|евна|ична|вна|чна|оглы|кызы)$' THEN c.fio_parts[2]
+      WHEN c.fio_len = 2 AND lower(c.fio_parts[1]) ~ '(ович|евич|вич|ич|овна|евна|ична|вна|чна|оглы|кызы)$' THEN c.fio_parts[1]
+      ELSE c.patronymic
+    END AS patronymic
+) namefix
 LEFT JOIN assess.clients existing_c ON lower(btrim(existing_c.email)) = lower(btrim(c.email))
 LEFT JOIN auth.users existing_au ON lower(btrim(existing_au.email)) = lower(btrim(c.email))
 LEFT JOIN _stage_assess_specialists specialist_source ON specialist_source.user_id = c.specialist_id
@@ -715,16 +765,17 @@ LEFT JOIN _stage_refresh_specialists specialist_map
 CREATE TEMP TABLE _stage_refresh_auth_users ON COMMIT DROP AS
 SELECT
   subject.user_id,
-  subject.email_norm,
-  subject.subject_kind,
-  subject.created_at
+  (array_agg(subject.email_norm ORDER BY subject.subject_kind, subject.created_at))[1] AS email_norm,
+  (array_agg(subject.subject_kind ORDER BY subject.subject_kind, subject.created_at))[1] AS subject_kind,
+  min(subject.created_at) AS created_at
 FROM (
   SELECT user_id, email_norm, 'specialist'::text AS subject_kind, created_at FROM _stage_refresh_specialists
   UNION ALL
   SELECT user_id, email_norm, 'client'::text AS subject_kind, created_at FROM _stage_refresh_clients
 ) subject
 WHERE subject.user_id IS NOT NULL
-  AND subject.email_norm IS NOT NULL;
+  AND subject.email_norm IS NOT NULL
+GROUP BY subject.user_id;
 
 INSERT INTO auth.users (
   instance_id, id, aud, role, email, email_confirmed_at,
@@ -851,14 +902,18 @@ SELECT
 FROM _stage_refresh_specialists;
 
 INSERT INTO assess.clients (
-  user_id, email, first_name, phone, slug, status, specialist_id,
-  is_phone_adult, contact_permission, created_at, updated_at
+  user_id, email, first_name, family_name, patronymic, phone, birthdate,
+  slug, status, specialist_id, is_phone_adult, contact_permission,
+  created_at, updated_at
 )
 SELECT
   user_id,
   email_norm,
   first_name,
+  family_name,
+  patronymic,
   phone,
+  birthdate,
   slug,
   status,
   specialist_id,
