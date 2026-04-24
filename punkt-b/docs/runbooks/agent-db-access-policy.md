@@ -3,7 +3,7 @@
 ## Default access (agent)
 
 - `pg-prod-ro` -> `db_readonly_prod`
-- `pg-legacy-ro` -> `db_readonly_legacy`
+- `pg-legacy-ro` -> `db_readonly_prod` on `punkt_b_legacy_prod`
 - `pg-dev-ro` -> `db_readonly_dev`
 
 ## Optional access
@@ -26,5 +26,5 @@
 
 - raw psql/DSN
 - any Supabase system role
-- any superuser role
+- direct superuser login outside canonical admin wrappers (`pg-prod-admin`, `pg-dev-admin`)
 - write to `punkt_b_legacy_prod` outside legacy backend runtime

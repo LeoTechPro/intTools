@@ -61,12 +61,12 @@ CLI обращается к такому профилю как `intdata-dev`.
 Для безопасной модели доступа используйте Python wrappers из `D:\int\tools\intdb\bin`:
 
 - `pg-prod-ro.py` -> `punktb-prod-ro` (`db_readonly_prod`)
-- `pg-legacy-ro.py` -> `punktb-legacy-ro` (`db_readonly_legacy`)
+- `pg-legacy-ro.py` -> `punktb-legacy-ro` (`db_readonly_prod` on `punkt_b_legacy_prod`)
 - `pg-dev-ro.py` -> `intdata-dev-ro` (`db_readonly_dev`)
 - `pg-prod-migrate.py` -> `punktb-prod-migrator` (`db_migrator_prod`)
 - `pg-dev-migrate.py` -> `intdata-dev-migrator` (`db_migrator_dev`)
-- `pg-prod-admin.py` -> `punktb-prod-admin` (`db_admin_prod`, breakglass)
-- `pg-dev-admin.py` -> `intdata-dev-admin` (`db_admin_dev`, breakglass)
+- `pg-prod-admin.py` -> `punktb-prod-admin` (`agents`, breakglass)
+- `pg-dev-admin.py` -> `intdata-dev-admin` (`agents`, breakglass)
 - `pg-test-bootstrap.py` -> retired stop-signal; remote disposable test contour больше не поддерживается
 
 Запуск одинаковый на Windows и Linux:
@@ -150,7 +150,7 @@ Properties:
 
 - source export stays read-only and uses `psql \copy (SELECT row_to_json(...))`, not `pg_dump`;
 - fallback source `punktb-prod-migrator` is allowed only when the session is still forced into `default_transaction_read_only=on`;
-- target requires `intdata-dev-admin`, because the workflow fully replaces the approved dev rows;
+- target requires `intdata-dev-admin` (`agents` on `intdata`), because the workflow fully replaces the approved dev rows;
 - target bootstraps only the required `auth.users` and `auth.identities` rows for imported emails and does not read prod auth tables.
 
 ## Safety

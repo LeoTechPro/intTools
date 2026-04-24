@@ -6,7 +6,7 @@
 
 ## Правила
 
-- agent: только `db_readonly_legacy`.
+- agent: только `db_readonly_prod` через legacy readonly wrapper.
 - legacy backend: `legacy_backend_role` для runtime write.
 - Supabase system roles не мутируем.
 

@@ -7,7 +7,7 @@ if __name__ == "__main__":
         main(
             EntryPointConfig(
                 profile="punktb-legacy-ro",
-                role="db_readonly_legacy",
+                role="db_readonly_prod",
                 database="punkt_b_legacy_prod",
                 environment="prod",
             ),

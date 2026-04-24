@@ -240,7 +240,7 @@ class IntDbTests(unittest.TestCase):
             values={
                 "PGHOST": "vds.punkt-b.pro",
                 "PGDATABASE": "punkt_b_prod",
-                "PGUSER": "db_admin_prod",
+                "PGUSER": "agents",
                 "PGPASSWORD": "secret",
             },
         )

@@ -7,7 +7,7 @@ if __name__ == "__main__":
         main(
             EntryPointConfig(
                 profile="punktb-prod-admin",
-                role="db_admin_prod",
+                role="agents",
                 database="punkt_b_prod",
                 environment="prod",
             ),

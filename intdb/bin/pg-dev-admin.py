@@ -7,7 +7,7 @@ if __name__ == "__main__":
         main(
             EntryPointConfig(
                 profile="intdata-dev-admin",
-                role="db_admin_dev",
+                role="agents",
                 database="intdata",
                 environment="dev",
             ),
