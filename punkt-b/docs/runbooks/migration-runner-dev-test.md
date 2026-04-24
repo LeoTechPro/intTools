@@ -3,7 +3,7 @@
 ## DEV (`intdata`)
 
 ```bash
-python /int/tools/intdb/bin/pg-dev-migrate.py --path <sql-file> --write --confirm-target intdata
+python /int/tools/dba/bin/pg-dev-migrate.py --path <sql-file> --write --confirm-target intdata
 ```
 
 - использовать `db_migrator_dev`.
@@ -12,7 +12,7 @@ python /int/tools/intdb/bin/pg-dev-migrate.py --path <sql-file> --write --confir
 ## TEST (local disposable Supabase runtime)
 
 ```bash
-pwsh -File /int/tools/intdb/intdb.ps1 local-test run --confirm-owner-control I_ACKNOWLEDGE_LOCAL_ONLY --smoke-file tests/sql/<file>.sql
+pwsh -File /int/tools/dba/dba.ps1 local-test run --confirm-owner-control I_ACKNOWLEDGE_LOCAL_ONLY --smoke-file tests/sql/<file>.sql
 ```
 
 - remote `punkt_b_test`/`intdata_test` retired и больше не используются.

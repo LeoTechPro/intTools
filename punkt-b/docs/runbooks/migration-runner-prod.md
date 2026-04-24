@@ -13,7 +13,7 @@
 ## Команда
 
 ```bash
-python /int/tools/intdb/bin/pg-prod-migrate.py --path <sql-file> --write --prod --confirm-target punkt_b_prod
+python /int/tools/dba/bin/pg-prod-migrate.py --path <sql-file> --write --prod --confirm-target punkt_b_prod
 ```
 
 ## Preflight

@@ -437,7 +437,9 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 #### Конфигурации nginx (reverse proxy перед Apache)
 
 Каталог содержит итоговые конфиги `nginx`, сформированные на основе действующих `apache2` vhost'ов.
-Исключение: [`api.intdata.pro.conf`](/int/tools/data/configs/nginx/api.intdata.pro.conf) ведётся отдельно как host-level custom vhost для Supabase API и не генерируется из Apache.
+Исключения:
+- [`api.intdata.pro.conf`](/int/tools/data/configs/nginx/api.intdata.pro.conf) ведётся отдельно как host-level custom vhost для Supabase API и не генерируется из Apache.
+- [`tools.intdata.pro.conf`](/int/tools/data/configs/nginx/tools.intdata.pro.conf) обслуживает статический публичный frontend из [`web/`](/int/tools/web/index.html).
 
 ###### Назначение
 

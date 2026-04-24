@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="intData Tools - общий набор инструментов для управляемой автоматизации, runtime-проверок и агентской разработки."
+    />
+    <title>intData Tools</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <nav class="topbar" aria-label="Основная навигация">
+        <a class="brand" href="#top" aria-label="Главная intData Tools">
+          <span class="brand-mark">it</span>
+          <span>intData Tools</span>
+        </a>
+        <div class="nav-links">
+          <a href="#capabilities">Инструменты</a>
+          <a href="#workflow">Процесс</a>
+          <a href="#safety">Безопасность</a>
+          <a href="#reference">Памятка</a>
+        </div>
+      </nav>
+
+      <section class="hero" id="top">
+        <div class="hero-copy">
+          <p class="eyebrow">Общий операторский toolkit</p>
+          <h1>Инструменты для управляемой автоматизации и агентской разработки.</h1>
+          <p class="lede">
+            intData Tools собирает переиспользуемые команды, runbook-и, проверки и рабочие контракты, которые помогают доводить задачу от намерения до проверенного результата.
+          </p>
+          <div class="hero-actions" aria-label="Быстрые ссылки">
+            <a class="button primary" href="#capabilities">Смотреть инструменты</a>
+            <a class="button secondary" href="#safety">Модель безопасности</a>
+          </div>
+        </div>
+
+        <aside class="status-panel" aria-label="Принципы tooling">
+          <div class="panel-row">
+            <span class="signal live"></span>
+            <span>Изменения через спеки</span>
+          </div>
+          <div class="panel-row">
+            <span class="signal"></span>
+            <span>Работа привязана к задачам</span>
+          </div>
+          <div class="panel-row">
+            <span class="signal"></span>
+            <span>Проверка реального runtime</span>
+          </div>
+          <div class="panel-row">
+            <span class="signal"></span>
+            <span>Публичные docs без секретов</span>
+          </div>
+        </aside>
+      </section>
+    </header>
+
+    <main>
+      <section class="section intro" aria-labelledby="intro-title">
+        <div>
+          <p class="section-kicker">Что это</p>
+          <h2 id="intro-title">Практический слой управления для агентов и операторов.</h2>
+        </div>
+        <p>
+          Tools-слой держит общую автоматизацию отдельно от продуктового кода, но даёт командам повторяемые входные точки для governance, DBA-работ, runtime-диагностики, browser-proof, release checks и handoff.
+        </p>
+      </section>
+
+      <section class="section" id="capabilities" aria-labelledby="capabilities-title">
+        <div class="section-heading">
+          <p class="section-kicker">Карта возможностей</p>
+          <h2 id="capabilities-title">Узкие инструменты с понятной ответственностью.</h2>
+        </div>
+
+        <div class="tool-grid">
+          <article class="tool-card" data-category="governance">
+            <span class="card-code">01</span>
+            <h3>Control</h3>
+            <p>OpenSpec, дисциплина задач, locks, gates и проверки публикации для tracked tooling-изменений.</p>
+          </article>
+          <article class="tool-card" data-category="runtime">
+            <span class="card-code">02</span>
+            <h3>Runtime</h3>
+            <p>Диагностика хостов, remote checks, browser profiles, recovery bundles и безопасные runtime helpers.</p>
+          </article>
+          <article class="tool-card" data-category="database">
+            <span class="card-code">03</span>
+            <h3>DBA</h3>
+            <p>Защищённые DB-входы, migration helpers, read-only checks, smoke-тесты и role-aware workflows.</p>
+          </article>
+          <article class="tool-card" data-category="agent">
+            <span class="card-code">04</span>
+            <h3>Agent Plane</h3>
+            <p>Нейтральные поверхности оркестрации агентов, policy-aware dispatch, audit trails и local harnesses.</p>
+          </article>
+          <article class="tool-card" data-category="delivery">
+            <span class="card-code">05</span>
+            <h3>Delivery</h3>
+            <p>Переиспользуемые release checks, pre-push gates, deployment runbooks и handoff templates.</p>
+          </article>
+          <article class="tool-card" data-category="browser">
+            <span class="card-code">06</span>
+            <h3>Browser Proof</h3>
+            <p>Повторяемые визуальные и интерактивные проверки локальных приложений, публичных страниц и рабочих сценариев.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section split" id="workflow" aria-labelledby="workflow-title">
+        <div>
+          <p class="section-kicker">Процесс</p>
+          <h2 id="workflow-title">Короткий цикл с жёсткими gate-ами.</h2>
+          <p>
+            Работа начинается с зафиксированного scope, проходит через задачу и change package, когда меняется contract, и заканчивается только после проверки и явного publication-state.
+          </p>
+        </div>
+        <ol class="timeline">
+          <li><span>01</span>Определить scope, владельца, репозиторий и границу риска.</li>
+          <li><span>02</span>Использовать issue и spec gates, когда меняется tracked tooling behavior.</li>
+          <li><span>03</span>Взять locks, править согласованные файлы и сохранять несвязанный state.</li>
+          <li><span>04</span>Запустить точечные проверки, сделать traceable commit и осознанно публиковать.</li>
+        </ol>
+      </section>
+
+      <section class="section safety" id="safety" aria-labelledby="safety-title">
+        <div class="section-heading">
+          <p class="section-kicker">Модель безопасности</p>
+          <h2 id="safety-title">Публичная документация остаётся публичной.</h2>
+        </div>
+        <div class="safety-grid">
+          <div>
+            <h3>Можно</h3>
+            <p>Назначение инструментов, группы возможностей, операторский процесс, принципы безопасности и публичный язык проекта.</p>
+          </div>
+          <div>
+            <h3>Нельзя</h3>
+            <p>Секреты, приватные пути, приватные hostnames, credentials, внутренности БД и персональные данные.</p>
+          </div>
+          <div>
+            <h3>Рабочая позиция</h3>
+            <p>Использовать узкие роли, проверять target, предпочитать read-only доступ к source data и фиксировать результат.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section reference" id="reference" aria-labelledby="reference-title">
+        <div>
+          <p class="section-kicker">Памятка</p>
+          <h2 id="reference-title">Полезная модель в голове.</h2>
+        </div>
+        <div class="reference-list">
+          <button class="reference-item is-open" type="button" aria-expanded="true">
+            <span>Governance</span>
+            <small>Спеки, задачи, locks, gates</small>
+          </button>
+          <button class="reference-item" type="button" aria-expanded="false">
+            <span>Runtime</span>
+            <small>Хосты, браузеры, диагностика</small>
+          </button>
+          <button class="reference-item" type="button" aria-expanded="false">
+            <span>DBA</span>
+            <small>Входы, миграции, smoke</small>
+          </button>
+        </div>
+        <p class="reference-copy" id="reference-copy">
+          Governance-инструменты удерживают tracked changes управляемыми: scoped issue, согласованная спека при изменении поведения, lock на файлы и проверка перед публикацией.
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>intData Tools</span>
+      <span>Публичный обзор. Без секретов и приватной карты инфраструктуры.</span>
+    </footer>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

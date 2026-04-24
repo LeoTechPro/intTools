@@ -15,14 +15,14 @@ EXPECTED_COUNTS = {
     "intbrain": 27,
     "intdata-control": 21,
     "intdata-runtime": 9,
-    "intdb": 1,
+    "dba": 1,
 }
 
 PLUGIN_DIRS = {
     "intbrain": ROOT / "codex" / "plugins" / "intbrain",
     "intdata-control": ROOT / "codex" / "plugins" / "intdata-control",
     "intdata-runtime": ROOT / "codex" / "plugins" / "intdata-runtime",
-    "intdb": ROOT / "codex" / "plugins" / "intdb",
+    "dba": ROOT / "codex" / "plugins" / "dba",
 }
 
 TOOL_SKILLS = {
@@ -89,7 +89,7 @@ TOOL_SKILLS = {
         "intbrain_import_vault_pm": "external-imports",
         "intbrain_memory_import_mempalace": "external-imports",
     },
-    "intdb": {
+    "dba": {
         "intdata_cli": "doctor-status",
     },
 }
@@ -389,7 +389,7 @@ def verify_guard_cases(profile: str) -> None:
         ],
         "intdata-runtime": [("host_bootstrap", {}), ("recovery_bundle", {}), ("browser_profile_launch", {"profile": "firefox-default"}), ("intdata_vault_sanitize", {"dry_run": False})],
         "intbrain": [("intbrain_context_store", {"owner_id": 1, "kind": "note", "title": "guard", "text_content": "guard"}), ("intbrain_pm_task_create", {"owner_id": 1, "title": "guard"}), ("intbrain_jobs_sync_runtime", {"owner_id": 1})],
-        "intdb": [("intdata_cli", {"command": "intdb", "args": ["migrate", "apply"]})],
+        "dba": [("intdata_cli", {"command": "dba", "args": ["migrate", "apply"]})],
     }
     requests = [{"id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05"}}]
     for idx, (tool, args) in enumerate(guard_cases.get(profile, []), start=2):

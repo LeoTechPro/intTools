@@ -13,14 +13,14 @@
 
 ## Canonical paths
 
-- `/int/tools/intdb/bin/pg-prod-ro.py`
-- `/int/tools/intdb/bin/pg-legacy-ro.py`
-- `/int/tools/intdb/bin/pg-dev-ro.py`
-- `/int/tools/intdb/bin/pg-prod-migrate.py`
-- `/int/tools/intdb/bin/pg-dev-migrate.py`
-- `/int/tools/intdb/bin/pg-prod-admin.py`
-- `/int/tools/intdb/bin/pg-dev-admin.py`
-- `intdb local-test run --confirm-owner-control I_ACKNOWLEDGE_LOCAL_ONLY` (owner-gated local disposable runner for `/int/data`)
+- `/int/tools/dba/bin/pg-prod-ro.py`
+- `/int/tools/dba/bin/pg-legacy-ro.py`
+- `/int/tools/dba/bin/pg-dev-ro.py`
+- `/int/tools/dba/bin/pg-prod-migrate.py`
+- `/int/tools/dba/bin/pg-dev-migrate.py`
+- `/int/tools/dba/bin/pg-prod-admin.py`
+- `/int/tools/dba/bin/pg-dev-admin.py`
+- `dba local-test run --confirm-owner-control I_ACKNOWLEDGE_LOCAL_ONLY` (owner-gated local disposable runner for `/int/data`)
 
 ## Forbidden
 

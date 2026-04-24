@@ -24,7 +24,7 @@ EXPECTED_V1_CAPABILITIES = {
     "assess-firefox-specialist-v2",
     "assess-firefox-admin",
     "assess-firefox-specialist-restricted",
-    "intdb",
+    "dba",
     "codex-host-bootstrap",
     "codex-host-verify",
     "codex-recovery-bundle",

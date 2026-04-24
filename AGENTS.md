@@ -156,7 +156,7 @@ Keep this managed block so 'openspec update' can refresh the instructions.
 - Canonical engine roots:
   - SSH / Firefox / host launchers: `codex/bin`
   - lockctl CLI/MCP: `lockctl/lockctl_core.py`, `codex/bin/mcp-intdata-cli.py --profile intdata-control`
-  - intdb: `intdb/lib/intdb.py`
+  - dba: `dba/lib/dba.py`
 
 ## Git и завершение работы
 

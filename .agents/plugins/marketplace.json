@@ -29,10 +29,10 @@
       "category": "Developer Tools"
     },
     {
-      "name": "intdb",
+      "name": "dba",
       "source": {
         "source": "local",
-        "path": "./codex/plugins/intdb"
+        "path": "./codex/plugins/dba"
       },
       "policy": {
         "installation": "INSTALLED_BY_DEFAULT",

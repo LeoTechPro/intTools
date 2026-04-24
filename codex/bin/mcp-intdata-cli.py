@@ -172,7 +172,7 @@ RUNTIME_TOOLS = [
     ),
 ]
 
-INTDB_TOOLS = [
+dba_TOOLS = [
     _tool("intdata_cli", "Run a profile allowlisted CLI command with structured arguments.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
 ]
 
@@ -274,7 +274,7 @@ PROFILE_TOOLS: dict[str, list[dict[str, Any]]] = {
     "intbrain": INTBRAIN_TOOLS,
     "intdata-control": CONTROL_TOOLS,
     "intdata-runtime": RUNTIME_TOOLS,
-    "intdb": INTDB_TOOLS,
+    "dba": dba_TOOLS,
 }
 
 INTBRAIN_ALWAYS_MUTATING = {
@@ -318,8 +318,8 @@ OPEN_SPEC_READ_ONLY = {
 }
 
 PROFILE_COMMANDS: dict[str, dict[str, list[str]]] = {
-    "intdb": {
-        "intdb": ["python", str(ROOT_DIR / "intdb" / "lib" / "intdb.py")],
+    "dba": {
+        "dba": ["python", str(ROOT_DIR / "dba" / "lib" / "dba.py")],
     },
 }
 
@@ -768,20 +768,20 @@ def _call_runtime(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     raise ValueError(f"unknown runtime tool: {name}")
 
 
-def _call_intdb(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+def _call_dba(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if name != "intdata_cli":
-        raise ValueError(f"unknown intdb tool: {name}")
+        raise ValueError(f"unknown dba tool: {name}")
     command = str(arguments["command"])
-    commands = PROFILE_COMMANDS["intdb"]
+    commands = PROFILE_COMMANDS["dba"]
     if command not in commands:
-        raise ValueError(f"unknown intdb command: {command}")
+        raise ValueError(f"unknown dba command: {command}")
     args = _safe_args(arguments.get("args"))
-    safe_intdb = (
+    safe_dba = (
         not args
         or args[:1] in (["doctor"], ["--help"], ["-h"], ["help"])
         or args[:2] == ["migrate", "status"]
     )
-    if not safe_intdb:
+    if not safe_dba:
         _require_mutation(arguments)
     return _run([*commands[command], *args], cwd=_cwd(arguments.get("cwd")), timeout_sec=arguments.get("timeout_sec"))
 
@@ -1061,8 +1061,8 @@ def _call_tool(profile: str, name: str, arguments: dict[str, Any]) -> dict[str, 
         if name in {tool["name"] for tool in VAULT_TOOLS}:
             return _call_vault(name, arguments)
         return _call_runtime(name, arguments)
-    if profile == "intdb":
-        return _call_intdb(name, arguments)
+    if profile == "dba":
+        return _call_dba(name, arguments)
     raise ValueError(f"unknown profile: {profile}")
 
 

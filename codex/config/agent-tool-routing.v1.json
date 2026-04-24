@@ -404,17 +404,17 @@
       ]
     },
     {
-      "capability_id": "intdb",
+      "capability_id": "dba",
       "logical_intents": [
-        "intdb",
-        "db:intdb"
+        "dba",
+        "db:dba"
       ],
-      "canonical_engine": "intdb/lib/intdb.py",
+      "canonical_engine": "dba/lib/dba.py",
       "resolution_status": "managed",
       "approved_fallback_skills": [],
       "runtime_bindings": [
         {
-          "binding_origin": "intdb/lib/intdb.py",
+          "binding_origin": "dba/lib/dba.py",
           "binding_kind": "engine",
           "binding_role": "canonical",
           "binding_origin_type": "repo-path",
@@ -427,18 +427,18 @@
           "parity_required": true
         },
         {
-          "binding_origin": "intdb/intdb.ps1",
+          "binding_origin": "dba/dba.ps1",
           "binding_kind": "adapter",
           "binding_role": "primary",
           "binding_origin_type": "repo-path",
           "platforms_supported": [
             "windows"
           ],
-          "adapter_targets_engine": "intdb/lib/intdb.py",
+          "adapter_targets_engine": "dba/lib/dba.py",
           "parity_required": true
         },
         {
-          "binding_origin": "intdb/intdb.sh",
+          "binding_origin": "dba/dba.sh",
           "binding_kind": "adapter",
           "binding_role": "primary",
           "binding_origin_type": "repo-path",
@@ -446,18 +446,18 @@
             "linux",
             "macos"
           ],
-          "adapter_targets_engine": "intdb/lib/intdb.py",
+          "adapter_targets_engine": "dba/lib/dba.py",
           "parity_required": true
         },
         {
-          "binding_origin": "intdb/intdb.cmd",
+          "binding_origin": "dba/dba.cmd",
           "binding_kind": "adapter",
           "binding_role": "compatibility",
           "binding_origin_type": "repo-path",
           "platforms_supported": [
             "windows"
           ],
-          "adapter_targets_engine": "intdb/lib/intdb.py",
+          "adapter_targets_engine": "dba/lib/dba.py",
           "parity_required": true
         }
       ]

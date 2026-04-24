@@ -33,11 +33,11 @@ if ($Target -eq "prod" -and -not $ForceProdWrite) {
 
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Split-Path -Parent (Split-Path -Parent $scriptPath)
-$intdb = Join-Path $repoRoot "intdb\lib\intdb.py"
+$dba = Join-Path $repoRoot "dba\lib\dba.py"
 
 $targetProfile = if ($Target -eq "prod") { "punktb-prod-migrator" } else { "intdata-dev-migrator" }
 $argv = @(
-  $intdb,
+  $dba,
   "project-migrate",
   "punktb-legacy-assess",
   "--source", "punktb-legacy-ro",
