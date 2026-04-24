@@ -5,7 +5,7 @@ description: "Role-based smoke testing for punkt-b.pro via agent-browser (client
 
 # Agent Browser Role Smoke
 
-Local manual/authenticated browser-proof should prefer the `firefox-devtools-testing` skill from `intdata-runtime`. This `agent-browser` workflow remains a role-smoke and remote/reproducible fallback path.
+Local manual/authenticated browser-proof should prefer internal Codex Browser / Browser Use / in-app browser. Fallback only on blocker: `firefox-devtools-testing`, then `chrome-devtools`, then standalone Playwright. This `agent-browser` workflow remains a role-smoke and remote/reproducible fallback path.
 
 ## Goal
 Fast role-level smoke for `punkt-b.pro` via `agent-browser` with fixed checks:

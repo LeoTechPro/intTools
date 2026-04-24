@@ -1,20 +1,21 @@
 ---
 name: firefox-devtools-testing
-description: Firefox DevTools browser testing workflow. Use local configured firefox-devtools MCP for browser-proof, persistent authenticated profiles, console/network checks, screenshots, privileged scripts, prefs, and extension diagnostics.
+description: Firefox DevTools fallback browser testing workflow. Use after internal Codex Browser / Browser Use / in-app browser is blocked or insufficient for browser-proof, persistent authenticated profiles, console/network checks, screenshots, privileged scripts, prefs, and extension diagnostics.
 ---
 
-# Firefox DevTools Browser Testing
+# Firefox DevTools Fallback Browser Testing
 
-Use this skill for local browser-proof and authenticated manual-site checks on the agent-owned Windows workstation.
+Use this skill only as fallback after trying internal Codex Browser / Browser Use / in-app browser, or when the user explicitly asks for Firefox DevTools. It covers local browser-proof and authenticated manual-site checks on the agent-owned Windows workstation.
 
 ## Routing
 
-- Local PC: prefer the configured `firefox-devtools` MCP server.
+- Default chain: internal Codex Browser / Browser Use / in-app browser -> `firefox-devtools` -> `chrome-devtools` -> standalone Playwright.
+- Local PC fallback: use the configured `firefox-devtools` MCP server.
 - Authenticated sites: use a persistent Firefox profile so existing manual login/session state can be inspected. Do not default to Playwright isolated contexts for this case.
 - Privileged local Firefox is allowed for agents: `evaluate_script`, `evaluate_privileged_script`, `set_firefox_prefs`, `get_firefox_prefs`, and extension tools are in scope when needed.
 - Screenshots must be saved to a file with `screenshot_page({ saveTo })`.
 - Network and console evidence must use `list_network_requests`, `get_network_request`, and `list_console_messages`.
-- Remote, VDS, CI, headless, and reproducible E2E: Playwright remains the normal fallback. Use explicit `storageState` or `userDataDir` only when session persistence is intentionally required.
+- Remote, VDS, CI, headless, and reproducible E2E: standalone Playwright remains the final fallback. Use explicit `storageState` or `userDataDir` only when session persistence is intentionally required.
 
 ## Evidence Checklist
 
@@ -22,7 +23,7 @@ Use this skill for local browser-proof and authenticated manual-site checks on t
 - Save at least one screenshot file for visual evidence.
 - Check console messages for runtime errors.
 - Check network requests for failed API/document requests.
-- Record whether the test used local Firefox DevTools MCP or remote Playwright fallback.
+- Record which browser contour was used and why: Browser Use default, Firefox fallback, Chrome fallback, or standalone Playwright final fallback.
 
 ## Tool cards
 

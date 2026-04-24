@@ -14,6 +14,16 @@ Common installation paths:
 
 # Playwright Browser Automation
 
+## Browser Runtime Priority
+
+For live browser-proof, localhost UI inspection, console checks, screenshots, and visual/debug work, use this order:
+1. internal Codex Browser / Browser Use / in-app browser;
+2. `firefox-devtools`;
+3. `chrome-devtools`;
+4. standalone Playwright through this skill.
+
+Use this skill directly only when the user explicitly asks for Playwright automation/tests, CI/reproducible E2E, or when the higher-priority browser surfaces are unavailable or insufficient.
+
 General-purpose browser automation skill. I'll write custom Playwright code for any automation task you request and execute it via the universal executor.
 
 **CRITICAL WORKFLOW - Follow these steps in order:**

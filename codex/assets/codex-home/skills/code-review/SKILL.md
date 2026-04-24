@@ -43,7 +43,7 @@ Perform a structured code review for the current repo and record results in Open
    - Mention tests run/not run.
 
 ## Routing
-- If the review requires E2E or test generation, use playwright-testing.
+- If the review requires E2E or test generation, use playwright-testing. If it requires live browser-proof, visual inspection, console checks, or localhost UI debugging, use internal Codex Browser / Browser Use / in-app browser first; fall back to `firefox-devtools`, then `chrome-devtools`, then standalone Playwright.
 - If the changes are primarily documentation, use docs.
 - If review findings require GitHub Issues/ledger actions, use agent-issues.
 - For deeper DB/Supabase guidance, use postgres or supabase skills.

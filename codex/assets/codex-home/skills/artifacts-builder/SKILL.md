@@ -68,7 +68,7 @@ Finally, share the bundled HTML file in conversation with the user so they can v
 
 Note: This is a completely optional step. Only perform if necessary or requested.
 
-To test/visualize the artifact, use available tools (including other Skills or built-in tools like Playwright or Puppeteer). In general, avoid testing the artifact upfront as it adds latency between the request and when the finished artifact can be seen. Test later, after presenting the artifact, if requested or if issues arise.
+To test/visualize the artifact, use available tools. For browser-based artifacts, prefer internal Codex Browser / Browser Use / in-app browser, then `firefox-devtools`, then `chrome-devtools`, then standalone Playwright or Puppeteer. In general, avoid testing the artifact upfront as it adds latency between the request and when the finished artifact can be seen. Test later, after presenting the artifact, if requested or if issues arise.
 
 ## Reference
 

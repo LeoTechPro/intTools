@@ -5,6 +5,16 @@ description: Планирование, генерация и починка Play
 
 # Playwright Testing Workflow
 
+## Browser Runtime Priority
+
+For live browser-proof, visual checks, console checks, and localhost UI debugging, do not start with standalone Playwright by default. Use this chain first:
+1. internal Codex Browser / Browser Use / in-app browser;
+2. `firefox-devtools`;
+3. `chrome-devtools`;
+4. standalone Playwright.
+
+Use standalone Playwright directly only when the user explicitly asks for Playwright tests, CI/reproducible E2E, or when all higher-priority browser surfaces are unavailable or insufficient.
+
 ## Overview
 
 Unified workflow for test planning, test generation, and test healing for Playwright-based QA.
