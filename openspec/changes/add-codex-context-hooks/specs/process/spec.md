@@ -44,3 +44,11 @@ The system MUST keep hook business logic in `/int/tools/codex/hooks` rather than
 - **WHEN** Codex home hooks are configured on a VDS
 - **THEN** `~/.codex/hooks.json` only points to the repo-owned dispatcher
 - **AND** runtime hook logs are written under `/int/tools/.runtime/**`.
+
+### Requirement: Codex hooks MUST stay quiet outside managed contours
+The system MUST avoid visible hook noise in repositories that are not managed by this dispatcher.
+
+#### Scenario: Agent works in unmanaged repo
+- **WHEN** Codex receives a prompt or runs tools with cwd inside an unmanaged repo such as `/int/brain`
+- **THEN** the hook MUST NOT inject additional context
+- **AND** the global hook template MUST NOT register per-Bash `PreToolUse`, `PostToolUse`, or `Stop` audit events.

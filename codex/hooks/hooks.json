@@ -7,7 +7,6 @@
           {
             "type": "command",
             "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
-            "statusMessage": "Codex global context hook",
             "timeout": 10
           }
         ]
@@ -19,45 +18,6 @@
           {
             "type": "command",
             "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
-            "statusMessage": "Codex global context hook",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
-            "statusMessage": "Codex global command guard",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
-            "statusMessage": "Codex global command audit",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 /int/tools/codex/hooks/codex_hooks_dispatcher.py",
-            "statusMessage": "Codex global session audit",
             "timeout": 10
           }
         ]
