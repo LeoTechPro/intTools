@@ -1,0 +1,6 @@
+WARNING:  database "intnexusdb" has a collation version mismatch
+ПОДРОБНОСТИ:  The database was created using collation version 2.36, but the operating system provides version 2.41.
+ПОДСКАЗКА:  Rebuild all objects in this database that use the default collation and run ALTER DATABASE intnexusdb REFRESH COLLATION VERSION, or build PostgreSQL with the right library version.
+WARNING:  database "webmin" has a collation version mismatch
+ПОДРОБНОСТИ:  The database was created using collation version 2.36, but the operating system provides version 2.41.
+ПОДСКАЗКА:  Rebuild all objects in this database that use the default collation and run ALTER DATABASE webmin REFRESH COLLATION VERSION, or build PostgreSQL with the right library version.

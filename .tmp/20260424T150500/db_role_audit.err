@@ -1,0 +1,92 @@
+=== punktb_databases STDERR ===
+ERROR:  operator does not exist: || name
+LINE 1: select datname || | || pg_catalog.pg_get_userbyid(datdba) fr...
+                            ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+
+
+=== punktb_sessions_all STDERR ===
+ERROR:  syntax error at or near ")"
+LINE 1: ...|| | || usename || | || coalesce(application_name,) || ''|''...
+                                                             ^
+
+
+=== punktb_role_memberships STDERR ===
+ERROR:  operator does not exist: || name
+LINE 1: select pg_get_userbyid(member) || | || pg_get_userbyid(rolei...
+                                            ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+
+
+=== legacy_db_priv_matrix STDERR ===
+ERROR:  column "punkt_b_legacy_prod" does not exist
+LINE 1: ...rolname || | || has_database_privilege(r.rolname, punkt_b_le...
+                                                             ^
+
+
+=== legacy_public_schema_usage STDERR ===
+ERROR:  column "public" does not exist
+LINE 1: ...r.rolname || | || has_schema_privilege(r.rolname, public, US...
+                                                             ^
+
+
+=== legacy_table_select_sample STDERR ===
+ERROR:  syntax error at or near "."
+LINE 1: with t as (select quote_ident(schemaname)||.||quote_ident(ta...
+                                                   ^
+
+
+=== legacy_owned_objects STDERR ===
+ERROR:  syntax error at or near "table"
+LINE 1: select table || | || pg_catalog.pg_get_userbyid(relowner) ||...
+               ^
+
+
+=== prod_owned_objects STDERR ===
+ERROR:  syntax error at or near "table"
+LINE 1: select table || | || pg_catalog.pg_get_userbyid(relowner) ||...
+               ^
+
+
+=== prod_dev_role_privs STDERR ===
+ERROR:  operator does not exist: || information_schema.sql_identifier
+LINE 1: select grantee || | || table_schema || | || privilege_type |...
+                            ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+
+
+=== intdata_sessions_all STDERR ===
+ERROR:  syntax error at or near ")"
+СТРОКА 1: ...|| | || usename || | || coalesce(application_name,) || ''|''...
+                                                               ^
+
+
+=== intdata_role_memberships STDERR ===
+ERROR:  operator does not exist: || name
+СТРОКА 1: select pg_get_userbyid(member) || | || pg_get_userbyid(rolei...
+                                              ^
+ПОДСКАЗКА:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+
+
+=== intdata_owned_objects STDERR ===
+ERROR:  syntax error at or near "table"
+СТРОКА 1: select table || | || pg_catalog.pg_get_userbyid(relowner) ||...
+                 ^
+
+
+=== intdata_custom_role_privs STDERR ===
+ERROR:  operator does not exist: || information_schema.sql_identifier
+СТРОКА 1: select grantee || | || table_schema || | || privilege_type |...
+                              ^
+ПОДСКАЗКА:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+
+
+=== intdata_host_refs STDERR ===
+kex_exchange_identification: read: Connection reset
+Connection reset by 109.196.99.158 port 22
+
+
+=== intdata_systemd_refs STDERR ===
+kex_exchange_identification: read: Connection reset
+Connection reset by 109.196.99.158 port 22
+

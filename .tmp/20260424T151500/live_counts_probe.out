@@ -1,0 +1,26 @@
+=== legacy_sessions_detail ===
+263766|punkt_b_legacy_prod|leon|pgAdmin 4 - CONN:7778813|217.15.205.24/32|2026-04-24 10:42:17.744038+03
+263762|punkt_b_legacy_prod|leon|pgAdmin 4 - DB:punkt_b_legacy_prod|217.15.205.24/32|2026-04-24 10:42:16.972448+03
+316227|punkt_b_legacy_prod|legacy_backend_role||172.17.0.2/32|2026-04-24 15:07:25.416026+03
+__RC__=0
+
+=== punktb_session_counts ===
+punkt_b_legacy_prod|legacy_backend_role|1
+punkt_b_prod|punktb_pro|9
+__RC__=0
+
+=== intdata_session_counts ===
+n8n|n8n_app|1
+__RC__=0
+
+=== legacy_host_refs ===
+/int/punkt_b_legacy/Makefile:13:	docker save punkt_b_legacy_prod:${version} > ~/Downloads/backend.tar
+/int/punkt_b_legacy/Makefile:15:	docker build -t punkt_b_legacy_prod:${version} .
+/int/punkt_b_legacy/.env:3:PSQL_DATABASE=punkt_b_legacy_prod
+/int/punkt_b_legacy/.env:4:PSQL_USERNAME=legacy_backend_role
+/int/punkt_b_legacy/docker-compose.yaml:4:    image: punkt_b_legacy_prod:1.7.3
+/int/punkt_b_legacy/docker-compose.yaml:6:    container_name: punkt_b_legacy_prod
+/int/punkt_b_legacy/README.md:128:- image: `punkt_b_legacy_prod:1.7.3`
+/int/punkt_b_legacy/README.md:129:- container name: `punkt_b_legacy_prod`
+/int/punkt_b_legacy/README.md:137:- `build` — `docker build -t punkt_b_legacy_prod:${version} .`
+__RC__=0
