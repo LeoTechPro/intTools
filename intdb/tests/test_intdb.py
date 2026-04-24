@@ -166,6 +166,82 @@ class IntDbTests(unittest.TestCase):
         self.assertIn("FROM public.managers", intdb.PUNKTB_LEGACY_MANAGERS_EXPORT_SQL)
         self.assertNotIn("UPDATE", intdb.PUNKTB_LEGACY_MANAGERS_EXPORT_SQL.upper())
 
+    def test_punktb_prod_dev_refresh_target_sql_rolls_back_dry_run(self) -> None:
+        sql = intdb._build_punktb_prod_dev_refresh_target_sql(Path("dump.sql"), dry_run=True)
+        self.assertNotIn("TRUNCATE TABLE", sql)
+        self.assertIn("DELETE FROM assess.diag_result_access", sql)
+        self.assertIn("DELETE FROM assess.conclusion_results", sql)
+        self.assertIn("DELETE FROM assess.conclusions", sql)
+        self.assertIn("DELETE FROM assess.diagnostic_assignments", sql)
+        self.assertIn("DELETE FROM assess.diag_results;", sql)
+        self.assertIn("DELETE FROM assess.clients;", sql)
+        self.assertIn("DELETE FROM assess.specialists;", sql)
+        self.assertIn("assess.clients", sql)
+        self.assertIn("assess.diag_results", sql)
+        self.assertNotIn("assess.user_credentials", sql)
+        self.assertIn("auth.users", sql)
+        self.assertIn("auth.identities", sql)
+        self.assertIn("jsonb_populate_record", sql)
+        self.assertIn("\\copy _refresh_assess_clients", sql)
+        self.assertIn("CREATE OR REPLACE FUNCTION pg_temp._intdb_uuid(seed text)", sql)
+        self.assertIn("ON CONFLICT (id) DO UPDATE", sql)
+        self.assertIn("ON CONFLICT (provider_id, provider) DO UPDATE", sql)
+        self.assertIn("PUNKTB_PROD_DEV_REFRESH_REQUIRES_AUTH_USERS_WRITE", sql)
+        self.assertIn("PUNKTB_PROD_DEV_REFRESH_REQUIRES_AUTH_IDENTITIES_WRITE", sql)
+        self.assertIn("CREATE TEMP TABLE _stage_refresh_specialists", sql)
+        self.assertIn("CREATE TEMP TABLE _stage_refresh_clients", sql)
+        self.assertIn("CREATE TEMP TABLE _stage_refresh_results", sql)
+        self.assertIn("INSERT INTO assess.specialists", sql)
+        self.assertIn("INSERT INTO assess.clients", sql)
+        self.assertIn("INSERT INTO assess.diag_results", sql)
+        self.assertIn("pg_temp._intdb_uuid('punktb-user-email:' || lower(btrim(s.email)))", sql)
+        self.assertIn("ON CONFLICT (id) DO UPDATE", sql)
+        self.assertNotIn("\\i '", sql)
+        self.assertIn("ROLLBACK;", sql)
+        self.assertNotIn("COMMIT;", sql)
+
+    def test_punktb_prod_dev_refresh_target_sql_commits_apply(self) -> None:
+        sql = intdb._build_punktb_prod_dev_refresh_target_sql(Path("dump.sql"), dry_run=False)
+        self.assertIn("COMMIT;", sql)
+        self.assertNotIn("ROLLBACK;", sql)
+
+    def test_punktb_prod_dev_refresh_profile_guardrails(self) -> None:
+        source = intdb.Profile(
+            name="punktb-prod-ro",
+            key="PUNKTB_PROD_RO",
+            values={
+                "PGHOST": "vds.punkt-b.pro",
+                "PGDATABASE": "punkt_b_prod",
+                "PGUSER": "db_readonly_prod",
+                "PGPASSWORD": "secret",
+                "WRITE_CLASS": "prod",
+            },
+        )
+        target = intdb.Profile(
+            name="intdata-dev-admin",
+            key="INTDATA_DEV_ADMIN",
+            values={
+                "PGHOST": "vds.intdata.pro",
+                "PGDATABASE": "intdata",
+                "PGUSER": "db_admin_dev",
+                "PGPASSWORD": "secret",
+            },
+        )
+        intdb._validate_punktb_prod_dev_refresh_profiles(source, target)
+
+        wrong_source = intdb.Profile(
+            name="punktb-prod-admin",
+            key="PUNKTB_PROD_ADMIN",
+            values={
+                "PGHOST": "vds.punkt-b.pro",
+                "PGDATABASE": "punkt_b_prod",
+                "PGUSER": "db_admin_prod",
+                "PGPASSWORD": "secret",
+            },
+        )
+        with self.assertRaises(intdb.IntDbError):
+            intdb._validate_punktb_prod_dev_refresh_profiles(wrong_source, target)
+
     def test_read_manifest_versions(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             repo = Path(tmpdir)

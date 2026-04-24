@@ -489,6 +489,418 @@ def _truncate_lines(path: Path, limit: int | None) -> None:
         path.write_text("\n".join(lines[:limit]) + "\n", encoding="utf-8")
 
 
+PUNKTB_PROD_DEV_REFRESH_SOURCE_PROFILES = {"PUNKTB_PROD_RO", "PUNKTB_PROD_MIGRATOR"}
+PUNKTB_PROD_DEV_REFRESH_TARGET_PROFILE = "INTDATA_DEV_ADMIN"
+PUNKTB_PROD_DEV_REFRESH_TABLES = (
+    "assess.specialists",
+    "assess.clients",
+    "assess.diag_results",
+)
+PUNKTB_PROD_DEV_REFRESH_KEYS = {
+    "assess.specialists": ("user_id",),
+    "assess.clients": ("user_id",),
+    "assess.diag_results": ("id",),
+}
+PUNKTB_PROD_DEV_REFRESH_COLUMNS = {
+    "assess.specialists": (
+        "user_id",
+        "email",
+        "first_name",
+        "family_name",
+        "patronymic",
+        "phone",
+        "slug",
+        "status",
+        "created_at",
+        "updated_at",
+        "removed_at",
+        "birthdate",
+        "configured_package_codes",
+    ),
+    "assess.clients": (
+        "user_id",
+        "email",
+        "first_name",
+        "family_name",
+        "patronymic",
+        "phone",
+        "birthdate",
+        "slug",
+        "status",
+        "utm_source",
+        "utm_medium",
+        "utm_campaign",
+        "utm_term",
+        "utm_content",
+        "created_at",
+        "updated_at",
+        "removed_at",
+        "specialist_id",
+        "result_at",
+        "conclusion_id",
+        "conclusion_at",
+        "is_phone_adult",
+        "contact_permission",
+    ),
+    "assess.diag_results": (
+        "id",
+        "client_id",
+        "specialist_id",
+        "diagnostic_id",
+        "payload",
+        "open_answer",
+        "created_at",
+        "updated_at",
+        "created_by",
+        "updated_by",
+        "assigned_at",
+        "due_at",
+        "expires_at",
+        "source",
+        "note",
+        "removed_at",
+        "removed_by",
+        "status",
+        "utm_event_id",
+        "result_at",
+        "schema_version",
+        "method_version",
+        "computed_at",
+    ),
+}
+
+
+def _validate_punktb_prod_dev_refresh_profiles(source: Profile, target: Profile) -> None:
+    if source.key not in PUNKTB_PROD_DEV_REFRESH_SOURCE_PROFILES:
+        raise IntDbError("punktb-prod-dev-refresh source must be punktb-prod-ro or punktb-prod-migrator.")
+    if source.database != "punkt_b_prod" or source.user not in {"db_readonly_prod", "db_migrator_prod"}:
+        raise IntDbError("punktb-prod-dev-refresh source must be db_readonly_prod or db_migrator_prod on punkt_b_prod.")
+    if target.key != PUNKTB_PROD_DEV_REFRESH_TARGET_PROFILE:
+        raise IntDbError("punktb-prod-dev-refresh target must be intdata-dev-admin.")
+    if target.database != "intdata" or target.user != "db_admin_dev":
+        raise IntDbError("punktb-prod-dev-refresh target must be db_admin_dev on intdata.")
+
+
+def _build_table_count_sql(label: str, tables: Sequence[str]) -> str:
+    lines = [f"SELECT {_sql_literal(label + '|' + table + '|')} || count(*) FROM {table};" for table in tables]
+    return "\n".join(lines) + "\n"
+
+
+def _build_punktb_prod_dev_refresh_target_sql(dump_path: Path, *, dry_run: bool) -> str:
+    finish = "ROLLBACK;" if dry_run else "COMMIT;"
+    load_blocks: list[str] = []
+    for table in PUNKTB_PROD_DEV_REFRESH_TABLES:
+        temp_name = "_refresh_" + table.replace(".", "_")
+        data_path = dump_path.parent / f"{table.replace('.', '_')}.jsonl"
+        columns = PUNKTB_PROD_DEV_REFRESH_COLUMNS[table]
+        column_list = ", ".join(columns)
+        select_list = ", ".join(f"(record).{column}" for column in columns)
+        load_blocks.append(
+            f"""
+CREATE TEMP TABLE {temp_name}(raw jsonb) ON COMMIT DROP;
+\\copy {temp_name}(raw) FROM '{_sql_literal_path(data_path)}' WITH (FORMAT text)
+CREATE TEMP TABLE _stage_{table.replace('.', '_')} ON COMMIT DROP AS
+SELECT {select_list}
+FROM (
+  SELECT jsonb_populate_record(NULL::{table}, raw) AS record
+  FROM {temp_name}
+) source_rows;
+""".strip()
+        )
+    return f"""
+\\set ON_ERROR_STOP on
+BEGIN;
+SET LOCAL lock_timeout = '5s';
+SET LOCAL statement_timeout = '15min';
+
+CREATE OR REPLACE FUNCTION pg_temp._intdb_uuid(seed text)
+RETURNS uuid
+LANGUAGE sql
+IMMUTABLE
+AS $$
+  WITH digest AS (SELECT md5(seed) AS h),
+  candidate AS (
+    SELECT (
+      substr(h, 1, 8) || '-' ||
+      substr(h, 9, 4) || '-' ||
+      substr(h, 13, 4) || '-' ||
+      substr(h, 17, 4) || '-' ||
+      substr(h, 21, 12)
+    ) AS raw_uuid,
+    h
+    FROM digest
+  )
+  SELECT CASE
+    WHEN raw_uuid ~* '^[0-9a-f]{{8}}-[0-9a-f]{{4}}-[1-5][0-9a-f]{{3}}-[89ab][0-9a-f]{{3}}-[0-9a-f]{{12}}$'
+      THEN raw_uuid::uuid
+    ELSE (
+      substr(h, 1, 8) || '-' ||
+      substr(h, 9, 4) || '-' ||
+      '5' || substr(h, 14, 3) || '-' ||
+      '8' || substr(h, 18, 3) || '-' ||
+      substr(h, 21, 12)
+    )::uuid
+  END
+  FROM candidate;
+$$;
+
+{_build_table_count_sql("target_before", PUNKTB_PROD_DEV_REFRESH_TABLES).rstrip()}
+
+{chr(10).join(load_blocks)}
+
+DO $$
+BEGIN
+  IF NOT has_table_privilege(current_user, 'auth.users', 'insert')
+     OR NOT has_table_privilege(current_user, 'auth.users', 'update') THEN
+    RAISE EXCEPTION 'PUNKTB_PROD_DEV_REFRESH_REQUIRES_AUTH_USERS_WRITE for role %', current_user;
+  END IF;
+
+  IF NOT has_table_privilege(current_user, 'auth.identities', 'insert')
+     OR NOT has_table_privilege(current_user, 'auth.identities', 'update') THEN
+    RAISE EXCEPTION 'PUNKTB_PROD_DEV_REFRESH_REQUIRES_AUTH_IDENTITIES_WRITE for role %', current_user;
+  END IF;
+END
+$$;
+
+CREATE TEMP TABLE _stage_refresh_specialists ON COMMIT DROP AS
+SELECT
+  COALESCE(
+    existing_s.user_id,
+    existing_au.id,
+    CASE
+      WHEN NULLIF(lower(btrim(s.email)), '') IS NOT NULL THEN pg_temp._intdb_uuid('punktb-user-email:' || lower(btrim(s.email)))
+      ELSE s.user_id
+    END
+  ) AS user_id,
+  lower(NULLIF(btrim(s.email), '')) AS email_norm,
+  s.first_name,
+  s.family_name,
+  s.phone,
+  s.slug,
+  s.status,
+  s.configured_package_codes,
+  COALESCE(s.created_at, now()) AS created_at,
+  COALESCE(s.updated_at, now()) AS updated_at
+FROM _stage_assess_specialists s
+LEFT JOIN assess.specialists existing_s ON lower(btrim(existing_s.email)) = lower(btrim(s.email))
+LEFT JOIN auth.users existing_au ON lower(btrim(existing_au.email)) = lower(btrim(s.email));
+
+CREATE TEMP TABLE _stage_refresh_clients ON COMMIT DROP AS
+SELECT
+  COALESCE(
+    existing_c.user_id,
+    existing_au.id,
+    CASE
+      WHEN NULLIF(lower(btrim(c.email)), '') IS NOT NULL THEN pg_temp._intdb_uuid('punktb-user-email:' || lower(btrim(c.email)))
+      ELSE c.user_id
+    END
+  ) AS user_id,
+  lower(NULLIF(btrim(c.email), '')) AS email_norm,
+  c.first_name,
+  c.phone,
+  c.slug,
+  c.status,
+  specialist_map.user_id AS specialist_id,
+  c.is_phone_adult,
+  c.contact_permission,
+  COALESCE(c.created_at, now()) AS created_at,
+  COALESCE(c.updated_at, now()) AS updated_at
+FROM _stage_assess_clients c
+LEFT JOIN assess.clients existing_c ON lower(btrim(existing_c.email)) = lower(btrim(c.email))
+LEFT JOIN auth.users existing_au ON lower(btrim(existing_au.email)) = lower(btrim(c.email))
+LEFT JOIN _stage_assess_specialists specialist_source ON specialist_source.user_id = c.specialist_id
+LEFT JOIN _stage_refresh_specialists specialist_map
+  ON lower(btrim(specialist_map.email_norm)) = lower(btrim(specialist_source.email));
+
+CREATE TEMP TABLE _stage_refresh_auth_users ON COMMIT DROP AS
+SELECT
+  subject.user_id,
+  subject.email_norm,
+  subject.subject_kind,
+  subject.created_at
+FROM (
+  SELECT user_id, email_norm, 'specialist'::text AS subject_kind, created_at FROM _stage_refresh_specialists
+  UNION ALL
+  SELECT user_id, email_norm, 'client'::text AS subject_kind, created_at FROM _stage_refresh_clients
+) subject
+WHERE subject.user_id IS NOT NULL
+  AND subject.email_norm IS NOT NULL;
+
+INSERT INTO auth.users (
+  instance_id, id, aud, role, email, email_confirmed_at,
+  raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+  is_sso_user, is_anonymous
+)
+SELECT
+  '00000000-0000-0000-0000-000000000000'::uuid,
+  user_id,
+  '',
+  'authenticated',
+  email_norm,
+  now(),
+  '{{"provider":"email","providers":["email"]}}'::jsonb,
+  jsonb_build_object('_import', jsonb_build_object('punktb_prod_dev_refresh', jsonb_build_object('kind', subject_kind))),
+  created_at,
+  now(),
+  false,
+  false
+FROM _stage_refresh_auth_users
+ON CONFLICT (id) DO UPDATE
+SET instance_id = COALESCE(auth.users.instance_id, EXCLUDED.instance_id),
+    aud = EXCLUDED.aud,
+    email = EXCLUDED.email,
+    raw_app_meta_data = auth.users.raw_app_meta_data || EXCLUDED.raw_app_meta_data,
+    raw_user_meta_data = auth.users.raw_user_meta_data || EXCLUDED.raw_user_meta_data,
+    updated_at = EXCLUDED.updated_at;
+
+INSERT INTO auth.identities (
+  provider_id, user_id, identity_data, provider, created_at, updated_at
+)
+SELECT
+  email_norm,
+  user_id,
+  jsonb_build_object('sub', user_id::text, 'email', email_norm, 'email_verified', true, 'phone_verified', false),
+  'email',
+  created_at,
+  now()
+FROM _stage_refresh_auth_users
+ON CONFLICT (provider_id, provider) DO UPDATE
+SET user_id = EXCLUDED.user_id,
+    identity_data = EXCLUDED.identity_data,
+    updated_at = EXCLUDED.updated_at;
+
+CREATE TEMP TABLE _stage_refresh_results ON COMMIT DROP AS
+SELECT
+  r.id,
+  client_map.user_id AS client_id,
+  specialist_map.user_id AS specialist_id,
+  r.diagnostic_id,
+  r.payload,
+  r.open_answer,
+  r.created_at,
+  r.updated_at,
+  r.created_by,
+  r.updated_by,
+  r.assigned_at,
+  r.due_at,
+  r.expires_at,
+  r.source,
+  r.note,
+  r.removed_at,
+  r.removed_by,
+  r.status,
+  r.utm_event_id,
+  r.result_at,
+  r.schema_version,
+  r.method_version,
+  r.computed_at
+FROM _stage_assess_diag_results r
+JOIN _stage_assess_clients client_source ON client_source.user_id = r.client_id
+JOIN _stage_refresh_clients client_map ON lower(btrim(client_map.email_norm)) = lower(btrim(client_source.email))
+LEFT JOIN _stage_assess_specialists specialist_source ON specialist_source.user_id = r.specialist_id
+LEFT JOIN _stage_refresh_specialists specialist_map
+  ON lower(btrim(specialist_map.email_norm)) = lower(btrim(specialist_source.email));
+
+DELETE FROM assess.diag_result_access access_rows
+USING assess.diag_results result_rows
+WHERE access_rows.result_id = result_rows.id;
+
+DELETE FROM assess.diag_result_access access_rows
+USING assess.specialists specialist_rows
+WHERE access_rows.specialist_id = specialist_rows.user_id;
+
+DELETE FROM assess.conclusion_results conclusion_result_rows
+USING assess.diag_results result_rows
+WHERE conclusion_result_rows.result_id = result_rows.id;
+
+DELETE FROM assess.conclusions conclusion_rows
+USING assess.clients client_rows
+WHERE conclusion_rows.client_id = client_rows.user_id;
+
+DELETE FROM assess.conclusions conclusion_rows
+USING assess.specialists specialist_rows
+WHERE conclusion_rows.specialist_id = specialist_rows.user_id;
+
+DELETE FROM assess.diagnostic_assignments assignment_rows
+USING assess.clients client_rows
+WHERE assignment_rows.target_user_id = client_rows.user_id;
+
+DELETE FROM assess.diagnostic_assignments assignment_rows
+USING assess.specialists specialist_rows
+WHERE assignment_rows.specialist_user_id = specialist_rows.user_id;
+
+DELETE FROM assess.diag_results;
+DELETE FROM assess.clients;
+DELETE FROM assess.specialists;
+
+INSERT INTO assess.specialists (
+  user_id, email, first_name, family_name, phone, slug, status,
+  configured_package_codes, created_at, updated_at
+)
+SELECT
+  user_id,
+  email_norm,
+  first_name,
+  family_name,
+  phone,
+  slug,
+  status,
+  configured_package_codes,
+  created_at,
+  updated_at
+FROM _stage_refresh_specialists;
+
+INSERT INTO assess.clients (
+  user_id, email, first_name, phone, slug, status, specialist_id,
+  is_phone_adult, contact_permission, created_at, updated_at
+)
+SELECT
+  user_id,
+  email_norm,
+  first_name,
+  phone,
+  slug,
+  status,
+  specialist_id,
+  is_phone_adult,
+  contact_permission,
+  created_at,
+  updated_at
+FROM _stage_refresh_clients;
+
+INSERT INTO assess.diag_results (
+  id, client_id, specialist_id, diagnostic_id, payload, open_answer,
+  created_at, updated_at, created_by, updated_by, assigned_at, due_at,
+  expires_at, source, note, removed_at, removed_by, status, utm_event_id,
+  result_at, schema_version, method_version, computed_at
+)
+SELECT
+  id, client_id, specialist_id, diagnostic_id, payload, open_answer,
+  created_at, updated_at, created_by, updated_by, assigned_at, due_at,
+  expires_at, source, note, removed_at, removed_by, status, utm_event_id,
+  result_at, schema_version, method_version, computed_at
+FROM _stage_refresh_results;
+
+{_build_table_count_sql("target_after", PUNKTB_PROD_DEV_REFRESH_TABLES).rstrip()}
+
+{finish}
+""".lstrip()
+
+
+def _write_punktb_prod_dev_refresh_source_export_sql(workdir: Path) -> Path:
+    export_sql = workdir / "source_export.sql"
+    lines = []
+    for table in PUNKTB_PROD_DEV_REFRESH_TABLES:
+        data_path = workdir / f"{table.replace('.', '_')}.jsonl"
+        lines.append(
+            _psql_meta_command_line(
+                f"\\copy (SELECT row_to_json(t)::text FROM {table} AS t) TO '{_sql_literal_path(data_path)}' WITH (FORMAT text)"
+            )
+        )
+    _write_text(export_sql, "\n".join(lines) + "\n")
+    return export_sql
+
+
 def _cmd_doctor(args: argparse.Namespace) -> int:
     env_path = TOOL_ROOT / ".env"
     profile = _get_profile(env_path, args.profile)
@@ -1221,6 +1633,71 @@ def _cmd_project_migrate_punktb_legacy_assess(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_project_migrate_punktb_prod_dev_refresh(args: argparse.Namespace) -> int:
+    env_path = TOOL_ROOT / ".env"
+    source_profile = _get_profile(env_path, args.source)
+    target_profile = _get_profile(env_path, args.target)
+    _validate_punktb_prod_dev_refresh_profiles(source_profile, target_profile)
+    if args.apply:
+        _ensure_write_allowed(target_profile, args.approve_target, args.force_prod_write)
+
+    workdir = Path(args.workdir).resolve() if args.workdir else _tool_tmp_dir("punktb-prod-dev-refresh")
+    workdir.mkdir(parents=True, exist_ok=True)
+    dump_path = workdir / "jsonl-export"
+    source_counts_sql = workdir / "source_counts.sql"
+    source_export_sql = _write_punktb_prod_dev_refresh_source_export_sql(workdir)
+    target_sql = workdir / "target_refresh.sql"
+
+    _write_text(source_counts_sql, _build_table_count_sql("source", PUNKTB_PROD_DEV_REFRESH_TABLES))
+    source_counts = _run_checked(
+        _psql_base_args(source_profile) + ["-At", "-f", str(source_counts_sql)],
+        profile=source_profile,
+        read_only=True,
+        capture_output=True,
+    )
+
+    _run_checked(
+        _psql_base_args(source_profile) + ["-f", str(source_export_sql)],
+        profile=source_profile,
+        read_only=True,
+    )
+
+    _write_text(target_sql, _build_punktb_prod_dev_refresh_target_sql(dump_path, dry_run=args.dry_run))
+    target_result = _run_checked(
+        _psql_base_args(target_profile) + ["-f", str(target_sql)],
+        profile=target_profile,
+        read_only=False,
+        capture_output=True,
+    )
+
+    if source_counts.stdout.strip():
+        print(source_counts.stdout.rstrip())
+    if target_result.stdout.strip():
+        print(target_result.stdout.rstrip())
+    if args.report_json:
+        report_path = Path(args.report_json).resolve()
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(
+            json.dumps(
+                {
+                    "mode": "dry-run" if args.dry_run else "apply",
+                    "source": source_profile.name,
+                    "target": target_profile.name,
+                    "tables": list(PUNKTB_PROD_DEV_REFRESH_TABLES),
+                    "workdir": str(workdir),
+                    "export_sql": str(source_export_sql),
+                    "source_counts": source_counts.stdout,
+                    "target_stdout": target_result.stdout,
+                },
+                ensure_ascii=False,
+                indent=2,
+            ),
+            encoding="utf-8",
+        )
+    print(f"workdir: {workdir}")
+    return 0
+
+
 def _cmd_migrate_status(args: argparse.Namespace) -> int:
     env_path = TOOL_ROOT / ".env"
     profile = _get_profile(env_path, args.target)
@@ -1601,6 +2078,21 @@ def _build_parser() -> argparse.ArgumentParser:
     punktb_legacy.add_argument("--report-json")
     punktb_legacy.add_argument("--limit", type=int, help="Limit exported legacy client rows for rehearsal debugging.")
     punktb_legacy.set_defaults(handler=_cmd_project_migrate_punktb_legacy_assess)
+
+    punktb_prod_refresh = project_migrate_subparsers.add_parser(
+        "punktb-prod-dev-refresh",
+        help="Refresh intdata dev client state from current PunktB production using a read-only source profile.",
+    )
+    punktb_prod_refresh_mode = punktb_prod_refresh.add_mutually_exclusive_group(required=True)
+    punktb_prod_refresh_mode.add_argument("--dry-run", action="store_true")
+    punktb_prod_refresh_mode.add_argument("--apply", action="store_true")
+    punktb_prod_refresh.add_argument("--source", default="punktb-prod-ro")
+    punktb_prod_refresh.add_argument("--target", default="intdata-dev-admin")
+    punktb_prod_refresh.add_argument("--approve-target")
+    punktb_prod_refresh.add_argument("--force-prod-write", action="store_true")
+    punktb_prod_refresh.add_argument("--workdir")
+    punktb_prod_refresh.add_argument("--report-json")
+    punktb_prod_refresh.set_defaults(handler=_cmd_project_migrate_punktb_prod_dev_refresh)
 
     return parser
 

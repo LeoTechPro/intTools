@@ -13,6 +13,7 @@
 - `migrate status` — сравнить `migration_manifest.lock` из `/int/data` с remote `public.schema_migrations`;
 - `migrate data` — применить incremental или bootstrap migration flow `/int/data`.
 - `project-migrate punktb-legacy-assess` — перенести legacy PunktB assessment data между профилями через `psql` staging flow.
+- `project-migrate punktb-prod-dev-refresh` — перезалить `assess.specialists`, `assess.clients`, `assess.diag_results` из `punkt_b_prod` в `intdata` dev со strict read-only source и dev-side `auth` bootstrap.
 - `local-test run` — поднять temporary local Supabase runtime под owner-контролем, применить `/int/data` migrations + `init/seed.sql` и опционально прогнать SQL smoke.
 - `local-test stop` — остановить temporary local Supabase runtime без backup.
 
@@ -130,6 +131,27 @@ Properties:
 - clients are matched by normalized email, not numeric legacy ids;
 - duplicate legacy client rows with the same normalized email merge into one target client;
 - legacy `public.clients.results` JSONB array entries are staged into `assess.diag_results` with deterministic ids and `_import.legacy_punktb` metadata.
+
+## PunktB prod -> intdata dev refresh
+
+Dry-run against the approved dev admin target:
+
+```bash
+python D:\int\tools\intdb\lib\intdb.py project-migrate punktb-prod-dev-refresh --dry-run --source punktb-prod-ro --target intdata-dev-admin
+```
+
+Apply with full replace semantics in the approved dev scope:
+
+```bash
+python D:\int\tools\intdb\lib\intdb.py project-migrate punktb-prod-dev-refresh --apply --source punktb-prod-ro --target intdata-dev-admin --approve-target intdata-dev-admin
+```
+
+Properties:
+
+- source export stays read-only and uses `psql \copy (SELECT row_to_json(...))`, not `pg_dump`;
+- fallback source `punktb-prod-migrator` is allowed only when the session is still forced into `default_transaction_read_only=on`;
+- target requires `intdata-dev-admin`, because the workflow fully replaces the approved dev rows;
+- target bootstraps only the required `auth.users` and `auth.identities` rows for imported emails and does not read prod auth tables.
 
 ## Safety
 
