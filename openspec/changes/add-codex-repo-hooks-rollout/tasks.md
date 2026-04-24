@@ -6,4 +6,4 @@
 ## 2. Validation
 - [x] 2.1 Validate JSON and Python syntax.
 - [x] 2.2 Run direct hook payload smoke for Windows source checkout.
-- [ ] 2.3 Sync VDS `/int/tools` mirrors and run Linux read-only smoke.
+- [x] 2.3 Sync VDS `/int/tools` mirrors and run Linux read-only smoke.
