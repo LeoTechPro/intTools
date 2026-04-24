@@ -35,6 +35,16 @@ CONTOURS = [
         "mutation_policy": "read_only_refresh_from_origin",
         "publication": "no direct agent commits or pushes; refresh only from origin/main",
     },
+    {
+        "name": "inttools-vds-mirror",
+        "host": "vds.intdata.pro",
+        "host_aliases": ["vds.intdata.pro", "debian", "vds.punkt-b.pro"],
+        "repo": "/int/tools",
+        "branch": "main",
+        "role": "mirror",
+        "mutation_policy": "read_only_refresh_from_origin",
+        "publication": "make tracked changes only in D:\\int\\tools, publish origin/main, then refresh VDS checkouts",
+    },
 ]
 
 MUTATING_GIT_RE = re.compile(
@@ -44,6 +54,11 @@ MUTATING_GIT_RE = re.compile(
 COMMIT_RE = re.compile(r"(^|[;&|]\s*)git\s+commit\b", re.IGNORECASE)
 PUSH_RE = re.compile(r"(^|[;&|]\s*)git\s+push\b", re.IGNORECASE)
 PULL_RE = re.compile(r"(^|[;&|]\s*)git\s+pull\b", re.IGNORECASE)
+
+
+def host_matches(contour: dict[str, Any], host: str, short_host: str) -> bool:
+    expected_hosts = set(contour.get("host_aliases") or [contour["host"]])
+    return host in expected_hosts or short_host in expected_hosts
 
 
 def read_payload() -> dict[str, Any]:
@@ -91,7 +106,7 @@ def discover_context(cwd: str) -> dict[str, Any]:
 
     matched = None
     for contour in CONTOURS:
-        if repo_root == contour["repo"]:
+        if repo_root == contour["repo"] and host_matches(contour, host, short_host):
             matched = contour
             break
 
@@ -188,8 +203,14 @@ def check_pre_tool(payload: dict[str, Any], ctx: dict[str, Any]) -> bool:
         )
         return False
 
-    if contour["role"] == "prod":
+    if contour["role"] in {"prod", "mirror"}:
         if COMMIT_RE.search(command) or PUSH_RE.search(command) or MUTATING_GIT_RE.search(command) and not PULL_RE.search(command):
+            if contour["role"] == "mirror":
+                deny(
+                    "VDS /int/tools is a read-only origin mirror for agents: tracked changes must be made in "
+                    "D:\\int\\tools, pushed to origin/main, then refreshed on VDS. Direct git mutations are blocked here."
+                )
+                return False
             deny(
                 "Production contour is read-only for agents: direct git mutations are blocked in "
                 f"{expected_repo}. Make changes on agents@vds.intdata.pro:/int/data, publish origin/main, "

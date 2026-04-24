@@ -14,6 +14,12 @@ The system MUST inject machine/repository contour context for managed intData ba
 - **THEN** the hook context identifies the contour as `punktb-prod`
 - **AND** the context states that the checkout is read-only for agents and refreshes from `origin/main`.
 
+#### Scenario: VDS intTools mirror session starts
+- **WHEN** Codex starts or receives a prompt with cwd inside `/int/tools` on `agents@vds.intdata.pro` or `agents@vds.punkt-b.pro`
+- **THEN** the hook context identifies the contour as `inttools-vds-mirror`
+- **AND** the context states that tracked changes belong in `D:\int\tools`
+- **AND** the VDS checkout is treated as a read-only mirror refreshed from `origin/main`.
+
 ### Requirement: Codex hooks MUST guard managed contour git mutations
 The system MUST block unsafe mutating git commands when the current host/path/branch does not match the managed contour policy.
 
@@ -25,6 +31,11 @@ The system MUST block unsafe mutating git commands when the current host/path/br
 #### Scenario: Agent tries to mutate a managed repo on the wrong host
 - **WHEN** Codex attempts a mutating git command in a managed checkout on a host that does not match the contour
 - **THEN** the hook denies the command before execution.
+
+#### Scenario: Agent tries to edit intTools tracked files on VDS
+- **WHEN** Codex attempts a mutating git command in `/int/tools` on either VDS
+- **THEN** the hook denies the command
+- **AND** the denial explains the required flow: `D:\int\tools` -> `origin/main` -> VDS refresh.
 
 ### Requirement: Codex hook source MUST stay repo-owned
 The system MUST keep hook business logic in `/int/tools/codex/hooks` rather than embedding it in Codex home.

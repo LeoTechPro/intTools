@@ -9,6 +9,7 @@
 - [x] 2.2 Add tracked canonical `hooks.json` template.
 - [x] 2.3 Install minimal `~/.codex/hooks.json` on dev and prod VDS.
 - [x] 2.4 Enable `features.codex_hooks` on prod VDS.
+- [x] 2.5 Add `/int/tools` VDS mirror context and tracked-mutation guard.
 
 ## 3. Validation
 
@@ -17,3 +18,4 @@
 - [x] 3.3 Smoke `codex exec` from `/int/data`.
 - [x] 3.4 Smoke `codex exec` from `/int/punkt-b`.
 - [x] 3.5 Verify prod mutating git command is blocked.
+- [x] 3.6 Verify `/int/tools` VDS mirror context and tracked git mutation block.
