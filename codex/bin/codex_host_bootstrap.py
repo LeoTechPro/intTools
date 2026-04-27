@@ -69,7 +69,7 @@ def default_brain_root() -> Path:
     if explicit:
         return Path(explicit).expanduser().resolve()
 
-    candidates = (Path("D:/2brain"), Path("/2brain")) if current_platform() == "windows" else (Path("/2brain"), Path("D:/2brain"))
+    candidates = (Path("D:/int/2brain"), Path("/2brain")) if current_platform() == "windows" else (Path("/2brain"), Path("D:/int/2brain"))
     for candidate in candidates:
         if candidate.exists():
             return candidate.resolve()
