@@ -137,8 +137,10 @@
 
 ## IntBrain Agent-Memory Integration
 
+- Canonical IntBrain MCP source-of-truth moved to `/int/brain/mcp/intbrain` with repo-local plugin source at `/int/brain/codex/plugins/intbrain/`.
+- `/int/tools` keeps only the compatibility consumer layer: `codex/bin/mcp-intdata-cli.py --profile intbrain` delegates to the brain-owned server and must not own IntBrain business logic.
 - `codex/plugins/intbrain/` публикует intData Brain как packaged Codex plugin в каталоге `intData Tools`.
-- `codex/bin/mcp-intdata-cli.py --profile intbrain` (через `mcp-intdata-cli.cmd/.sh`) публикует универсальный MCP toolset:
+- `codex/bin/mcp-intdata-cli.py --profile intbrain` (через `mcp-intdata-cli.cmd/.sh`) теперь только делегирует в `/int/brain/mcp/intbrain/bin/mcp-intbrain.py`; canonical universal MCP toolset lives in `/int/brain`:
   - `intbrain_context_pack`
   - `intbrain_people_resolve`
   - `intbrain_people_get`
@@ -163,11 +165,11 @@
   - `intbrain_import_vault_pm`
   - `intbrain_memory_sync_sessions`
   - `intbrain_memory_import_mempalace`
-  - `intbrain_cabinet_inventory`
-  - `intbrain_cabinet_import`
+- Primary API base env: `INTBRAIN_API_BASE`. Compatibility fallback: `INTBRAIN_API_BASE_URL`.
 - Auth задаётся через `INTBRAIN_AGENT_ID` и `INTBRAIN_AGENT_KEY` (env/secret file), без жёсткой привязки к конкретному агенту.
 - Для `intbrain_import_vault_pm` дополнительно нужен `INTBRAIN_CORE_ADMIN_TOKEN`; без него MCP возвращает `config_error` до HTTP-вызова.
-- После обновления профиля `intbrain` в `mcp-intdata-cli.py` требуется перезапуск Codex/OpenClaw (или MCP runtime), чтобы refresh `tools/list` подтянул новый PM toolset.
+- После обновления profile/config требуется перезапуск Codex/OpenClaw (или MCP runtime), чтобы refresh `tools/list` подтянул brain-owned toolset.
+- `intdata-control`, `intdata-runtime` и `dba` остаются owned inside `/int/tools`.
 - OpenClaw и Codex используют один и тот же generic контракт; agent-specific UX остаётся только в overlay-скриптах `/int/tools/*`.
 
 ## intData Tools Codex Plugins
@@ -1169,4 +1171,3 @@ bash /int/tools/openclaw/ops/verify.sh
 - `collect_audit.sh` — сбор audit snapshot по текущему checkout `/int/probe`
 - `docs/critical_assets.txt` — список must-survive assets и внешних runtime-path
 - `docs/machine-audit-2026-03-02.md` — исторический audit snapshot, перенесённый из `probe`
-

@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "intbrain": {
-      "command": "cmd.exe",
-      "args": ["/d", "/s", "/c", "D:\\int\\tools\\codex\\bin\\mcp-intdata-cli.cmd", "--profile", "intbrain"]
+      "command": "python",
+      "args": ["D:\\int\\brain\\mcp\\intbrain\\bin\\mcp-intbrain.py"]
     }
   }
 }

@@ -251,6 +251,11 @@ def verify_manifests(report: dict[str, Any]) -> None:
                 report["manifest_errors"].append(f"{name} interface missing {key}")
         if name == "intbrain" and CABINET_RE.search(json.dumps(manifest, ensure_ascii=False)):
             report["manifest_errors"].append("intbrain manifest leaks Cabinet active surface")
+        if name == "intbrain":
+            mcp_config = json.loads((plugin_dir / ".mcp.json").read_text(encoding="utf-8"))
+            args = (((mcp_config.get("mcpServers") or {}).get("intbrain") or {}).get("args") or [])
+            if "D:\\int\\brain\\mcp\\intbrain\\bin\\mcp-intbrain.py" not in args:
+                report["manifest_errors"].append("intbrain .mcp.json must point to /int/brain canonical entrypoint")
 
 
 def extract_card(body: str, tool_name: str) -> str | None:
