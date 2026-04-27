@@ -1,8 +1,0 @@
-=== db_owners ===
-__RC__=0
-
-=== owned_objects ===
-__RC__=0
-
-=== sessions ===
-__RC__=0

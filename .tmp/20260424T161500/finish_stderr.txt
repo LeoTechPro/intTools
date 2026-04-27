@@ -1,2 +1,0 @@
-mkdir: cannot create directory ‘/var/lib/intnexus’: Отказано в доступе
-mkdir: cannot create directory ‘/var/lib/intnexus-test’: Отказано в доступе

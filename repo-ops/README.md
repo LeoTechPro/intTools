@@ -2,12 +2,11 @@
 
 `repo-ops/` is the neutral home for reusable repository operations helpers.
 
-It exists to prevent product adapters from becoming dumping grounds for generic scripts. Product directories such as `punkt-b/` may keep compatibility wrappers and product profiles, but reusable implementation code belongs here or in a more specific top-level tool.
+It exists to prevent product adapters from becoming dumping grounds for generic scripts. Product-specific wrappers and profiles belong outside this public reusable tools repo; reusable implementation code belongs here or in a more specific top-level tool.
 
 ## Current Scope
 
 - Safe cleanup utilities for repo/runtime artifacts.
-- Compatibility targets for old product-adapter wrappers.
 - Future home for parameterized issue, gate, release and hook helpers that are not tied to one product.
 
 ## Boundaries
@@ -24,4 +23,4 @@ python repo-ops/bin/agent_tmp_cleanup.py --dir .runtime/repo-ops/tmp --dry-run
 python repo-ops/bin/agent_lock_cleanup.py --dry-run
 ```
 
-`punkt-b/ops/qa/agent_tmp_cleanup.py` and `punkt-b/ops/qa/agent_lock_cleanup.py` are compatibility wrappers that delegate here.
+Older product-adapter wrappers should call these entrypoints instead of carrying duplicated cleanup logic.

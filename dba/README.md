@@ -111,12 +111,6 @@ Rehearsal against dev target:
 python D:\int\tools\dba\lib\dba.py project-migrate punktb-legacy-assess --dry-run --source punktb-legacy-ro --target intdata-dev-migrator
 ```
 
-Thin PunktB wrapper for the same dev rehearsal:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File D:\int\tools\punkt-b\bin\punktb-legacy-migrate.ps1 -Target dev -DryRun -Limit 10
-```
-
 Release apply target remains guarded:
 
 ```bash

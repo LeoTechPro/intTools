@@ -26,10 +26,8 @@
 - `delivery/` — внешний host-config, devops, docops и delivery слой для intData-family контуров;
 - `probe/` — maintenance и audit-утилиты для `/int/probe`;
 - `repo-ops/` — универсальные repo-operations утилиты, которые не должны жить внутри product-adapter каталогов;
-- `punkt-b/` — product-adapter tooling для PunktB контуров; reusable scripts выносятся в `repo-ops/`, `dba/`, `gatesctl/`, `lockctl/` или `delivery/`;
 - `gemini-openai-proxy/` — internal-vendor copy локального OpenAI-compatible proxy для Gemini;
 - `web/` — публичный статический сайт и каталог intData Tools;
-- `openspec/changes/` и `openspec/specs/` — proposal/spec материалы этого repo.
 
 ## Внешние референсы
 
@@ -38,10 +36,10 @@
 
 ## OpenSpec governance
 
-- Для любых tracked-мутаций repo-owned tooling в `/int/tools/**` канонический process source-of-truth живёт в `openspec/specs/process/spec.md`.
+- Для любых tracked-мутаций repo-owned tooling в `/int/tools/**` канонический process source-of-truth живёт в master/manifest репозитории `/int`, вне публичного `intTools`.
 - Agents in MCP-enabled Codex/OpenClaw runtimes use `intdata-control` OpenSpec tools for OpenSpec discovery, validation, status, and lifecycle operations; repo-local `codex/bin/openspec*` entrypoints are operator/adapter fallback paths, not a PATH fallback.
 - Agents use the official documented `multica` CLI for Multica issue state; if an official Multica MCP plugin (`mcp__multica__`) is installed, agents may use it. `intdata-control` does not expose Multica tools.
-- Перед первой правкой обязателен owner-approved change package в `openspec/changes/<change-id>/`:
+- Перед первой правкой обязателен owner-approved change package в master-level `openspec/changes/<change-id>/`:
   - `proposal.md`
   - `tasks.md`
   - релевантный `spec.md` delta в `specs/**`
@@ -1152,20 +1150,6 @@ bash /int/tools/openclaw/ops/verify.sh
 - [reinstall-and-restore.md](/int/tools/openclaw/docs/reinstall-and-restore.md)
 - [openclaw-concurrency-audit-2026-03-09.md](/int/tools/openclaw/docs/openclaw-concurrency-audit-2026-03-09.md)
 - [decommission-openclaw-2026-03-15.md](/int/tools/openclaw/reports/decommission-openclaw-2026-03-15.md)
-
-### `openspec/changes/`
-
-#### OpenSpec Changes
-
-Active owner-approved change packages хранятся в подкаталогах `openspec/changes/*`.
-Для tracked tooling/process mutations execution без active change package запрещён.
-
-### `openspec/specs/`
-
-#### OpenSpec Specifications
-
-Текущие capability/process specs этого репозитория хранятся в подкаталогах `openspec/specs/*`.
-Для tooling-governance канонический spec живёт в `openspec/specs/process/spec.md`; по умолчанию расширяем существующие capability specs и не создаём дубли без явного одобрения владельца.
 
 ### `probe/`
 

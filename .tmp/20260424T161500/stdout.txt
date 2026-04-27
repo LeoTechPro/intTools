@@ -1,8 +1,0 @@
-DO
- pg_terminate_backend 
-----------------------
- t
-(1 строка)
-
-DO
-DO
