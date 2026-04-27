@@ -343,6 +343,21 @@ class DBATests(unittest.TestCase):
                     os.environ["DBA_DATA_REPO"] = previous
             self.assertEqual(resolved, repo.resolve())
 
+    def test_tool_tmp_dir_uses_master_tmp_root(self) -> None:
+        previous_root = dba.TOOL_ROOT
+        previous_int_root = dba.INT_ROOT
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            dba.TOOL_ROOT = root / "tools" / "dba"
+            dba.INT_ROOT = root
+            try:
+                tmp_path = dba._tool_tmp_dir("dumps")
+            finally:
+                dba.TOOL_ROOT = previous_root
+                dba.INT_ROOT = previous_int_root
+            self.assertEqual(tmp_path.parent.parent, root / ".tmp" / "tools" / "dba")
+            self.assertTrue(tmp_path.exists())
+
     def test_resolve_data_repo_skips_windows_sibling_repo(self) -> None:
         previous_root = dba.TOOL_ROOT
         previous = os.environ.get("DBA_DATA_REPO")

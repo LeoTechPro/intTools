@@ -8,7 +8,7 @@
 ## Rules
 
 - В git допускается только `.env.example`; локальный `.env` должен оставаться untracked.
-- Runtime-артефакты инструмента живут только в ignored путях `.tmp/`, `logs/`, `__pycache__/`.
+- Runtime-артефакты инструмента живут только в ignored master-level `/int/.tmp/tools/dba/`, `logs/`, `__pycache__/`.
 - Для `/int/data` migration flow не дублируется: dev backend work должен идти в remote checkout `agents@vds.intdata.pro:/int/data`.
 - Локальный Windows checkout `D:\int\data` не является рабочим default; не добавляйте на него новые AGENTS/scripts references. Если нужен disposable local flow, передавайте явный `--repo`/`DBA_DATA_REPO`.
 

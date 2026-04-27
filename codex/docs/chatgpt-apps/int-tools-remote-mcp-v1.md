@@ -2,62 +2,92 @@
 
 ## Purpose
 
-Expose a curated, internal, tool-only ChatGPT Apps/Connectors surface for intData agent tooling. The remote app is not a mirror of every local Codex plugin tool. It is a small HTTPS MCP endpoint that selects safe capabilities from IntBrain and intData Control.
+Expose a curated, internal, tool-only ChatGPT Apps MCP surface for intData tooling. This is not a mirror of local Codex plugins, `mcp-intdata-cli.py`, or the neutral `agent_plane_call` facade.
 
-## Sources
+## Architecture
 
-- OpenAI Apps SDK docs: `https://developers.openai.com/apps-sdk/`
-- OpenAI MCP guide: `https://developers.openai.com/api/docs/mcp`
+- Archetype: `tool-only`.
+- Source contour: `tools/chatgpt-apps/int-tools-mcp/`.
+- Endpoint: stable HTTP/HTTPS MCP endpoint at `/mcp`.
+- Local default: `http://127.0.0.1:9193/mcp`.
+- Production target: stable public HTTPS `/mcp`.
+- UI/widget: none in v1.
+- Auth: bearer token from runtime secret store via `INT_TOOLS_MCP_BEARER_TOKEN`.
+- Optional owner default: `INT_TOOLS_MCP_OWNER_ID`.
+- Logging: request id, actor, tool name, latency, result class, and guard decision when access logging is enabled.
 
-## V1 shape
+The existing local Codex MCP layer remains in `tools/codex/plugins/*` and `tools/codex/bin/mcp-intdata-cli.py`. The neutral Agent Plane remains internal under `tools/agent_plane/*`.
 
-- Archetype: tool-only remote MCP app.
-- Endpoint: stable HTTPS `/mcp`.
-- Auth: bearer/service token from runtime secret store.
-- UI: none in v1.
-- Logging: request id, actor, tool name, latency, result class, and guard decision.
-- Secrets: never tracked in git.
+## V1 tool surface
 
-## Curated tools
+All v1 tools are read-only and must use `annotations.readOnlyHint=true`.
 
-### Knowledge/read layer
+- `search`: search intData knowledge, memory, or context.
+- `fetch`: fetch one safe item id returned by `search`.
+- `routing_validate`: validate high-risk intData tooling routing registry.
+- `lockctl_status`: inspect lock state for repo/path/owner/issue.
 
-- `search`: search IntBrain context/memory by owner-scoped query.
-- `fetch`: fetch a specific context item, memory item, or provenance record.
+Do not expose in v1:
 
-These use standard connector-style names for knowledge retrieval and deep-research compatibility.
+- generic `agent_plane_call`;
+- raw profile tools from `mcp-intdata-cli.py`;
+- OpenSpec tools, until OpenSpec has a separate MCP surface or an explicit compatibility exception;
+- mutating IntBrain writes;
+- `lockctl_acquire`, release, renew, or GC;
+- Multica operations;
+- DB apply/migrations;
+- publish or sync-gate wrappers;
+- browser/profile launch;
+- vault non-dry-run.
 
-### Guarded action layer
+## Result contract
 
-Initial candidates:
+Each tool returns:
 
-- `openspec_status`: read-only status for an approved change.
-- `openspec_show`: read-only spec/change fetch.
-- `routing_validate`: read-only high-risk routing registry validation.
-- `lockctl_status`: read-only lock inspection.
+- `structuredContent`: stable machine-readable result;
+- `content`: short human-readable summary;
+- `_meta`: only for future widget-only data, not used in v1.
 
-Do not expose publish, sync-gate finish, Multica operations, daemon control, DB apply, browser launch, or vault non-dry-run in v1. Multica remains available through the official `multica` CLI or official Multica MCP plugin when installed, not through this intData Control surface.
+The server must not return JSON only as text in `content`. Internal profile names are not part of the public API.
 
-## Annotations
+## Local development
 
-- Read tools use `readOnlyHint=true`.
-- Mutating tools are out of v1 unless separately approved.
-- Any future mutating tool must use `destructiveHint` accurately, require explicit issue context, and write an audit event.
+```powershell
+cd D:\int\tools\chatgpt-apps\int-tools-mcp
+python -m int_tools_mcp.server --host 127.0.0.1 --port 9193
+```
 
-## Local development check
+Optional auth:
 
-1. Start the remote MCP server locally.
-2. Expose it with a temporary HTTPS tunnel.
-3. Register the app in ChatGPT Developer Mode using the tunnel `/mcp` URL.
-4. Verify `search`, `fetch`, and one read-only control action.
-5. Replace the tunnel with stable HTTPS hosting before production use.
+```powershell
+$env:INT_TOOLS_MCP_BEARER_TOKEN = "<runtime-secret>"
+$env:INT_TOOLS_MCP_OWNER_ID = "1"
+python -m int_tools_mcp.server --host 127.0.0.1 --port 9193
+```
+
+ChatGPT Developer Mode check:
+
+1. Start the local server.
+2. Expose it with an HTTPS tunnel, for example `ngrok http 9193`.
+3. Register the app in ChatGPT Developer Mode with the tunneled `/mcp` URL.
+4. Refresh the app after changing tool descriptors.
+5. Verify `search`, `fetch`, and `lockctl_status`.
 
 ## Production gate
 
 Production enablement requires:
 
 - stable HTTPS endpoint;
-- secret-store backed auth;
-- rate limits and request logging;
-- operator runbook;
-- smoke tests for `search`, `fetch`, auth failure, and one read-only control action.
+- bearer auth backed by runtime secret storage;
+- request logging and latency/error visibility;
+- rate limiting;
+- smoke tests for `tools/list`, `search`, `fetch`, auth failure, and `lockctl_status`;
+- no direct writes to `C:\Users\intData\.codex`.
+
+Repo scripts must not install, patch, mirror, or rewrite Codex home. Codex home changes may only happen through documented native Codex plugin/config flows or explicit manual owner action.
+
+## References
+
+- OpenAI Apps SDK MCP server docs: `https://developers.openai.com/apps-sdk/build/mcp-server`
+- OpenAI Apps SDK tool planning docs: `https://developers.openai.com/apps-sdk/plan/tools`
+- OpenAI Apps SDK reference: `https://developers.openai.com/apps-sdk/reference`

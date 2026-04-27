@@ -17,6 +17,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 
 TOOL_ROOT = Path(__file__).resolve().parents[1]
+INT_ROOT = TOOL_ROOT.parent.parent
 DEFAULT_DATA_REPO_ENV = "DBA_DATA_REPO"
 REMOTE_DATA_REPO_HINT = "agents@vds.intdata.pro:/int/data"
 PROFILE_PATTERN = re.compile(r"^DBA_PROFILE__([A-Z0-9_]+)__([A-Z0-9_]+)$")
@@ -200,7 +201,7 @@ def _resolve_data_repo(requested_repo: str | None) -> Path:
 
 
 def _tool_tmp_dir(purpose: str) -> Path:
-    path = TOOL_ROOT / ".tmp" / purpose / _utc_stamp()
+    path = INT_ROOT / ".tmp" / "tools" / "dba" / purpose / _utc_stamp()
     path.mkdir(parents=True, exist_ok=True)
     return path
 

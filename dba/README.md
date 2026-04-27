@@ -23,7 +23,7 @@
 - `lib/dba.py` — Python core;
 - `.env.example` — bootstrap-шаблон профилей;
 - `.env` — локальный untracked runtime-файл;
-- `.tmp/` и `logs/` — локальные runtime-артефакты, не идут в git.
+- `/int/.tmp/tools/dba/` (`D:\int\.tmp\tools\dba\` локально) и `logs/` — runtime-артефакты, не идут в git.
 
 ## Требования
 
@@ -96,7 +96,7 @@ pwsh -File D:\int\tools\dba\dba.ps1 local-test run --confirm-owner-control I_ACK
 
 - нужен Docker;
 - нужен Supabase CLI (`supabase`) или fallback через `npx supabase`;
-- workspace создаётся в ignored `dba/.tmp/local-supabase/<stamp>`;
+- workspace создаётся в ignored `/int/.tmp/tools/dba/local-supabase/<stamp>`;
 - после `supabase start` tool применяет owner scripts из явно переданного локального repo (`--repo`/`DBA_DATA_REPO`), затем `init/seed.sql`;
 - SQL smoke можно передать через `--smoke-file`;
 - по умолчанию runtime останавливается сам; для ручной диагностики используйте `--keep-running` и затем `local-test stop`.
@@ -157,5 +157,5 @@ Properties:
 - Типовые runtime-ошибки `docker` и `supabase` для local runner тоже переводятся в обычные `intDBA:` сообщения.
 - Секреты профиля передаются внешним PostgreSQL CLI через окружение процесса и не вшиваются в argv.
 - Для `migrate data --mode incremental` `dba` сам добавляет найденный PostgreSQL `bin` в `PATH` дочернего `bash`, если глобальный `PATH` на машине ещё не обновлён.
-- Временные dump/CSV-файлы складываются в `.tmp/`.
+- Временные dump/CSV-файлы складываются в `/int/.tmp/tools/dba/`.
 - `.env` не должен попадать в git.
