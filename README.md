@@ -1,18 +1,19 @@
 # intTools
 
-`/int/tools` — machine-wide tooling repo `LeoTechPro/intTools` с каноническим путём `/int/tools`.
+`/int/tools` — public open-source catalog of first-party intData tools с compatibility path `/int/tools`.
 
 ## Назначение
 
-- reusable ops/process/tooling для контуров в `/int/*`;
-- host helpers, bootstrap scripts, hooks и shared runbooks;
-- versioned overlays для Codex/OpenClaw и соседних ops-систем.
+- reusable public tools, public adapters, sanitized templates и catalog metadata;
+- first-party CLI/runtime helpers с понятным public surface и externalized runtime state;
+- compatibility wrappers для Codex/OpenClaw и соседних ops-систем без private governance в public repo.
 
 ## Границы ответственности
 
 - business product-core и user-facing shells остаются в owner-репозиториях;
-- runtime state и реальные секреты живут во внешних host paths;
+- runtime state, private governance и реальные секреты живут во внешних host/master paths;
 - tooling-модуль не подменяет собой локальные owner-docs продуктовых репозиториев.
+- hardcoded absolute-path contracts остаются technical debt до package/install split per tool.
 
 ## Основные модули
 
@@ -26,8 +27,24 @@
 - `delivery/` — внешний host-config, devops, docops и delivery слой для intData-family контуров;
 - `probe/` — maintenance и audit-утилиты для `/int/probe`;
 - `repo-ops/` — универсальные repo-operations утилиты, которые не должны жить внутри product-adapter каталогов;
-- `gemini-openai-proxy/` — internal-vendor copy локального OpenAI-compatible proxy для Gemini;
-- `web/` — публичный статический сайт и каталог intData Tools;
+- `gemini-openai-proxy/` — migration target: master read-only reference submodule или external catalog link;
+- `web/` — legacy site copy; public site source belongs under master `D:\int\web\tools`;
+
+## Validation
+
+Classification and manifest coverage gate:
+
+```powershell
+python D:\int\tools\repo-ops\bin\validate_tools_catalog.py --root D:\int\tools --skip-forbidden
+```
+
+Full public-cleanliness gate after approved legacy cleanup:
+
+```powershell
+python D:\int\tools\repo-ops\bin\validate_tools_catalog.py --root D:\int\tools
+```
+
+The validator checks that every tracked non-hidden top-level directory is present in `tools.catalog.v1.json`. The full mode also rejects forbidden public-repo artifacts. It is expected to fail while previously tracked legacy artifacts such as vendored `node_modules` and legacy Codex overlays remain in the public repository awaiting owner-approved cleanup.
 
 ## Внешние референсы
 
