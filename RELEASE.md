@@ -110,6 +110,15 @@
 - Исправлен подтверждённый кейс, когда `%LOCALAPPDATA%/OpenAI/Codex/bin` не отбрасывался при `DropEntries` с backslash-форматом.
 - Scope изменения ограничен только remediation по подтверждённому `review-find` пункту.
 
+### intbrain-mcp: ownership moved to /int/brain
+- Canonical IntBrain MCP server moved to `/int/brain/mcp/intbrain`.
+- Added brain-owned stdio entrypoints:
+  - `/int/brain/mcp/intbrain/bin/mcp-intbrain --stdio`
+  - `python /int/brain/mcp/intbrain/bin/mcp-intbrain.py`
+- `/int/tools/codex/bin/mcp-intdata-cli.py --profile intbrain` is now a thin compatibility wrapper that delegates to `/int/brain`.
+- `/int/tools/codex/plugins/intbrain/.mcp.json` now points to `D:\int\brain\mcp\intbrain\bin\mcp-intbrain.py`.
+- IntBrain Codex plugin source and skills source-of-truth moved to `/int/brain/codex/plugins/intbrain/`.
+
 ### finalize: закрыт pending server-state по `mcp-intbrain` и `mcp-memory-bank`
 - В `codex/bin/mcp-intbrain.py` добавлена нормализация PM date-алиасов (`today|tomorrow|yesterday`) с учётом timezone для `pm/*` инструментов (`dashboard/tasks/health/constraints/task_create/task_patch`).
 - Для `pm_task_create/pm_task_patch` добавлен `due_at=\"today\"` alias (текущий timestamp в указанной timezone).
