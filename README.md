@@ -1,38 +1,62 @@
 # intTools
 
-`/int/tools` — machine-wide tooling repo `LeoTechPro/intTools` с каноническим путём `/int/tools`.
+`/int/tools` is the public open-source catalog of first-party intData tools.
 
-## Назначение
+This repository is not a machine-wide ops/runtime warehouse. Public source here must be reusable, installable or reviewable as a tool, adapter, sanitized template, or catalog entry.
 
-- reusable ops/process/tooling для контуров в `/int/*`;
-- host helpers, bootstrap scripts, hooks и shared runbooks;
-- versioned overlays для Codex/OpenClaw и соседних ops-систем.
+## Public Catalog Model
 
-## Границы ответственности
+Every tracked non-hidden top-level directory must be classified in `tools.catalog.v1.json`.
 
-- business product-core и user-facing shells остаются в owner-репозиториях;
-- runtime state и реальные секреты живут во внешних host paths;
-- tooling-модуль не подменяет собой локальные owner-docs продуктовых репозиториев.
+Allowed statuses:
 
-## Основные модули
+- `public-tool` - installable or reusable first-party code.
+- `public-adapter` - reusable adapter with non-secret configuration.
+- `catalog-link` - external or recommended tool listed in catalog metadata only.
+- `master-private` - material that belongs to master governance or another private contour.
+- `runtime-state` - machine-local state that must not be tracked.
+- `legacy-remove` - compatibility/reference material scheduled for removal after recorded destination and dry-run approval.
 
-- `lockctl/` — machine-local runtime writer-lock для Codex/OpenClaw;
-- `gatesctl/` — machine-wide runtime для gate receipts, approvals и commit binding;
-- `vault/installers/` — канонический machine-wide vault tooling (`vault_sanitize.py`, `runtime_vault_gc.py`) для контуров `/2brain` + `/int/brain`;
-- `dba/` — self-contained operator CLI `intDBA` для remote Postgres/Supabase профилей, dump/restore и migration flow `/int/data`;
-- `agent_plane/` — neutral Agent Tool/Policy/State Plane для равноправных фасадов Agno/OpenClaw/Codex App;
-- `codex/` — versioned host-tooling, managed assets и project overlays для Codex CLI;
-- `openclaw/` — versioned overlay для локального OpenClaw runtime;
-- `delivery/` — внешний host-config, devops, docops и delivery слой для intData-family контуров;
-- `probe/` — maintenance и audit-утилиты для `/int/probe`;
-- `repo-ops/` — универсальные repo-operations утилиты, которые не должны жить внутри product-adapter каталогов;
-- `gemini-openai-proxy/` — internal-vendor copy локального OpenAI-compatible proxy для Gemini;
-- `web/` — публичный статический сайт и каталог intData Tools;
+`/int/tools` remains the compatibility source path for now. Hardcoded absolute-path contracts are technical debt and should be removed per tool as packaging matures.
 
-## Внешние референсы
+## Current Public Tools
 
-- `ngt-memory` больше не ведётся как gitlink внутри `/int/tools`.
-- Для изучения подходов agent-memory используем upstream-репозиторий `https://github.com/ngt-memory/ngt-memory` как внешний reference.
+- `dba/` - `intDBA`, a public first-party CLI for guarded Postgres/Supabase operator workflows.
+- `lockctl/` - file lease coordinator for scoped multi-agent edits.
+- `gatesctl/` - gate receipts, approvals, and commit binding.
+- `agent_plane/` - reusable tool-plane runtime, policy-aware dispatch, and local harness.
+- `repo-ops/` - reusable repository operations helpers.
+- `vault/` - public sanitizer and runtime garbage-collection helpers only.
+
+## Public Adapters and Migration Queue
+
+- `codex/` - public wrappers, packaged plugins, and sanitized operator entrypoints. Codex home, secrets, private policy, runtime state, and legacy overlays are not public source.
+- `delivery/` - sanitized delivery templates and reusable helpers. Live host configs, credentials, logs, and environment-specific deploy machinery must live outside public tools.
+- `openclaw/` - generalized integration helpers and templates only.
+- `roistat/` - audit-pending domain adapter; it remains public only if no private client coupling is present.
+- `chatgpt-apps/` - legacy mixed bridge. IntBrain is outside intTools and must not be preserved here as search/fetch MCP.
+- `gemini-openai-proxy/` - vendor/reference copy; target is a master read-only reference submodule or a catalog link.
+- `web/` - legacy copy of site files; public site source belongs under master `web/tools`.
+- `misc/` - no top-level miscellaneous bucket; each file must move to an owning tool or be removed.
+- `probe/` - belongs to the `D:/int/probe` contour unless generalized.
+
+Legacy Codex-home overlays, project overlays, vendored `node_modules`, private OpenSpec/governance content, live `.env`, logs, SQLite/db runtime, and `.runtime` content must not be added as public source.
+
+## Validation
+
+Classification and manifest coverage gate:
+
+```powershell
+python D:\int\tools\repo-ops\bin\validate_tools_catalog.py --root D:\int\tools --skip-forbidden
+```
+
+Full public-cleanliness gate after approved legacy cleanup:
+
+```powershell
+python D:\int\tools\repo-ops\bin\validate_tools_catalog.py --root D:\int\tools
+```
+
+The validator checks that every tracked non-hidden top-level directory is present in `tools.catalog.v1.json`. The full mode also rejects forbidden public-repo artifacts. It is expected to fail while previously tracked legacy artifacts such as vendored `node_modules` and legacy Codex overlays remain in the public repository awaiting owner-approved cleanup.
 
 ## OpenSpec governance
 
@@ -91,9 +115,7 @@
 - `ssh vds-intdata-agents` — canonical remote shell для consolidated Codex/OpenClaw runtime на `vds.intdata.pro` (`agents`);
 - Для dev backend intdata с локальной Windows-машины не используйте `D:\int\data`; рабочий checkout — `agents@vds.intdata.pro:/int/data`.
 - `python -m agent_plane.server --host 127.0.0.1 --port 9192` — локальный запуск neutral Agent Tool Plane;
-- `python -m agent_plane.local_harness --tool intbrain_context_pack --args-json '{"owner_id":1,"query":"test"}'` — Agno/local smoke через neutral plane;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intbrain` (или `/int/tools/codex/bin/mcp-intdata-cli.sh --profile intbrain`) — запуск универсального MCP-адаптера `intbrain-mcp` (Phase 2, agent-agnostic);
-- `/int/tools/openclaw/bin/openclaw-intbrain-query.sh --owner <id> "<query>"` — thin consumer-обёртка OpenClaw поверх generic `intbrain` API;
+- `python -m agent_plane.local_harness --help` — local smoke через neutral plane;
 - `/int/tools/codex/bin/codex-host-bootstrap` — bootstrap рабочего минимума Codex/OpenClaw/cloud tooling;
 - `pwsh -File /int/tools/codex/scripts/bootstrap_windows_toolchain.ps1 -AllowUserFallback` — idempotent bootstrap Windows CLI-toolchain (`rg`, `fd`, `yq`, `uv`, `pnpm`, `terraform`, `make`, PATH-normalization, fallback для `cmake/7z`);
 - `pwsh -File /int/tools/codex/scripts/codex_preflight.ps1` — preflight-проверка ключевых CLI с machine-readable режимом `-Json`;
@@ -135,49 +157,21 @@
   - `INT_SSH_DEV_TAILNET_NODE/HOST`, `INT_SSH_PROD_TAILNET_NODE/HOST`
 - Короткий probe timeout: `INT_SSH_PROBE_TIMEOUT_SEC`.
 
-## IntBrain Agent-Memory Integration
+## IntBrain Boundary
 
-- `codex/plugins/intbrain/` публикует intData Brain как packaged Codex plugin в каталоге `intData Tools`.
-- `codex/bin/mcp-intdata-cli.py --profile intbrain` (через `mcp-intdata-cli.cmd/.sh`) публикует универсальный MCP toolset:
-  - `intbrain_context_pack`
-  - `intbrain_people_resolve`
-  - `intbrain_people_get`
-  - `intbrain_people_policy_tg_get`
-  - `intbrain_group_policy_get`
-  - `intbrain_group_policy_upsert`
-  - `intbrain_graph_neighbors`
-  - `intbrain_context_store`
-  - `intbrain_graph_link`
-  - `intbrain_jobs_list`
-  - `intbrain_jobs_get`
-  - `intbrain_job_policy_upsert`
-  - `intbrain_jobs_sync_runtime`
-  - `intbrain_policy_events_list`
-  - `intbrain_pm_dashboard`
-  - `intbrain_pm_tasks`
-  - `intbrain_pm_task_create`
-  - `intbrain_pm_task_patch`
-  - `intbrain_pm_para`
-  - `intbrain_pm_health`
-  - `intbrain_pm_constraints_validate`
-  - `intbrain_import_vault_pm`
-  - `intbrain_memory_sync_sessions`
-  - `intbrain_memory_import_mempalace`
-  - `intbrain_cabinet_inventory`
-  - `intbrain_cabinet_import`
-- Auth задаётся через `INTBRAIN_AGENT_ID` и `INTBRAIN_AGENT_KEY` (env/secret file), без жёсткой привязки к конкретному агенту.
-- Для `intbrain_import_vault_pm` дополнительно нужен `INTBRAIN_CORE_ADMIN_TOKEN`; без него MCP возвращает `config_error` до HTTP-вызова.
-- После обновления профиля `intbrain` в `mcp-intdata-cli.py` требуется перезапуск Codex/OpenClaw (или MCP runtime), чтобы refresh `tools/list` подтянул новый PM toolset.
-- OpenClaw и Codex используют один и тот же generic контракт; agent-specific UX остаётся только в overlay-скриптах `/int/tools/*`.
+IntBrain lives in its own contour and is not a public intTools tool.
+
+Do not add IntBrain memory/search/fetch, people graph, PM, or context tools to an intTools-wide MCP. Tool-specific intTools MCP surfaces must stay scoped to their owning public tool, and any future catalog MCP must be read-only over catalog metadata only.
 
 ## intData Tools Codex Plugins
 
 - Marketplace source-of-truth: `.agents/plugins/marketplace.json`.
 - Packaged plugins live in `codex/plugins/<plugin>/` and use `INSTALLED_BY_DEFAULT` + `ON_INSTALL`.
-- Core plugins: `intbrain`, `intdata-control`, `dba`, `intdata-runtime`.
+- Core public intTools plugins: `intdata-control`, `dba`, `intdata-runtime`.
+- IntBrain plugins and MCP surfaces belong to the IntBrain contour, not to public intTools.
 - Active plugin category: `Developer Tools`.
 - Removed active plugin IDs: `lockctl`, `multica`, `openspec`, `intdata-governance`, `intdata-vault`, `mempalace`, `cabinet`.
-- Cabinet is absorbed through IntBrain inventory/import tooling; the standalone local product directory is not deleted until count-check and owner acceptance are recorded in INT-222.
+- Cabinet-related inventory/import tooling is outside public intTools; old standalone local product directories are not deleted without count-check and owner acceptance.
 - CLI-backed plugins use `codex/bin/mcp-intdata-cli.py` through profile launchers. Wrappers accept structured command args only; arbitrary shell strings are not supported.
 - Mutating commands require `confirm_mutation: true` and `issue_context` in `INT-*` format.
 - Hard migration note: old plugin IDs `intdata-routing`, `intdata-delivery`, `gatesctl`, `intdata-host`, `intdata-ssh`, `intdata-browser` removed; tools renamed to consolidated governance/runtime surface without aliases.

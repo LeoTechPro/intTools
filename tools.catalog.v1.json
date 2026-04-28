@@ -1,0 +1,166 @@
+{
+  "version": 1,
+  "generated_by": "reposition-inttools-public-catalog",
+  "tools": [
+    {
+      "id": "agent-plane",
+      "root": "agent_plane",
+      "status": "public-tool",
+      "owner": "intData",
+      "public_surface": "Reusable agent tool-plane runtime, local harness, policy-aware dispatch, and MCP/server adapters.",
+      "runtime_state": "Configurable external state only; no tracked runtime data.",
+      "target_home": "D:/int/tools/agent_plane",
+      "migration_action": "Keep and productize as first public-tool batch."
+    },
+    {
+      "id": "chatgpt-apps-int-tools-mcp",
+      "root": "chatgpt-apps",
+      "status": "legacy-remove",
+      "owner": "intData",
+      "public_surface": "No public catalog surface in current form.",
+      "runtime_state": "Current int-tools-mcp mixes IntBrain memory search with readonly control calls.",
+      "target_home": "IntBrain surfaces move outside tools; lock/control status belongs to tool-specific adapters.",
+      "migration_action": "Split or remove after recorded destination and dry-run diff; do not preserve IntBrain search/fetch in tools."
+    },
+    {
+      "id": "codex-tooling",
+      "root": "codex",
+      "status": "public-adapter",
+      "owner": "intData",
+      "public_surface": "Public wrappers, packaged plugins, operator entrypoints, and sanitized examples.",
+      "runtime_state": "Codex home, secrets, policy state, runtime logs, and legacy overlays are outside public source.",
+      "target_home": "D:/int/tools/codex for public wrappers/plugins; D:/int governance/runtime contours for private policy.",
+      "migration_action": "Keep public bin/plugins; move or remove legacy/private assets after dry-run approval."
+    },
+    {
+      "id": "intdba",
+      "root": "dba",
+      "status": "public-tool",
+      "owner": "intData",
+      "public_surface": "Installable operator CLI for guarded Postgres/Supabase profiles and migration checks.",
+      "runtime_state": "Local .env stays untracked; runtime artifacts stay outside tracked source.",
+      "target_home": "D:/int/tools/dba",
+      "migration_action": "Keep and productize as public first-party CLI tool."
+    },
+    {
+      "id": "delivery",
+      "root": "delivery",
+      "status": "public-adapter",
+      "owner": "intData",
+      "public_surface": "Sanitized templates and reusable delivery helpers.",
+      "runtime_state": "Live host configs, credentials, private host playbooks, logs, and deploy state stay outside public source.",
+      "target_home": "D:/int/tools/delivery for sanitized helpers; D:/int/.runtime/delivery or master-private governance for private machinery.",
+      "migration_action": "Audit and split public templates from private/live host machinery before cleanup."
+    },
+    {
+      "id": "gatesctl",
+      "root": "gatesctl",
+      "status": "public-tool",
+      "owner": "intData",
+      "public_surface": "CLI and hook templates for gate receipts, approvals, and commit binding.",
+      "runtime_state": "State directory must be configurable; default runtime state is outside tracked source.",
+      "target_home": "D:/int/tools/gatesctl",
+      "migration_action": "Keep and productize with public docs, tests, and optional tool-specific MCP."
+    },
+    {
+      "id": "gemini-openai-proxy",
+      "root": "gemini-openai-proxy",
+      "status": "legacy-remove",
+      "owner": "intData",
+      "public_surface": "Reference/vendor copy only; not an owned public intTools tool in current form.",
+      "runtime_state": "Local OAuth/session material stays in user/runtime homes, never tracked.",
+      "target_home": "D:/int/references/gemini-openai-proxy as read-only master reference submodule.",
+      "migration_action": "Move to master reference after approval, or replace with catalog link."
+    },
+    {
+      "id": "lockctl",
+      "root": "lockctl",
+      "status": "public-tool",
+      "owner": "intData",
+      "public_surface": "CLI for scoped file lease coordination with install wrappers and tests.",
+      "runtime_state": "State directory must be configurable; lock database and events are runtime-only.",
+      "target_home": "D:/int/tools/lockctl",
+      "migration_action": "Keep and productize with public docs, non-intData defaults, and optional readonly MCP."
+    },
+    {
+      "id": "misc",
+      "root": "misc",
+      "status": "legacy-remove",
+      "owner": "intData",
+      "public_surface": "No public top-level bucket.",
+      "runtime_state": "None.",
+      "target_home": "Owning public tool, master-private path, or removal.",
+      "migration_action": "Classify each file and move to owner tool or delete after approval."
+    },
+    {
+      "id": "openclaw",
+      "root": "openclaw",
+      "status": "public-adapter",
+      "owner": "intData",
+      "public_surface": "Generalized integration helpers, templates, and public runbook material only.",
+      "runtime_state": "OpenClaw home, workspace, secrets, and private runtime policy stay outside tracked source.",
+      "target_home": "D:/int/tools/openclaw for generalized helpers; user/runtime homes for live state.",
+      "migration_action": "Audit and split private runtime parts before cleanup."
+    },
+    {
+      "id": "probe",
+      "root": "probe",
+      "status": "master-private",
+      "owner": "intData",
+      "public_surface": "No generic public tool surface in current form.",
+      "runtime_state": "Probe runtime state belongs to the probe contour.",
+      "target_home": "D:/int/probe unless generalized into a public helper.",
+      "migration_action": "Move to probe contour or productize separately after audit."
+    },
+    {
+      "id": "repo-ops",
+      "root": "repo-ops",
+      "status": "public-tool",
+      "owner": "intData",
+      "public_surface": "Reusable repository operations helpers.",
+      "runtime_state": "No tracked runtime state; command output stays in caller-selected temp/runtime paths.",
+      "target_home": "D:/int/tools/repo-ops",
+      "migration_action": "Keep and productize as reusable repo operations toolkit."
+    },
+    {
+      "id": "roistat",
+      "root": "roistat",
+      "status": "public-adapter",
+      "owner": "intData",
+      "public_surface": "Domain adapter tool only if audit confirms no private client coupling.",
+      "runtime_state": "Runtime credentials/config must remain external and example-only in git.",
+      "target_home": "D:/int/tools/roistat if public-safe; otherwise master reference or product contour.",
+      "migration_action": "Audit before declaring stable public adapter."
+    },
+    {
+      "id": "vault",
+      "root": "vault",
+      "status": "public-tool",
+      "owner": "intData",
+      "public_surface": "Public sanitizer and runtime garbage-collection helpers only.",
+      "runtime_state": "Private vault policy, secrets, and live runtime state stay outside tools.",
+      "target_home": "D:/int/tools/vault for sanitizer/GC; private vault policy outside public repo.",
+      "migration_action": "Keep only public sanitizer/GC surface after audit."
+    },
+    {
+      "id": "tools-web",
+      "root": "web",
+      "status": "legacy-remove",
+      "owner": "intData",
+      "public_surface": "Static public catalog site; source belongs to master web contour, not public tools.",
+      "runtime_state": "No runtime state.",
+      "target_home": "D:/int/web/tools",
+      "migration_action": "Move/merge site files into master web contour; remove legacy copy after approval."
+    },
+    {
+      "id": "ngt-memory",
+      "root": "ngt-memory",
+      "status": "catalog-link",
+      "owner": "external",
+      "public_surface": "Recommended external reference link only.",
+      "runtime_state": "Not stored in intTools.",
+      "target_home": "External upstream or master read-only reference submodule if actively studied.",
+      "migration_action": "Keep as website/catalog metadata only; do not import copied source into tools."
+    }
+  ]
+}
