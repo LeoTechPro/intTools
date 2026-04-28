@@ -39,3 +39,7 @@ ngt-memory/
 
 # local unpacked memory-bank artifacts (not tracked in intTools)
 mcp-memory-bank/
+
+# local dependency/build artifacts
+node_modules/
+**/node_modules/
