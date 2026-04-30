@@ -90,8 +90,7 @@ RUNTIME_TOOLS = [
     _tool("host_verify", "Run Codex host verification.", {**COMMON_RUN_PROPS, "args": _args_prop()}),
     _tool("host_bootstrap", "Run Codex host bootstrap. Mutating; requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "args": _args_prop()}, ["confirm_mutation", "issue_context"]),
     _tool("recovery_bundle", "Create a Codex recovery bundle. Mutating; requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "args": _args_prop()}, ["confirm_mutation", "issue_context"]),
-    _tool("ssh_resolve", "Resolve IntData SSH host transport.", {**COMMON_RUN_PROPS, "host": {"type": "string"}, "mode": {"type": "string"}, "json": {"type": "boolean"}}, ["host"]),
-    _tool("ssh_host", "Print SSH host config/diagnostics, not an interactive shell.", {**COMMON_RUN_PROPS, "host": {"type": "string"}, "args": _args_prop()}, ["host"]),
+    _tool("ssh_resolve", "Resolve IntData SSH host transport and optional destination-only diagnostics.", {**COMMON_RUN_PROPS, "host": {"type": "string"}, "mode": {"type": "string"}, "json": {"type": "boolean"}, "destination_only": {"type": "boolean"}}, ["host"]),
     _tool("browser_profile_launch", "Deprecated compatibility: launch an allowed Firefox MCP profile. Mutating; requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "profile": {"type": "string", "enum": BROWSER_PROFILE_NAMES}, "args": _args_prop("Optional launcher arguments.")}, ["confirm_mutation", "issue_context", "profile"]),
 ]
 
@@ -305,11 +304,8 @@ def _call_runtime(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             argv.extend(["--mode", str(arguments["mode"])])
         if arguments.get("json"):
             argv.append("--json")
-        return _run(argv, cwd=cwd, timeout_sec=timeout)
-    if name == "ssh_host":
-        argv = [*_powershell_base(), "-File", str(ROOT_DIR / "codex" / "bin" / "int_ssh_host.ps1"), "-Logical", str(arguments["host"])]
-        if arguments.get("args"):
-            argv.extend(_safe_args(arguments.get("args")))
+        if arguments.get("destination_only"):
+            argv.append("--destination-only")
         return _run(argv, cwd=cwd, timeout_sec=timeout)
     if name == "browser_profile_launch":
         _require_mutation(arguments)

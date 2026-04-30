@@ -17,7 +17,6 @@ EXPECTED_V1_CAPABILITIES = {
     "lockctl-cli",
     "lockctl-mcp",
     "int_ssh_resolve",
-    "int_ssh_host",
     "firefox-default",
     "assess-firefox-client",
     "assess-firefox-specialist-v1",
@@ -56,6 +55,11 @@ class AgentToolRoutingTest(unittest.TestCase):
     def test_sync_gate_intent_is_removed(self) -> None:
         with self.assertRaises(routing.RoutingError) as ctx:
             routing.resolve_capability("sync-gate:start", platform="linux")
+        self.assertEqual(ctx.exception.code, "UNKNOWN_INTENT")
+
+    def test_ssh_host_intent_is_merged_into_resolve(self) -> None:
+        with self.assertRaises(routing.RoutingError) as ctx:
+            routing.resolve_capability("ssh:host", platform="windows")
         self.assertEqual(ctx.exception.code, "UNKNOWN_INTENT")
 
     def test_lockctl_mcp_resolves_to_shared_intdata_control_runtime(self) -> None:

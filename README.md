@@ -143,7 +143,8 @@ The validator checks that every tracked non-hidden top-level directory is presen
 - Канонический SSH transport-слой находится в:
   - `/int/tools/codex/bin/int_ssh_resolve.py`
   - `/int/tools/codex/bin/int_ssh_resolve.ps1`
-  - `/int/tools/codex/bin/int_ssh_host.sh`
+  - `/int/tools/codex/bin/int_ssh_resolve.sh`
+  - `/int/tools/codex/bin/int_ssh_host.sh` (compatibility destination-only adapter; not a separate capability)
   - `/int/tools/codex/config/int_ssh_config`
 - User-home `~/.ssh/config`/`C:\Users\intData\.ssh\config` этим rollout-ом не редактируется.
 - Контракт режима:

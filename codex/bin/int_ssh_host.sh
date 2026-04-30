@@ -52,6 +52,6 @@ fi
 exec "$python_bin" "$script_dir/int_ssh_resolve.py" \
   --requested-host "$logical" \
   --mode "$mode" \
-  --capability int_ssh_host \
+  --capability int_ssh_resolve \
   --binding-origin "codex/bin/int_ssh_host.sh" \
   --destination-only

@@ -23,7 +23,7 @@ $cliArgs = @(
     $enginePath,
     "--requested-host", $Logical,
     "--mode", $Mode,
-    "--capability", "int_ssh_host",
+    "--capability", "int_ssh_resolve",
     "--binding-origin", "codex/bin/int_ssh_host.ps1",
     "--destination-only"
 )

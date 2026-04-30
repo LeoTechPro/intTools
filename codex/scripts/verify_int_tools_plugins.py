@@ -14,7 +14,7 @@ MCP_SERVER = ROOT / "codex" / "bin" / "mcp-intdata-cli.py"
 EXPECTED_COUNTS = {
     "intbrain": 27,
     "intdata-control": 21,
-    "intdata-runtime": 9,
+    "intdata-runtime": 8,
     "dba": 1,
 }
 
@@ -55,7 +55,6 @@ TOOL_SKILLS = {
         "host_bootstrap": "host-diagnostics",
         "recovery_bundle": "host-diagnostics",
         "ssh_resolve": "ssh",
-        "ssh_host": "ssh",
             "browser_profile_launch": "firefox-devtools-testing",
         "intdata_vault_sanitize": "vault-maintenance",
         "intdata_runtime_vault_gc": "vault-maintenance",
@@ -109,7 +108,7 @@ GUARDED_TOOLS = {
     "lockctl_acquire", "lockctl_renew", "lockctl_release_path", "lockctl_release_issue", "lockctl_gc",
     "openspec_archive", "openspec_change_mutate", "openspec_spec_mutate", "openspec_new", "openspec_exec_mutate",
     "commit_binding",
-    "host_bootstrap", "recovery_bundle", "ssh_host", "browser_profile_launch",
+    "host_bootstrap", "recovery_bundle", "browser_profile_launch",
     "intdata_vault_sanitize", "intdata_runtime_vault_gc",
     "intbrain_context_store", "intbrain_graph_link", "intbrain_group_policy_upsert", "intbrain_jobs_sync_runtime",
     "intbrain_job_policy_upsert", "intbrain_pm_task_create", "intbrain_pm_task_patch", "intbrain_import_vault_pm",
