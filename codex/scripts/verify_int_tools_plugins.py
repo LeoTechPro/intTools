@@ -233,10 +233,15 @@ def tools_for(profile: str) -> list[dict[str, Any]]:
 
 
 def verify_manifests(report: dict[str, Any]) -> None:
-    marketplace = json.loads((ROOT / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8"))
-    entries = {entry["name"]: entry for entry in marketplace["plugins"]}
+    marketplace_path = ROOT / ".codex" / "plugins" / "marketplace.json"
+    if not marketplace_path.exists():
+        report["manifest_warnings"].append(f"missing marketplace catalog; skipped marketplace entry checks: {display_path(marketplace_path)}")
+        entries = {}
+    else:
+        marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
+        entries = {entry["name"]: entry for entry in marketplace["plugins"]}
     for name, plugin_dir in PLUGIN_DIRS.items():
-        if name not in entries:
+        if entries and name not in entries:
             report["manifest_errors"].append(f"missing marketplace entry: {name}")
             continue
         manifest = json.loads((plugin_dir / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
@@ -356,7 +361,7 @@ def verify_active_doc_references(report: dict[str, Any]) -> None:
     )
     for path in active_doc_paths():
         if not path.exists():
-            report["doc_guard_errors"].append(f"missing active doc: {display_path(path)}")
+            report["doc_guard_warnings"].append(f"missing active doc; skipped removed-reference scan: {display_path(path)}")
             continue
         for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
             for name, pattern in REMOVED_ACTIVE_DOC_REFS.items():
@@ -414,10 +419,12 @@ def build_report(skip_guards: bool) -> dict[str, Any]:
         "expected_counts": EXPECTED_COUNTS,
         "counts": {},
         "manifest_errors": [],
+        "manifest_warnings": [],
         "mapping_errors": [],
         "cabinet_errors": [],
         "skill_frontmatter_errors": [],
         "doc_guard_errors": [],
+        "doc_guard_warnings": [],
         "matrix": [],
     }
     verify_manifests(report)

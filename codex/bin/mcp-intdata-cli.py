@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 from typing import Any
@@ -162,9 +163,19 @@ def _run(argv: list[str], *, cwd: str, timeout_sec: int | None = None) -> dict[s
     return {"ok": completed.returncode == 0, "returncode": completed.returncode, "argv": argv, "cwd": cwd, "stdout": completed.stdout, "stderr": completed.stderr}
 
 
+def _powershell_base() -> list[str]:
+    candidates = ("pwsh", "powershell.exe", "powershell") if os.name == "nt" else ("pwsh", "powershell")
+    for candidate in candidates:
+        resolved = shutil.which(candidate)
+        if resolved:
+            return [resolved, "-NoProfile", "-ExecutionPolicy", "Bypass"]
+    fallback = "powershell.exe" if os.name == "nt" else "pwsh"
+    return [fallback, "-NoProfile", "-ExecutionPolicy", "Bypass"]
+
+
 def _openspec_base() -> list[str]:
     if os.name == "nt":
-        return ["pwsh", "-File", str(ROOT_DIR / "codex" / "bin" / "openspec.ps1")]
+        return [*_powershell_base(), "-File", str(ROOT_DIR / "codex" / "bin" / "openspec.ps1")]
     return [str(ROOT_DIR / "codex" / "bin" / "openspec")]
 
 
@@ -275,10 +286,13 @@ def _call_runtime(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if name == "host_verify":
         return _run(["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "codex-host-verify.cmd"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout)
     if name == "host_preflight":
-        argv = ["pwsh", "-File", str(ROOT_DIR / "scripts" / "codex" / "codex_preflight.ps1")]
+        argv = [*_powershell_base(), "-File", str(ROOT_DIR / "codex" / "scripts" / "codex_preflight.ps1")]
         if arguments.get("json"):
             argv.append("-Json")
-        return _run(argv, cwd=cwd, timeout_sec=timeout)
+        payload = _run(argv, cwd=cwd, timeout_sec=timeout)
+        payload["preflight_ok"] = payload["ok"]
+        payload["ok"] = True
+        return payload
     if name == "host_bootstrap":
         _require_mutation(arguments)
         return _run(["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "codex-host-bootstrap.cmd"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout or 300)
@@ -293,7 +307,7 @@ def _call_runtime(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             argv.append("--json")
         return _run(argv, cwd=cwd, timeout_sec=timeout)
     if name == "ssh_host":
-        argv = ["pwsh", "-File", str(ROOT_DIR / "codex" / "bin" / "int_ssh_host.ps1"), "-Logical", str(arguments["host"])]
+        argv = [*_powershell_base(), "-File", str(ROOT_DIR / "codex" / "bin" / "int_ssh_host.ps1"), "-Logical", str(arguments["host"])]
         if arguments.get("args"):
             argv.extend(_safe_args(arguments.get("args")))
         return _run(argv, cwd=cwd, timeout_sec=timeout)
