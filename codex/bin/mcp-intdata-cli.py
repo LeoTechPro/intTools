@@ -40,6 +40,10 @@ def _args_prop(description: str = "Structured command arguments.") -> dict[str, 
     return {"type": "array", "items": {"type": "string"}, "description": description}
 
 
+def _path_prop(description: str) -> dict[str, Any]:
+    return {"type": "string", "description": description}
+
+
 def _mutation_props() -> dict[str, Any]:
     return {
         "confirm_mutation": {"type": "boolean"},
@@ -95,12 +99,12 @@ RUNTIME_TOOLS = [
 ]
 
 DBA_TOOLS = [
-    _tool("intdata_cli", "Run a profile allowlisted CLI command with structured arguments.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "args": _args_prop()}, ["command"]),
+    _tool("intdata_cli", "Run a profile allowlisted CLI command with structured arguments.", {**COMMON_RUN_PROPS, **_mutation_props(), "command": {"type": "string"}, "profile": {"type": "string", "description": "DBA profile injected as --profile/--target for commands that require one."}, "args": _args_prop()}, ["command"]),
 ]
 
 VAULT_TOOLS = [
-    _tool("intdata_vault_sanitize", "Run vault sanitizer. Defaults to dry-run; non-dry-run requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "dry_run": {"type": "boolean"}, "args": _args_prop()}),
-    _tool("intdata_runtime_vault_gc", "Run runtime vault GC. Defaults to dry-run; non-dry-run requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "dry_run": {"type": "boolean"}, "args": _args_prop()}),
+    _tool("intdata_vault_sanitize", "Run vault sanitizer. Defaults to dry-run; non-dry-run requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "dry_run": {"type": "boolean"}, "vault_root": _path_prop("Vault root. Defaults to D:/int/2brain on this host."), "brain_root": _path_prop("Brain repo root. Defaults to D:/int/brain on this host."), "tools_root": _path_prop("Tools repo root. Defaults to D:/int/tools."), "runtime_root": _path_prop("Runtime vault root override."), "args": _args_prop()}),
+    _tool("intdata_runtime_vault_gc", "Run runtime vault GC. Defaults to dry-run; non-dry-run requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "dry_run": {"type": "boolean"}, "brain_root": _path_prop("Brain repo root. Defaults to D:/int/brain on this host."), "runtime_root": _path_prop("Runtime vault root override."), "archive_root": _path_prop("Archive root override. Defaults to D:/int/.tmp."), "args": _args_prop()}),
 ]
 
 LOCKCTL_TOOLS = [
@@ -138,6 +142,26 @@ def _safe_args(raw: Any) -> list[str]:
     if not isinstance(raw, list) or not all(isinstance(item, str) for item in raw):
         raise ValueError("args must be an array of strings")
     return raw
+
+
+def _string_arg(arguments: dict[str, Any], key: str) -> str | None:
+    raw = arguments.get(key)
+    if raw is None:
+        return None
+    value = str(raw).strip()
+    return value or None
+
+
+def _append_path_arg(argv: list[str], arguments: dict[str, Any], key: str, flag: str, default: Path | None = None) -> None:
+    value = _string_arg(arguments, key)
+    if value is None and default is not None:
+        value = str(default)
+    if value:
+        argv.extend([flag, value])
+
+
+def _has_arg(args: list[str], flag: str) -> bool:
+    return flag in args
 
 
 def _cwd(raw: Any) -> str:
@@ -283,7 +307,12 @@ def _call_runtime(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     cwd = _cwd(arguments.get("cwd"))
     timeout = arguments.get("timeout_sec")
     if name == "host_verify":
-        return _run(["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "codex-host-verify.cmd"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout)
+        payload = _run(["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "codex-host-verify.cmd"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout)
+        output = f"{payload.get('stdout', '')}\n{payload.get('stderr', '')}"
+        verify_ok = payload["returncode"] == 0 and "codex host verify: FAILED" not in output
+        payload["verify_ok"] = verify_ok
+        payload["ok"] = verify_ok
+        return payload
     if name == "host_preflight":
         argv = [*_powershell_base(), "-File", str(ROOT_DIR / "codex" / "scripts" / "codex_preflight.ps1")]
         if arguments.get("json"):
@@ -326,6 +355,12 @@ def _call_dba(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if command not in commands:
         raise ValueError(f"unknown dba command: {command}")
     args = _safe_args(arguments.get("args"))
+    profile = _string_arg(arguments, "profile")
+    if profile and args:
+        if args[:1] in (["doctor"], ["sql"], ["file"]) and "--profile" not in args:
+            args = [args[0], "--profile", profile, *args[1:]]
+        elif args[:2] == ["migrate", "status"] and "--target" not in args:
+            args = [args[0], args[1], "--target", profile, *args[2:]]
     safe_dba = not args or args[:1] in (["doctor"], ["--help"], ["-h"], ["help"]) or args[:2] == ["migrate", "status"]
     if not safe_dba:
         _require_mutation(arguments)
@@ -334,14 +369,30 @@ def _call_dba(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
 
 def _call_vault(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     cwd = _cwd(arguments.get("cwd"))
+    args = _safe_args(arguments.get("args"))
     dry_run = arguments.get("dry_run", True) is not False
+    if dry_run and _has_arg(args, "--apply"):
+        raise ValueError("--apply requires dry_run=false and mutation confirmation")
+    if not dry_run and _has_arg(args, "--dry-run"):
+        raise ValueError("dry_run=false cannot be combined with --dry-run")
     if not dry_run:
         _require_mutation(arguments)
     script = "vault_sanitize.py" if name == "intdata_vault_sanitize" else "runtime_vault_gc.py"
     argv = ["python", str(ROOT_DIR / "vault" / "installers" / script)]
     if dry_run:
         argv.append("--dry-run")
-    argv.extend(_safe_args(arguments.get("args")))
+    else:
+        argv.append("--apply")
+    if name == "intdata_vault_sanitize":
+        _append_path_arg(argv, arguments, "vault_root", "--vault-root", INT_ROOT / "2brain")
+        _append_path_arg(argv, arguments, "brain_root", "--brain-root", INT_ROOT / "brain")
+        _append_path_arg(argv, arguments, "tools_root", "--tools-root", ROOT_DIR)
+        _append_path_arg(argv, arguments, "runtime_root", "--runtime-root")
+    else:
+        _append_path_arg(argv, arguments, "brain_root", "--brain-root", INT_ROOT / "brain")
+        _append_path_arg(argv, arguments, "runtime_root", "--runtime-root")
+        _append_path_arg(argv, arguments, "archive_root", "--archive-root")
+    argv.extend(args)
     return _run(argv, cwd=cwd, timeout_sec=arguments.get("timeout_sec") or 300)
 
 

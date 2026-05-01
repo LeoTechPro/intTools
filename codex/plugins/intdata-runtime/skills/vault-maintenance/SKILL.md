@@ -13,19 +13,19 @@ description: Runtime vault maintenance. Используйте для vault sani
 ### intdata_vault_sanitize
 - Когда: нужно проверить или выполнить vault sanitize.
 - Required inputs: нет
-- Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `dry_run`, `args`
+- Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `dry_run`, `vault_root`, `brain_root`, `tools_root`, `runtime_root`, `args`
 - Режим: read-only by default
 - Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
 - Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-- Пример вызова: `{"name":"intdata_vault_sanitize","arguments":{}}`
+- Пример вызова: `{"name":"intdata_vault_sanitize","arguments":{"dry_run": true, "vault_root": "D:/int/2brain", "brain_root": "D:/int/brain"}}`
 - Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
 
 ### intdata_runtime_vault_gc
 - Когда: нужно проверить или выполнить runtime vault GC.
 - Required inputs: нет
-- Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `dry_run`, `args`
+- Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `dry_run`, `brain_root`, `runtime_root`, `archive_root`, `args`
 - Режим: read-only by default
 - Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
 - Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-- Пример вызова: `{"name":"intdata_runtime_vault_gc","arguments":{}}`
+- Пример вызова: `{"name":"intdata_runtime_vault_gc","arguments":{"dry_run": true, "brain_root": "D:/int/brain"}}`
 - Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
