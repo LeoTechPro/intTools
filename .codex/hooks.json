@@ -12,17 +12,6 @@
                                                      ]
                                        }
                                    ],
-                  "UserPromptSubmit":  [
-                                           {
-                                               "hooks":  [
-                                                             {
-                                                                 "type":  "command",
-                                                                 "command":  "python D:\\int\\tools\\.codex\\hooks\\int_runtime_context_guard.py",
-                                                                 "timeout":  10
-                                                             }
-                                                         ]
-                                           }
-                                       ],
                   "PreToolUse":  [
                                      {
                                          "matcher":  "Bash",

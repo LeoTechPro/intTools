@@ -39,6 +39,16 @@ MUTATING_GIT_RE = re.compile(
     r"(^|[;&|]\s*)git\s+(add|commit|push|reset|clean|checkout|switch|merge|rebase|cherry-pick|am|apply|stash|restore|rm|mv)\b",
     re.I,
 )
+OWNER_STATE_GIT_RE = re.compile(
+    r"(^|[;&|]\s*)git\s+(restore\b|stash\b|reset\b|clean\b|rm\b|mv\b|checkout\s+--(?:\s|$))",
+    re.I,
+)
+OWNER_STATE_WRITE_RE = re.compile(
+    r"(^|[;&|]\s*)(rm|rmdir|del|erase|move|mv|copy|cp)\b|"
+    r"powershell\b.*\b(Remove-Item|Move-Item|Copy-Item)\b|"
+    r"pwsh\b.*\b(Remove-Item|Move-Item|Copy-Item)\b",
+    re.I | re.S,
+)
 WRITE_RE = re.compile(
     r"(^|[;&|]\s*)(rm|rmdir|del|erase|move|mv|copy|cp|install|touch|mkdir|ln|truncate|chmod|chown|"
     r"sed\s+-i|perl\s+-pi|dotnet\s+(restore|add|remove|new|tool\s+install|tool\s+update)|"
@@ -192,6 +202,14 @@ def tmp_write(command: str) -> bool:
     return any(marker in lowered for marker in ("/tmp/", "/var/tmp/", "/temp/", "/appdata/local/temp/", "/int/.tmp/"))
 
 
+def owner_state_mutation(command: str) -> bool:
+    if OWNER_STATE_GIT_RE.search(command):
+        return True
+    if OWNER_STATE_WRITE_RE.search(command) and not tmp_write(command):
+        return True
+    return False
+
+
 def context_prefix(root: str, contour: str, mission: str, scope: str = "Repo-local") -> str:
     return f"{scope} runtime context: repo_root={root}, contour={contour}, mission={mission}. "
 
@@ -296,6 +314,8 @@ def guard_reason(command: str, ctx: dict[str, str]) -> str | None:
     contour = ctx["contour"]
     if re.search(r"(^|[;&|]\s*)git\s+add\b", command, re.I) and SECRET_ENV_RE.search(command) and not SECRET_ENV_EXAMPLE_RE.search(command):
         return "staging runtime env/secret files is blocked; only *.env.example or *.example are allowed"
+    if owner_state_mutation(command) and not approved(command, "OWNER_STATE_MUTATION_APPROVED"):
+        return "protected owner/other-agent worktree state mutation requires OWNER_STATE_MUTATION_APPROVED=1; stop and ask owner"
     if DESTRUCTIVE_GIT_RE.search(command) and not approved(command, "DESTRUCTIVE_GIT_APPROVED"):
         return "destructive git requires explicit owner approval marker DESTRUCTIVE_GIT_APPROVED=1"
     if contour == "reference-readonly":
@@ -335,7 +355,7 @@ def main() -> int:
     if ctx["contour"] == "unmanaged":
         return 0
 
-    if event in {"SessionStart", "UserPromptSubmit"}:
+    if event == "SessionStart":
         text = context_text(ctx)
         if text:
             emit_context(event, text)
