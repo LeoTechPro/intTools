@@ -99,9 +99,6 @@ OPEN_SPEC_TOOLS = [
 GOVERNANCE_TOOLS = [
     _tool("routing_validate", "Validate high-risk agent tool routing registry.", {**COMMON_RUN_PROPS, "strict": {"type": "boolean"}, "json": {"type": "boolean"}}),
     _tool("routing_resolve", "Resolve a logical high-risk tooling intent.", {**COMMON_RUN_PROPS, "intent": {"type": "string"}, "platform": {"type": "string"}, "json": {"type": "boolean"}}, ["intent"]),
-    _tool("gate_status", "Show gate receipts/bindings/approvals status.", {**COMMON_RUN_PROPS, "repo_root": {"type": "string"}, "issue": {"type": "string"}, "receipt_id": {"type": "string"}, "commit": {"type": "string"}, "gate": {"type": "string"}, "owner": {"type": "string"}, "format": {"type": "string", "enum": ["json", "text"]}}),
-    _tool("gate_receipt", "Show a gate receipt by id or commit binding.", {**COMMON_RUN_PROPS, "repo_root": {"type": "string"}, "receipt_id": {"type": "string"}, "commit": {"type": "string"}, "format": {"type": "string", "enum": ["json", "text"]}}),
-    _tool("commit_binding", "Bind a gate receipt to a commit. Mutating; requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "repo_root": {"type": "string"}, "issue": {"type": "string"}, "receipt_id": {"type": "string"}, "commit_sha": {"type": "string"}, "repo": {"type": "string"}, "post_issue": {"type": "boolean"}, "format": {"type": "string", "enum": ["json", "text"]}}, ["confirm_mutation", "issue_context", "commit_sha"]),
 ]
 
 RUNTIME_TOOLS = [
@@ -145,6 +142,7 @@ COORDCTL_TOOLS = [
 RUNTIME_TOOLS.extend(VAULT_TOOLS)
 CONTROL_TOOLS = [*LOCKCTL_TOOLS, *COORDCTL_TOOLS, *OPEN_SPEC_TOOLS, *GOVERNANCE_TOOLS]
 PROFILE_TOOLS: dict[str, list[dict[str, Any]]] = {
+    "coordctl": COORDCTL_TOOLS,
     "intbrain": [],
     "intdata-control": CONTROL_TOOLS,
     "intdata-runtime": RUNTIME_TOOLS,
@@ -305,27 +303,6 @@ def _call_governance(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if arguments.get("json"):
             argv.append("--json")
         return _run(argv, cwd=cwd, timeout_sec=timeout)
-    if name == "gate_status":
-        argv = ["python", str(ROOT_DIR / "gatesctl" / "gatesctl.py"), "status"]
-        for key, flag in (("repo_root", "--repo-root"), ("issue", "--issue"), ("receipt_id", "--receipt-id"), ("commit", "--commit"), ("gate", "--gate"), ("owner", "--owner"), ("format", "--format")):
-            if arguments.get(key):
-                argv.extend([flag, str(arguments[key])])
-        return _run(argv, cwd=cwd, timeout_sec=timeout)
-    if name == "gate_receipt":
-        argv = ["python", str(ROOT_DIR / "gatesctl" / "gatesctl.py"), "show-receipt"]
-        for key, flag in (("repo_root", "--repo-root"), ("receipt_id", "--receipt-id"), ("commit", "--commit"), ("format", "--format")):
-            if arguments.get(key):
-                argv.extend([flag, str(arguments[key])])
-        return _run(argv, cwd=cwd, timeout_sec=timeout)
-    if name == "commit_binding":
-        _require_mutation(arguments)
-        argv = ["python", str(ROOT_DIR / "gatesctl" / "gatesctl.py"), "bind-commit", "--commit-sha", str(arguments["commit_sha"])]
-        for key, flag in (("repo_root", "--repo-root"), ("issue", "--issue"), ("receipt_id", "--receipt-id"), ("repo", "--repo"), ("format", "--format")):
-            if arguments.get(key):
-                argv.extend([flag, str(arguments[key])])
-        if arguments.get("post_issue"):
-            argv.append("--post-issue")
-        return _run(argv, cwd=cwd, timeout_sec=timeout)
     raise ValueError(f"unknown governance tool: {name}")
 
 
@@ -473,6 +450,10 @@ def _call_coordctl(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
 
 
 def _call_tool(profile: str, name: str, arguments: dict[str, Any]) -> dict[str, Any]:
+    if profile == "coordctl":
+        if name.startswith("coordctl_"):
+            return _call_coordctl(name, arguments)
+        raise ValueError(f"unknown coordctl tool: {name}")
     if profile == "intdata-control":
         if name.startswith("lockctl_"):
             return _call_lockctl(name, arguments)

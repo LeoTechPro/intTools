@@ -1,0 +1,30 @@
+{
+  "name": "coordctl",
+  "version": "1.0.0",
+  "description": "Git-aware coordination tools for parallel Codex agent edits.",
+  "author": {
+    "name": "IntData",
+    "email": "owner@intdata.pro"
+  },
+  "license": "Proprietary",
+  "skills": "./skills",
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "coordctl",
+    "shortDescription": "Git-aware hunk coordination for agents",
+    "longDescription": "Standalone coordctl plugin for Git-aware agent coordination: sessions, hunk/file intent leases, heartbeat, cleanup, GC, status, and dry-run merge checks. It is the primary replacement path for coarse file-level coordination, while lockctl remains a legacy fallback.",
+    "developerName": "IntData",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "brandColor": "#2563EB",
+    "websiteURL": "https://intdata.pro/",
+    "defaultPrompt": [
+      "Start a coordctl session for this repo and branch.",
+      "Acquire hunk-level edit intents before modifying tracked files.",
+      "Check coordctl status, heartbeat active sessions, and run cleanup when done."
+    ]
+  }
+}

@@ -53,14 +53,14 @@
       "migration_action": "Audit and split public templates from private/live host machinery before cleanup."
     },
     {
-      "id": "gatesctl",
-      "root": "gatesctl",
+      "id": "coordctl",
+      "root": "coordctl",
       "status": "public-tool",
       "owner": "intData",
-      "public_surface": "CLI and hook templates for gate receipts, approvals, and commit binding.",
+      "public_surface": "CLI, MCP profile, plugin, and tests for Git-aware session and hunk-level edit coordination.",
       "runtime_state": "State directory must be configurable; default runtime state is outside tracked source.",
-      "target_home": "D:/int/tools/gatesctl",
-      "migration_action": "Keep and productize with public docs, tests, and optional tool-specific MCP."
+      "target_home": "D:/int/tools/coordctl",
+      "migration_action": "Use as the primary coordination path for parallel agent edits; keep lockctl as legacy fallback."
     },
     {
       "id": "gemini-openai-proxy",

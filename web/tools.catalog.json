@@ -33,12 +33,12 @@
       "tags": ["deploy", "configs", "runbooks"]
     },
     {
-      "root": "gatesctl",
-      "name": "GatesCtl",
+      "root": "coordctl",
+      "name": "coordctl",
       "category": "governance",
       "kind": "owned",
-      "summary": "Runtime для gate receipts, approvals и commit binding, который делает публикацию проверяемой и трассируемой.",
-      "tags": ["gates", "receipts", "commit"]
+      "summary": "Git-aware runtime для session и hunk-level coordination, чтобы несколько агентов могли безопасно работать в одних файлах.",
+      "tags": ["coordination", "git", "agents"]
     },
     {
       "root": "gemini-openai-proxy",

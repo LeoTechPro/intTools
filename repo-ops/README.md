@@ -14,7 +14,7 @@ It exists to prevent product adapters from becoming dumping grounds for generic 
 - No secrets or host-local runtime state.
 - No product-specific endpoints, credentials, private hostnames or local machine paths.
 - No product-core code.
-- No replacement for `lockctl`, `gatesctl`, `dba` or `delivery` when those tools already own the capability.
+- No replacement for `lockctl`, `coordctl`, `dba` or `delivery` when those tools already own the capability.
 
 ## Commands
 

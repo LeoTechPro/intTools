@@ -12,13 +12,15 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[2]
 MCP_SERVER = ROOT / "codex" / "bin" / "mcp-intdata-cli.py"
 EXPECTED_COUNTS = {
+    "coordctl": 8,
     "intbrain": 27,
-    "intdata-control": 29,
+    "intdata-control": 26,
     "intdata-runtime": 8,
     "dba": 1,
 }
 
 PLUGIN_DIRS = {
+    "coordctl": ROOT / "codex" / "plugins" / "coordctl",
     "intbrain": ROOT / "codex" / "plugins" / "intbrain",
     "intdata-control": ROOT / "codex" / "plugins" / "intdata-control",
     "intdata-runtime": ROOT / "codex" / "plugins" / "intdata-runtime",
@@ -26,6 +28,16 @@ PLUGIN_DIRS = {
 }
 
 TOOL_SKILLS = {
+    "coordctl": {
+        "coordctl_session_start": "coordctl",
+        "coordctl_intent_acquire": "coordctl",
+        "coordctl_status": "coordctl",
+        "coordctl_heartbeat": "coordctl",
+        "coordctl_release": "coordctl",
+        "coordctl_cleanup": "coordctl",
+        "coordctl_gc": "coordctl",
+        "coordctl_merge_dry_run": "coordctl",
+    },
     "intdata-control": {
         "lockctl_acquire": "lockctl",
         "lockctl_renew": "lockctl",
@@ -53,9 +65,6 @@ TOOL_SKILLS = {
         "openspec_exec_mutate": "openspec-mutation",
         "routing_validate": "routing",
         "routing_resolve": "routing",
-        "gate_status": "gate-receipts-commit-binding",
-        "gate_receipt": "gate-receipts-commit-binding",
-        "commit_binding": "gate-receipts-commit-binding",
     },
     "intdata-runtime": {
         "host_preflight": "host-diagnostics",
@@ -116,7 +125,6 @@ GUARDED_TOOLS = {
     "lockctl_acquire", "lockctl_renew", "lockctl_release_path", "lockctl_release_issue", "lockctl_gc",
     "coordctl_session_start", "coordctl_intent_acquire", "coordctl_heartbeat", "coordctl_release", "coordctl_cleanup", "coordctl_gc",
     "openspec_archive", "openspec_change_mutate", "openspec_spec_mutate", "openspec_new", "openspec_exec_mutate",
-    "commit_binding",
     "host_bootstrap", "recovery_bundle", "browser_profile_launch",
     "intdata_vault_sanitize", "intdata_runtime_vault_gc",
     "intbrain_context_store", "intbrain_graph_link", "intbrain_group_policy_upsert", "intbrain_jobs_sync_runtime",
@@ -156,7 +164,6 @@ ACTIVE_DOC_GUARD_PATHS = [
 
 CODEX_HOME_FALLBACK_GUARD_PATHS = [
     ROOT / "lockctl" / "lockctl_core.py",
-    ROOT / "gatesctl" / "gatesctl.py",
     ROOT / "codex" / "bin" / "mcp-intdata-cli.py",
     ROOT / "codex" / "bin" / "mcp-salebot.mjs",
     ROOT / "codex" / "bin" / "mcp-bitrix24.sh",
@@ -171,7 +178,6 @@ REMOVED_CODEX_HOME_FALLBACK_REFS = {
     "codex_var_fallback": re.compile(r"\.codex[/\\]var|CODEX_HOME.*var"),
     "codex_memory_fallback": re.compile(r"\.codex[/\\]memories|CODEX_HOME.*memories"),
     "legacy_lockctl_memory_env": re.compile(r"LOCKCTL_LEGACY_WINDOWS_STATE_DIR"),
-    "legacy_gatesctl_memory_env": re.compile(r"GATESCTL_LEGACY_STATE_DIR"),
 }
 
 REMOVED_ACTIVE_DOC_REFS = {
@@ -292,7 +298,7 @@ def verify_skill_card(profile: str, tool: dict[str, Any], report: dict[str, Any]
     if not skill:
         row["missing_guidance"].append("no skill mapping")
         return
-    path = PLUGIN_DIRS[profile] / "skills" / skill / "SKILL.md"
+    path = PLUGIN_DIRS[profile] / "skills" / "SKILL.md" if profile == "coordctl" else PLUGIN_DIRS[profile] / "skills" / skill / "SKILL.md"
     if not path.exists():
         row["missing_guidance"].append(f"missing skill file: {path}")
         return
@@ -403,7 +409,6 @@ def verify_guard_cases(profile: str) -> None:
         "intdata-control": [
             ("openspec_archive", {"change_name": "guard-negative"}),
             ("openspec_change_mutate", {"subcommand": "set", "args": ["guard-negative"]}),
-            ("commit_binding", {"commit_sha": "0" * 40}),
         ],
         "intdata-runtime": [("host_bootstrap", {}), ("recovery_bundle", {}), ("browser_profile_launch", {"profile": "firefox-default"}), ("intdata_vault_sanitize", {"dry_run": False})],
         "intbrain": [("intbrain_context_store", {"owner_id": 1, "kind": "note", "title": "guard", "text_content": "guard"}), ("intbrain_pm_task_create", {"owner_id": 1, "title": "guard"}), ("intbrain_jobs_sync_runtime", {"owner_id": 1})],

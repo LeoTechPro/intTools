@@ -23,7 +23,7 @@ Allowed statuses:
 
 - `dba/` - `intDBA`, a public first-party CLI for guarded Postgres/Supabase operator workflows.
 - `lockctl/` - file lease coordinator for scoped multi-agent edits.
-- `gatesctl/` - gate receipts, approvals, and commit binding.
+- `coordctl/` - Git-aware session and hunk-level edit coordinator for parallel agent work.
 - `agent_plane/` - reusable tool-plane runtime, policy-aware dispatch, and local harness.
 - `repo-ops/` - reusable repository operations helpers.
 - `vault/` - public sanitizer and runtime garbage-collection helpers only.
@@ -104,7 +104,7 @@ The validator checks that every tracked non-hidden top-level directory is presen
 ## Полезные команды
 
 - `lockctl --help` — справка по file lease-локам;
-- `gatesctl --help` — справка по gate receipts и commit binding;
+- `coordctl --help` — справка по Git-aware coordination sessions, hunk intents, cleanup и merge dry-run;
 - `python /int/tools/vault/installers/vault_sanitize.py --dry-run --profile strict` — dry-run санитарной миграции vault;
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --brain-root /int/brain` — dry-run архивации и очистки canonical runtime-root (`/int/.tmp/brain-runtime-vault`);
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --runtime-root /int/brain/runtime/vault` — compatibility-режим для legacy runtime-path (с deprecation warning);
@@ -124,7 +124,8 @@ The validator checks that every tracked non-hidden top-level directory is presen
 - `D:\int\tools\codex\bin\openspec.cmd` — tracked Windows CMD operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `intdata-control` OpenSpec tools first;
 - Native git sync/publish path: `git status --short --branch`, `git fetch --prune origin`, `git pull --ff-only` only on a clean checkout when behind, and owner-approved `ALLOW_MAIN_PUSH=1 git push origin main:main` for `main`;
 - `python /int/tools/codex/bin/agent_tool_routing.py validate --strict --json` — validate registry и blocker-rules для V1 high-risk tooling;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control` — MCP wrapper `intData Control` для lockctl, OpenSpec, routing, gate receipts и commit binding; Multica ведётся через официальный `multica` CLI или официальный Multica MCP plugin, если он установлен;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile coordctl` — standalone MCP wrapper `coordctl` для Git-aware coordination sessions, intents, cleanup, GC и merge dry-run;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control` — MCP wrapper `intData Control` для lockctl, coordctl, OpenSpec и routing; Multica ведётся через официальный `multica` CLI или официальный Multica MCP plugin, если он установлен;
 - `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-runtime` — MCP wrapper для host/ssh/browser runtime tooling, vault sanitize и runtime GC;
 - `python -m unittest discover -s agent_plane/tests -p test_*.py -v` — unit/integration smoke neutral Agent Tool Plane;
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
@@ -175,7 +176,7 @@ Do not add IntBrain memory/search/fetch, people graph, PM, or context tools to a
 - Cabinet-related inventory/import tooling is outside public intTools; old standalone local product directories are not deleted without count-check and owner acceptance.
 - CLI-backed plugins use `codex/bin/mcp-intdata-cli.py` through profile launchers. Wrappers accept structured command args only; arbitrary shell strings are not supported.
 - Mutating commands require `confirm_mutation: true` and `issue_context` in `INT-*` format.
-- Hard migration note: old plugin IDs `intdata-routing`, `intdata-delivery`, `gatesctl`, `intdata-host`, `intdata-ssh`, `intdata-browser` removed; tools renamed to consolidated governance/runtime surface without aliases.
+- Hard migration note: old plugin IDs `intdata-routing`, `intdata-delivery`, `intdata-host`, `intdata-ssh`, `intdata-browser` removed; tools renamed to consolidated governance/runtime surface without aliases.
 
 ## Git Branch Policy
 
@@ -739,92 +740,6 @@ delivery/devops/run-openbao.sh
 
 - **run-openbao.sh**, **run-mailpit.sh**, **run_selenium_smoke.sh**, **setup_keycloak_killbill.sh**, **smoke.sh** — описаны в разделах выше (OpenBao, Mailpit, Selenium smoke, IAM стек, DevOps smoke).
 
-### `gatesctl/`
-
-#### gatesctl
-
-`gatesctl` — machine-wide runtime для gate receipts, approvals и commit binding поверх issue-bound процесса.
-
-##### Shell UX
-
-Используйте публичную точку входа:
-
-```bash
-gatesctl
-gatesctl --help
-gatesctl help verify
-```
-
-##### Runtime model
-
-- Runtime truth хранится в SQLite, не в проектных YAML/JSON ledgers.
-- GitHub Issue остаётся источником human context/evidence, но normalized state хранится в `gatesctl`.
-- `lockctl` отвечает только за file lease и не хранит review/gate историю.
-- Bound receipts не удаляются `gc`; очищается только sync-cache и старые unbound записи.
-
-Runtime files:
-
-- `GATESCTL_STATE_DIR` (если явно задан)
-- иначе `/int/tools/.runtime/gatesctl` на Linux/VDS и `D:\int\tools\.runtime\gatesctl` на Windows
-- SQLite: `<state_dir>/gates.sqlite`
-- Event log: `<state_dir>/events.jsonl`
-
-Legacy migration:
-
-- Старый state из `$CODEX_HOME/memories/gatesctl` или `~/.codex/memories/gatesctl` больше не читается автоматически; при необходимости оператор делает явный ручной импорт вне default startup path.
-- При первом запуске недостающие файлы копируются в `/int/tools/.runtime/gatesctl`; старый каталог не удаляется.
-- На `vds.intdata.pro` `/int/tools/.runtime/gatesctl` является machine-local runtime и не синхронизируется через `/2brain`.
-
-##### Common examples
-
-```bash
-gatesctl plan-scope \
-  --repo-root /int/crm \
-  --issue 1224 \
-  --files .agents/scripts/issue_commit.sh
-
-gatesctl approve \
-  --repo-root /int/crm \
-  --issue 1224 \
-  --gate docs-sync \
-  --decision approve \
-  --actor gatesctl \
-  --role system \
-  --files .agents/scripts/issue_commit.sh
-
-gatesctl verify \
-  --repo-root /int/crm \
-  --issue 1224 \
-  --stage commit \
-  --files .agents/scripts/issue_commit.sh \
-  --sync-issue
-
-gatesctl bind-commit \
-  --repo-root /int/crm \
-  --commit-sha HEAD
-
-gatesctl audit-range \
-  --repo-root /int/crm \
-  --target-branch dev \
-  --range '@{upstream}..HEAD'
-```
-
-##### Notes
-
-- Не редактируйте SQLite и `events.jsonl` напрямую.
-- Repo-specific правила задаются policy-файлом, обычно `.agents/policy/gates.v1.yaml`.
-- Для self-hosted remote можно использовать sample hook: `hooks/pre-receive.sample`.
-
-##### Server-side hook
-
-Sample `pre-receive` hook ожидает:
-
-- bare/self-hosted remote, где доступен `gatesctl`;
-- `GATESCTL_REPO_ROOT` — рабочий клон/checkout репозитория с policy-файлом;
-- `GATESCTL_TARGET_BRANCH` при необходимости фиксированной ветки.
-
-На GitHub.com такой hook не устанавливается; там этот sample служит только шаблоном для собственного central remote.
-
 ### `gemini-openai-proxy/`
 
 #### Gemini ↔ OpenAI Proxy
@@ -1103,6 +1018,59 @@ lockctl gc --format json
 
 - Do not edit SQLite or `events.jsonl` directly.
 - Active `/int/*` repos now treat `lockctl` as the runtime source of truth for active file locks.
+
+### `coordctl/`
+
+#### coordctl
+
+`coordctl` is the Git-aware coordination runtime for parallel Codex/OpenClaw agent edits.
+
+##### Shell UX
+
+Use the public shell entrypoint:
+
+```bash
+coordctl
+coordctl --help
+coordctl help intent-acquire
+```
+
+Implementation/core lives in `/int/tools/coordctl/coordctl_core.py`.
+CLI entrypoints:
+
+- Linux/macOS wrapper: `/int/tools/coordctl/coordctl`
+- Python CLI: `/int/tools/coordctl/coordctl.py`
+- Windows wrappers: `/int/tools/coordctl/coordctl.ps1`, `/int/tools/coordctl/coordctl.cmd`
+- Standalone MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile coordctl`
+- Compatibility MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile intdata-control`
+
+##### Runtime model
+
+- One active session per owner/branch/base work unit.
+- Region leases are scoped by `repo_root + path + base_blob + region`.
+- `hunk` is the default v1 region kind; `file` is the fallback for unsafe files.
+- `symbol`, `json_path`, and `section` are schema-compatible future region kinds.
+- `COORD_CONFLICT` and `STALE_BASE` are blockers; agents stop and ask for owner decision.
+- Cleanup is explicit: `cleanup --dry-run` first, then `--apply` only for known final states.
+- `delete-worktree` and `delete-branch` are opt-in cleanup actions, never implicit.
+
+Runtime files:
+
+- `COORDCTL_STATE_DIR` (если явно задан)
+- иначе `/int/tools/.runtime/coordctl` на Linux/VDS и `D:\int\tools\.runtime\coordctl` на Windows
+- SQLite: `<state_dir>/coord.sqlite`
+- Event log: `<state_dir>/events.jsonl`
+
+##### Common examples
+
+```bash
+coordctl session-start --repo-root /int/tools --owner codex:task --branch agent/task/a --base main --format json
+coordctl intent-acquire --repo-root /int/tools --path README.md --owner codex:task --base main --region-kind hunk --region-id 12:18 --format json
+coordctl status --repo-root /int/tools --format json
+coordctl merge-dry-run --repo-root /int/tools --target main --branch agent/task/a --format json
+coordctl cleanup --session-id <session-id> --final-state released --dry-run --format json
+coordctl cleanup --session-id <session-id> --final-state merged --delete-worktree --delete-branch --apply --format json
+```
 
 ### `openclaw/`
 

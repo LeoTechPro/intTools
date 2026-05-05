@@ -136,9 +136,9 @@
 - В `codex/bin/codex-host-verify` добавлена совместимая проверка двух вариантов launcher (`lockctl-mcp` и `lockctl-mcp.cmd`), чтобы не ломать существующие runtime-конфиги.
 - Для `codex/bin/mcp-lockctl.sh` и `openclaw/bin/mcp-lockctl.sh` выставлен executable mode (`100755`), чтобы Linux launcher можно было исполнять напрямую.
 
-### review-fix: устранены cross-drive сбои `/int/...` на Windows для lockctl и интеграций
-- В `gatesctl/gatesctl.py` и `punkt-b`-утилитах (`lock_issue_resolver.py`, `lock_release_by_issue.py`, `agent_lock_cleanup.py`) обновлён `LOCKCTL_BIN` resolver: `/int/...` корректно резолвится на фактический диск Windows.
-- В `gatesctl/gatesctl.py` и `punkt-b`-утилитах добавлен py-launch fallback: если `LOCKCTL_BIN` указывает на `lockctl.py`, команда запускается через `sys.executable`, чтобы на Windows не возникал `WinError 193`.
+### review-fix: устранены cross-drive сбои `/int/...` на Windows для lockctl-интеграций
+- В legacy governance и `punkt-b`-утилитах (`lock_issue_resolver.py`, `lock_release_by_issue.py`, `agent_lock_cleanup.py`) обновлён `LOCKCTL_BIN` resolver: `/int/...` корректно резолвится на фактический диск Windows.
+- В legacy governance и `punkt-b`-утилитах добавлен py-launch fallback: если `LOCKCTL_BIN` указывает на `lockctl.py`, команда запускается через `sys.executable`, чтобы на Windows не возникал `WinError 193`.
 
 ### review-fix: точечные правки bootstrap/preflight по подтверждённым findings
 - В `codex/scripts/codex_preflight.ps1` удалена принудительная перезапись process `PATH` (`User + Machine`): preflight больше не искажает фактический runtime-резолв бинарей в текущей сессии.
@@ -162,7 +162,7 @@
 - Добавлен state resolver: `LOCKCTL_STATE_DIR` -> `$CODEX_HOME/memories/lockctl` -> platform default (`~/.codex/...`/`%USERPROFILE%\.codex\...`) и one-time Windows migration legacy state `D:\home\leon\.codex\memories\lockctl` с backup marker.
 - Исправлена нормализация путей: корректная обработка Windows absolute-path в `--path` и хранение `path_rel` строго относительно `repo_root`.
 - Добавлен MCP server `codex/bin/mcp-lockctl.py` + launcher'ы (`.sh`/`.cmd`) и OpenClaw adapters (`openclaw/bin/mcp-lockctl.sh`, `openclaw/bin/mcp-lockctl.cmd`, `openclaw/.mcp.json`).
-- Обновлены интеграции `gatesctl` и `punkt-b` (`lock_issue_resolver.py`, `lock_release_by_issue.py`, `agent_lock_cleanup.py`) для Windows-style `LOCKCTL_BIN` path resolution.
+- Обновлены legacy governance интеграции и `punkt-b` (`lock_issue_resolver.py`, `lock_release_by_issue.py`, `agent_lock_cleanup.py`) для Windows-style `LOCKCTL_BIN` path resolution.
 - Обновлены runtime/config контракты: `codex/templates/config.toml.tmpl`, `codex/layout-policy.json`, `codex/bin/codex-host-verify`, `codex/projects/punkt-b/.mcp.json`, `codex/tools/install_tools.sh`.
 - Добавлен skill `codex/assets/codex-home/skills/lockctl/SKILL.md`, plugin scaffold `codex/plugins/lockctl/.codex-plugin/plugin.json` и marketplace entry `.agents/plugins/marketplace.json`.
 - Обновлена документация lockctl/openclaw/process: `README.md`, `codex/assets/codex-home/AGENTS.md`, `punkt-b/docs/process/issue-commit-flow.md`, `openclaw/docs/reinstall-and-restore.md`, `openclaw/docs/lockctl-mcp.md`.
