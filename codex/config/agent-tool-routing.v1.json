@@ -122,6 +122,126 @@
       ]
     },
     {
+      "capability_id": "coordctl-cli",
+      "logical_intents": [
+        "coordctl-cli",
+        "coordctl:cli"
+      ],
+      "canonical_engine": "coordctl/coordctl_core.py",
+      "resolution_status": "managed",
+      "approved_fallback_skills": [],
+      "runtime_bindings": [
+        {
+          "binding_origin": "coordctl/coordctl_core.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "coordctl/coordctl.py",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "coordctl/coordctl_core.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "coordctl/coordctl.ps1",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "coordctl/coordctl_core.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "coordctl/coordctl.cmd",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "coordctl/coordctl_core.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "coordctl/coordctl",
+          "binding_kind": "adapter",
+          "binding_role": "compatibility",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "coordctl/coordctl_core.py",
+          "parity_required": true
+        }
+      ]
+    },
+    {
+      "capability_id": "coordctl-mcp",
+      "logical_intents": [
+        "coordctl-mcp",
+        "coordctl:mcp"
+      ],
+      "canonical_engine": "codex/bin/mcp-intdata-cli.py",
+      "resolution_status": "managed",
+      "approved_fallback_skills": [],
+      "runtime_bindings": [
+        {
+          "binding_origin": "codex/bin/mcp-intdata-cli.py",
+          "binding_kind": "engine",
+          "binding_role": "canonical",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows",
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": null,
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/mcp-intdata-cli.cmd",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "windows"
+          ],
+          "adapter_targets_engine": "codex/bin/mcp-intdata-cli.py",
+          "parity_required": true
+        },
+        {
+          "binding_origin": "codex/bin/mcp-intdata-cli.sh",
+          "binding_kind": "adapter",
+          "binding_role": "primary",
+          "binding_origin_type": "repo-path",
+          "platforms_supported": [
+            "linux",
+            "macos"
+          ],
+          "adapter_targets_engine": "codex/bin/mcp-intdata-cli.py",
+          "parity_required": true
+        }
+      ]
+    },
+    {
       "capability_id": "int_ssh_resolve",
       "logical_intents": [
         "int_ssh_resolve",

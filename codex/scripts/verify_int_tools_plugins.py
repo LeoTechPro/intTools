@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 MCP_SERVER = ROOT / "codex" / "bin" / "mcp-intdata-cli.py"
 EXPECTED_COUNTS = {
     "intbrain": 27,
-    "intdata-control": 21,
+    "intdata-control": 29,
     "intdata-runtime": 8,
     "dba": 1,
 }
@@ -33,6 +33,14 @@ TOOL_SKILLS = {
         "lockctl_release_issue": "lockctl",
         "lockctl_status": "lockctl",
         "lockctl_gc": "lockctl",
+        "coordctl_session_start": "coordctl",
+        "coordctl_intent_acquire": "coordctl",
+        "coordctl_status": "coordctl",
+        "coordctl_heartbeat": "coordctl",
+        "coordctl_release": "coordctl",
+        "coordctl_cleanup": "coordctl",
+        "coordctl_gc": "coordctl",
+        "coordctl_merge_dry_run": "coordctl",
         "openspec_list": "openspec-read",
         "openspec_show": "openspec-read",
         "openspec_validate": "openspec-read",
@@ -106,6 +114,7 @@ REQUIRED_CARD_MARKERS = [
 
 GUARDED_TOOLS = {
     "lockctl_acquire", "lockctl_renew", "lockctl_release_path", "lockctl_release_issue", "lockctl_gc",
+    "coordctl_session_start", "coordctl_intent_acquire", "coordctl_heartbeat", "coordctl_release", "coordctl_cleanup", "coordctl_gc",
     "openspec_archive", "openspec_change_mutate", "openspec_spec_mutate", "openspec_new", "openspec_exec_mutate",
     "commit_binding",
     "host_bootstrap", "recovery_bundle", "browser_profile_launch",

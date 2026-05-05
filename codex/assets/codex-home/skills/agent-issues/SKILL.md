@@ -3,7 +3,7 @@ name: agent-issues
 description: 'Multica-first процесс работы с задачами агентов: Multica Issues, runtime lockctl, worklog/closed, commit-гейты и движение статусов. Используй для любых tracked-мутаций файлов, работ с issue, взятия/снятия локов, Multica status/worklog и closure.'
 metadata:
   knowledge_mode: hybrid-core-reference
-  last_verified_at: "2026-04-18"
+  last_verified_at: "2026-05-01"
   refresh_interval_days: 30
   official_sources:
     - https://multica.intdata.pro
@@ -25,8 +25,16 @@ metadata:
 - В MCP-enabled runtime используй project-approved OpenSpec MCP tools для OpenSpec list/show/status/validate/lifecycle операций; direct `openspec` или repo-local `codex/bin/openspec*` wrappers не являются PATH fallback.
 - Используй issue-linked locks только когда проект/задача требует issue-дисциплину; `lockctl.issue` — optional metadata, и для non-project/pre-intake work локи могут браться без `INT-*` issue.
 - Создавай новые задачи только после утверждённой OpenSpec-спеки/дельты или прямого запроса владельца. Консультации без правок остаются комментариями в текущем Multica issue.
+- Codex `/goal` = runtime continuation state для текущего Codex thread; он помогает не терять objective между resume/turns, но не является durable source-of-truth.
+- Не заменяй `/goal`-ом OpenSpec, Multica, worklog, acceptance criteria, commit history или release notes.
+- Не читай и не изменяй Codex-owned goal storage под `CODEX_HOME` из repo hooks/scripts/custom automation; допускается только read-only inspection, когда это прямо нужно для диагностики.
 - Не дёргай владельца без блокеров: если задача однозначна и решаема в рамках правил, выполняй и фиксируй результат в Multica issue; вопросы задавай только при конфликте требований, нехватке данных, необходимости санкции на high-risk действия или недоступности Multica.
 
+## Codex `/goal` discipline
+- Для длинной issue-bound работы можешь создать/обновить `/goal` с форматом: `<INT-*> <repo> <scope>: <inventory> -> <mutation> -> <verification> -> <worklog/closeout>`.
+- Перед мутациями всё равно сначала прочитай live Multica issue, relevant OpenSpec, repo state и project rules; `/goal` не доказывает актуальное состояние.
+- При pause/handoff укажи в Multica worklog/comment: `Goal`, `Current state`, `Verified`, `Next action`.
+- Перед successful closeout перенеси durable факты в OpenSpec/Multica/git, затем пометь `/goal` complete/cleared или явно укажи, что goal остался active/paused/blocked.
 ## Обязательный gate доступности Multica
 1. Перед началом нетривиальной работы определить текущий Multica issue.
    - Если задача пришла из Multica, используй эту issue.
@@ -95,12 +103,44 @@ metadata:
 
 7. Используй Multica для обновлений задачи.
    - Создавай, обновляй, комментируй, назначай, двигай status и закрывай через Multica CLI/API/UI.
+   - Для multiline или non-ASCII comment/worklog content предпочитай `multica issue comment add <INT-*> --content-stdin` вместо длинного `--content`.
+   - На этом Windows-host PowerShell pipe/here-string в external `multica ... --content-stdin` может испортить кириллицу и превратить её в `?`; не считай такой путь безопасным по умолчанию.
+   - Если нужна надёжная кириллица из Windows shell, предпочитай `python`/`python -c` с `subprocess.run(..., input=content, text=True, encoding='utf-8')` и вызовом `multica issue comment add ... --content-stdin` или `--content`.
+   - В bash/zsh safest pattern: `cat file.md | multica issue comment add <INT-*> --content-stdin` или heredoc в stdin.
+   - Не используй shell output с уже сломанной кодировкой как источник текста для нового comment/worklog. Если terminal показывает кракозябры, считай подозрительными stdout/stderr или текущее codepage-decoding, а не обязательно сам исходный текст.
+   - Если comment берётся из файла, файл должен быть UTF-8; prefer UTF-8 without BOM для промежуточных markdown/text artifacts.
+   - Избегай PowerShell-паттернов, которые часто портят текст или quoting: ручной copy-paste длинных JSON-escaped строк, `Out-File` без явной encoding-стратегии, legacy shell pipelines с неясной перекодировкой, here-string/pipe в external CLI без round-trip проверки, и попытки скормить multiline русский текст через один `--content "..."`.
+   - Перед отправкой важного русского комментария, если есть малейшее сомнение в shell encoding, сначала собери текст в UTF-8 источнике и только потом передай его в `--content-stdin`.
+   - Для критичных owner-facing комментариев делай round-trip verification: сразу перечитай comment через `multica issue comment list ... --output json` и, если нужно, проверь содержимое через `python`/`json.loads`, а не глазами через potentially broken terminal rendering.
+
+Примеры safe-write:
+
+```powershell
+python -c "import subprocess; content='Короткий комментарий без поломанной кодировки.\n- строка 1\n- строка 2\n'; subprocess.run(['multica','issue','comment','add','INT-123','--content-stdin'], input=content, text=True, encoding='utf-8', check=True)"
+
+python -c "import pathlib, subprocess; content=pathlib.Path(r'.\comment.md').read_text(encoding='utf-8'); subprocess.run(['multica','issue','comment','add','INT-123','--content',content], text=True, encoding='utf-8', check=True)"
+```
+
+```bash
+cat ./comment.md | multica issue comment add INT-123 --content-stdin
+
+multica issue comment add INT-123 --content-stdin <<'EOF'
+Короткий комментарий без поломанной кодировки.
+- строка 1
+- строка 2
+EOF
+```
+
+Проверенный canary на этом host:
+- PowerShell here-string -> `multica issue comment add ... --content-stdin` дал поломанный comment с `?`.
+- `python subprocess` с явным `encoding='utf-8'` сохранил кириллицу корректно.
 
 8. Пиши worklog после каждого значимого шага.
    - Используй `references/worklog-template.md`.
    - Указывай использованные tools и список изменённых файлов.
    - Если использовался spawn-agent, укажи `spawn_agent_id` и `spawn_agent_utc`, а также `parent_session_id`, если он доступен.
    - Если использовался wrapper fallback, укажи attempted official command/API, error/blocker, owner approval и точную fallback command.
+   - Для worklog/comment с кириллицей применяй те же safe-write правила: UTF-8 source + `--content-stdin` по умолчанию.
 
 9. Закрывай только когда acceptance criteria выполнены.
    - Используй `references/closed-template.md`.
@@ -108,11 +148,13 @@ metadata:
 
 10. Handoff или pause.
    - Оставь Multica worklog/comment со следующими шагами и рисками.
+   - Если использовался Codex `/goal`, включи `Goal`, `Current state`, `Verified`, `Next action` и goal status (`active`, `paused`, `blocked` или `complete`).
    - Используй `references/handoff-template.md` для handoff block, когда применимо.
 
 11. Закрытие сессии.
    - Используй `references/session-close-checklist.md`.
    - Если владелец сказал «Завершайся», трактуй это как явную команду на полный цикл завершения: прогнать релевантные ревью/quality gates, обновить документацию, закрыть/перевести Multica issue где acceptance выполнен, отметить выполненные пункты чеклистов в OpenSpec, выполнить `git add`/`git commit` только своих релевантных правок при явном запросе/проектном правиле, затем снять локи и очистить `.agents/tmp` по правилам проекта.
+   - Если использовался Codex `/goal`, не считай задачу закрытой, пока durable closeout не записан в OpenSpec/Multica/git; после этого clear/complete goal через доступный runtime UI/CLI или явно зафиксируй, что goal ещё активен.
 
 12. Синхронизируй инструкции, если требуется.
    - Если меняешь `AGENTS.md`, синхронизируй `GEMINI.md` по правилам проекта. Делай это только когда владелец явно разрешил редактировать эти файлы.

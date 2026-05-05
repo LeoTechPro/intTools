@@ -1,11 +1,11 @@
 ---
 name: intdata-control
-description: Internal int-tools skill entrypoint for the intdata-control plugin. Use as the router for lockctl, OpenSpec, routing, gate receipts, commit binding, and review workflows.
+description: Internal int-tools skill entrypoint for the intdata-control plugin. Use as the router for lockctl, coordctl, OpenSpec, routing, gate receipts, commit binding, and review workflows.
 ---
 
 # Маршрутизатор intData Control
 
-- Используй этот skill как входную точку для lockctl, OpenSpec, routing и gate receipts.
+- Используй этот skill как входную точку для lockctl, coordctl, OpenSpec, routing и gate receipts.
 - Для Multica используй официальный `multica` CLI или официальный Multica MCP plugin, если он установлен; `intdata-control` Multica tools removed/forbidden.
 - Local delivery publish wrappers removed/forbidden: do not use `/int/tools/delivery/bin/publish_*`, `/int/tools/codex/bin/publish_*.ps1`, or an `intdata-control` `publish` tool.
 - Local sync-gate wrappers removed/forbidden: use explicit native git commands and repo hooks instead of `int_git_sync_gate` or `sync_gate_*` tools.
@@ -15,6 +15,7 @@ description: Internal int-tools skill entrypoint for the intdata-control plugin.
 ## Capability skills
 
 - `lockctl`: lockctl: locks для tracked-правок.
+- `coordctl`: coordctl: Git-aware coordination для параллельных agent edits.
 - `openspec-read`: OpenSpec read-only discovery.
 - `openspec-mutation`: OpenSpec lifecycle mutations.
 - `routing`: Routing registry validation.
