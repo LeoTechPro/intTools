@@ -75,6 +75,7 @@ class CoordCtlIntegrationTest(unittest.TestCase):
 
             self.assertTrue(first["ok"])
             self.assertTrue(second["ok"])
+            self.assertTrue(dry["ok"])
             self.assertTrue(dry["clean"])
             git(repo, "merge", "--no-edit", "agent-a")
             merge_b = git(repo, "merge", "--no-edit", "agent-b", check=False)
@@ -95,6 +96,8 @@ class CoordCtlIntegrationTest(unittest.TestCase):
             self.assertTrue(first["ok"])
             self.assertFalse(second["ok"])
             self.assertEqual(second["error"], "COORD_CONFLICT")
+            self.assertFalse(dry["ok"])
+            self.assertEqual(dry["error"], "MERGE_CONFLICT")
             self.assertFalse(dry["clean"])
             git(repo, "merge", "--no-edit", "agent-c")
             merge_d = git(repo, "merge", "--no-edit", "agent-d", check=False)

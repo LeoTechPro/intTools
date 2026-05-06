@@ -43,3 +43,6 @@ mcp-memory-bank/
 # local dependency/build artifacts
 node_modules/
 **/node_modules/
+
+# local/legacy Codex app runtime artifacts; plugin source lives under .codex/
+.agents/

@@ -1,7 +1,7 @@
 {
   "name": "intdata-control",
   "version": "1.0.2",
-  "description": "Инструменты intData Control для lockctl, coordctl, OpenSpec и routing.",
+  "description": "Инструменты intData Control для coordctl, OpenSpec и routing.",
   "author": {
     "name": "IntData",
     "email": "owner@intdata.pro"
@@ -11,8 +11,8 @@
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "intData Control",
-    "shortDescription": "Locks, coord, specs и routing",
-    "longDescription": "Единая MCP-поверхность intData Control для lockctl, coordctl, OpenSpec, routing validation и review workflows с явными approval/issue правилами. Git sync/publish выполняется explicit native git commands, не через sync-gate wrapper. Multica issue state ведётся через официальный multica CLI или официальный Multica MCP plugin, если он установлен. Local delivery publish wrappers removed/forbidden. Gatesctl/gate receipts removed from the active tool surface.",
+    "shortDescription": "Coord, specs и routing",
+    "longDescription": "Единая MCP-поверхность intData Control для coordctl, OpenSpec, routing validation и review workflows с явными approval/issue правилами. Git sync/publish выполняется explicit native git commands, не через sync-gate wrapper. Multica issue state ведётся через официальный multica CLI или официальный Multica MCP plugin, если он установлен. Local delivery publish wrappers removed/forbidden. Gatesctl/gate receipts removed from the active tool surface. Lockctl remains in the repo as a legacy CLI only and is not exposed as an active Codex MCP tool.",
     "developerName": "IntData",
     "category": "Developer Tools",
     "capabilities": [
@@ -22,9 +22,8 @@
     "brandColor": "#2563EB",
     "websiteURL": "https://intdata.pro/",
     "defaultPrompt": [
-      "Проверить OpenSpec status, lock state и coord state для текущей задачи.",
-      "Взять lockctl locks перед tracked-правками.",
-      "Для shadow-mode параллельной работы регистрировать coordctl session/intent leases.",
+      "Проверить OpenSpec status и coordctl state для текущей задачи.",
+      "Перед tracked-правками регистрировать coordctl session и file/hunk intent leases.",
       "Для недоверенного ревью использовать review-find/review-fix и проверять claims по ground truth.",
       "Проверить routing перед завершением; git publish выполнять native git commands."
     ]

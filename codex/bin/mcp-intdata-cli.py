@@ -19,15 +19,10 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 INT_ROOT = ROOT_DIR.parent
 BRAIN_MCP = INT_ROOT / "brain" / "mcp" / "intbrain" / "bin" / "mcp-intbrain.py"
 
-LOCKCTL_DIR = ROOT_DIR / "lockctl"
-if str(LOCKCTL_DIR) not in sys.path:
-    sys.path.insert(0, str(LOCKCTL_DIR))
-
 COORDCTL_DIR = ROOT_DIR / "coordctl"
 if str(COORDCTL_DIR) not in sys.path:
     sys.path.insert(0, str(COORDCTL_DIR))
 
-from lockctl_core import LockCtlError, cmd_acquire, cmd_gc, cmd_release_issue, cmd_release_path, cmd_renew, cmd_status
 from coordctl_core import (
     CoordCtlError,
     cmd_gc as coordctl_cmd_gc,
@@ -119,15 +114,6 @@ VAULT_TOOLS = [
     _tool("intdata_runtime_vault_gc", "Run runtime vault GC. Defaults to dry-run; non-dry-run requires confirmation.", {**COMMON_RUN_PROPS, **_mutation_props(), "dry_run": {"type": "boolean"}, "brain_root": _path_prop("Brain repo root. Defaults to D:/int/brain on this host."), "runtime_root": _path_prop("Runtime vault root override."), "archive_root": _path_prop("Archive root override. Defaults to D:/int/.tmp."), "args": _args_prop()}),
 ]
 
-LOCKCTL_TOOLS = [
-    _tool("lockctl_acquire", "Acquire or renew a lease lock for a file.", {"repo_root": {"type": "string"}, "path": {"type": "string"}, "owner": {"type": "string"}, "issue": {"type": "string"}, "reason": {"type": "string"}, "lease_sec": {"type": "integer"}}, ["repo_root", "path", "owner"]),
-    _tool("lockctl_renew", "Renew an active lock by lock id.", {"lock_id": {"type": "string"}, "lease_sec": {"type": "integer"}}, ["lock_id"]),
-    _tool("lockctl_release_path", "Release one active lock by repo/path for the same owner.", {"repo_root": {"type": "string"}, "path": {"type": "string"}, "owner": {"type": "string"}}, ["repo_root", "path", "owner"]),
-    _tool("lockctl_release_issue", "Release all active locks for an issue in repo root.", {"repo_root": {"type": "string"}, "issue": {"type": "string"}}, ["repo_root", "issue"]),
-    _tool("lockctl_status", "Read active/expired lock status for repo/path/owner/issue.", {"repo_root": {"type": "string"}, "path": {"type": "string"}, "owner": {"type": "string"}, "issue": {"type": "string"}}, ["repo_root"]),
-    _tool("lockctl_gc", "Delete expired locks from runtime storage.", {}),
-]
-
 COORDCTL_TOOLS = [
     _tool("coordctl_session_start", "Start a Git-aware coordination session for an agent branch.", {"repo_root": {"type": "string"}, "owner": {"type": "string"}, "issue": {"type": "string"}, "branch": {"type": "string"}, "base": {"type": "string"}, "worktree_path": {"type": "string"}, "lease_sec": {"type": "integer"}}, ["repo_root", "owner", "branch", "base"]),
     _tool("coordctl_intent_acquire", "Acquire or renew a Git-aware edit intent for a file region.", {"repo_root": {"type": "string"}, "path": {"type": "string"}, "owner": {"type": "string"}, "issue": {"type": "string"}, "base": {"type": "string"}, "region_kind": {"type": "string", "enum": ["file", "hunk", "symbol", "json_path", "section"]}, "region_id": {"type": "string"}, "lease_sec": {"type": "integer"}, "session_id": {"type": "string"}}, ["repo_root", "path", "owner", "base", "region_kind", "region_id"]),
@@ -140,7 +126,7 @@ COORDCTL_TOOLS = [
 ]
 
 RUNTIME_TOOLS.extend(VAULT_TOOLS)
-CONTROL_TOOLS = [*LOCKCTL_TOOLS, *COORDCTL_TOOLS, *OPEN_SPEC_TOOLS, *GOVERNANCE_TOOLS]
+CONTROL_TOOLS = [*COORDCTL_TOOLS, *OPEN_SPEC_TOOLS, *GOVERNANCE_TOOLS]
 PROFILE_TOOLS: dict[str, list[dict[str, Any]]] = {
     "coordctl": COORDCTL_TOOLS,
     "intbrain": [],
@@ -399,29 +385,6 @@ def _call_vault(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     return _run(argv, cwd=cwd, timeout_sec=arguments.get("timeout_sec") or 300)
 
 
-def _call_lockctl(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
-    try:
-        if name == "lockctl_acquire":
-            payload = cmd_acquire(argparse.Namespace(repo_root=str(arguments.get("repo_root", "")), path=str(arguments.get("path", "")), owner=str(arguments.get("owner", "")), issue=arguments.get("issue"), reason=arguments.get("reason"), lease_sec=_as_int(arguments.get("lease_sec"), 60)))
-        elif name == "lockctl_renew":
-            payload = cmd_renew(argparse.Namespace(lock_id=str(arguments.get("lock_id", "")), lease_sec=_as_int(arguments.get("lease_sec"), 60)))
-        elif name == "lockctl_release_path":
-            payload = cmd_release_path(argparse.Namespace(repo_root=str(arguments.get("repo_root", "")), path=str(arguments.get("path", "")), owner=str(arguments.get("owner", ""))))
-        elif name == "lockctl_release_issue":
-            payload = cmd_release_issue(argparse.Namespace(repo_root=str(arguments.get("repo_root", "")), issue=arguments.get("issue")))
-        elif name == "lockctl_status":
-            payload = cmd_status(argparse.Namespace(repo_root=str(arguments.get("repo_root", "")), path=arguments.get("path"), owner=arguments.get("owner"), issue=arguments.get("issue")))
-        elif name == "lockctl_gc":
-            payload = cmd_gc(argparse.Namespace())
-        else:
-            raise ValueError(f"unknown lockctl tool: {name}")
-    except LockCtlError as exc:
-        payload = {"ok": False, "error": exc.code, "message": exc.message, **exc.payload}
-    except Exception as exc:  # noqa: BLE001
-        payload = {"ok": False, "error": "UNEXPECTED_ERROR", "message": str(exc)}
-    return payload
-
-
 def _call_coordctl(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     try:
         if name == "coordctl_session_start":
@@ -455,8 +418,6 @@ def _call_tool(profile: str, name: str, arguments: dict[str, Any]) -> dict[str, 
             return _call_coordctl(name, arguments)
         raise ValueError(f"unknown coordctl tool: {name}")
     if profile == "intdata-control":
-        if name.startswith("lockctl_"):
-            return _call_lockctl(name, arguments)
         if name.startswith("coordctl_"):
             return _call_coordctl(name, arguments)
         if name.startswith("openspec_"):

@@ -527,6 +527,16 @@ def cmd_intent_acquire(args: argparse.Namespace) -> dict[str, Any]:
                     "ok": False,
                     "session": session_to_dict(session),
                 }
+            current_session_base = resolve_commit(repo_root, str(session["base_ref"]))
+            if current_session_base != session["base_commit"]:
+                conn.rollback()
+                return {
+                    "current_base_commit": current_session_base,
+                    "error": "STALE_BASE",
+                    "message": f"session base ref moved for {session_id}",
+                    "ok": False,
+                    "session": session_to_dict(session),
+                }
             if session["base_commit"] != base_commit:
                 conn.rollback()
                 return {
@@ -927,17 +937,22 @@ def cmd_merge_dry_run(args: argparse.Namespace) -> dict[str, Any]:
     merge_base = base_cp.stdout.strip()
     cp = git(repo_root, "merge-tree", "--write-tree", target_commit, branch_commit, check=False)
     text = f"{cp.stdout}\n{cp.stderr}".strip()
-    return {
+    clean = cp.returncode == 0
+    payload = {
         "base_commit": merge_base,
         "branch": branch,
         "branch_commit": branch_commit,
-        "clean": cp.returncode == 0,
-        "ok": True,
+        "clean": clean,
+        "ok": clean,
         "output": text,
         "returncode": cp.returncode,
         "target": target,
         "target_commit": target_commit,
     }
+    if not clean:
+        payload["error"] = "MERGE_CONFLICT"
+        payload["message"] = "merge dry-run found conflicts"
+    return payload
 
 
 def render(payload: dict[str, Any], fmt: str) -> None:

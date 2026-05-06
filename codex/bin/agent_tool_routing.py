@@ -214,6 +214,15 @@ def resolve_capability(intent: str, *, platform: str | None = None, registry_pat
     payload = load_registry(registry_path)
     capability = find_capability_by_intent(payload, intent)
     normalized_platform = normalize_platform(platform)
+    if capability.resolution_status != "managed":
+        raise RoutingError(
+            capability.resolution_status.upper(),
+            f"capability '{capability.capability_id}' is {capability.resolution_status}, not an active managed route",
+            payload={
+                "capability_id": capability.capability_id,
+                "approved_fallback_skills": list(capability.approved_fallback_skills),
+            },
+        )
     capability_errors = validate_capability(capability, registry_path=payload["_registry_path"])
     if capability_errors:
         first_error = capability_errors[0]
@@ -297,6 +306,12 @@ def assert_binding(
     payload = load_registry(registry_path)
     capability = find_capability(payload, capability_id)
     normalized_platform = normalize_platform(platform)
+    if capability.resolution_status != "managed":
+        raise RoutingError(
+            capability.resolution_status.upper(),
+            f"capability '{capability.capability_id}' is {capability.resolution_status}, not an active managed route",
+            payload={"capability_id": capability.capability_id},
+        )
     errors = validate_capability(capability, registry_path=payload["_registry_path"])
     if errors:
         raise RoutingError("BLOCKED", errors[0], payload={"capability_id": capability.capability_id})
@@ -335,8 +350,10 @@ def assert_binding(
 def describe_capability(capability_id: str, *, registry_path: str | None = None) -> dict[str, Any]:
     payload = load_registry(registry_path)
     capability = find_capability(payload, capability_id)
+    active_route = capability.resolution_status == "managed"
     return {
-        "resolution_status": "resolved",
+        "resolution_status": capability.resolution_status,
+        "active_route": active_route,
         "registry_path": payload["_registry_path"],
         "capability_id": capability.capability_id,
         "logical_intents": list(capability.logical_intents),

@@ -1,14 +1,15 @@
 ---
 name: coordctl
-description: Coordctl Git-aware coordination для параллельных agent edits. Используйте для session/intent leases, hunk-level coordination, heartbeat, release, status и merge dry-run параллельно legacy lockctl.
+description: Coordctl Git-aware coordination для параллельных agent edits. Используйте для session/intent leases, hunk-level coordination, heartbeat, release, status и merge dry-run как primary coordination runtime.
 ---
 
 # coordctl: Git-aware coordination
 
-- Используй эту capability-группу только для новой параллельной координации `coordctl`; legacy `lockctl` остается fallback.
+- Используй эту capability-группу как primary coordination runtime для текущих проектов; legacy `lockctl` не является fallback по умолчанию.
 - Каждый raw MCP tool описан отдельной карточкой; не вызывай tools, которых нет в карточках.
 - MCP-first routing: use `mcp__intdata_control__coordctl_*` raw tools when available; if they are not visible, run `tool_search` for `coordctl` before shell fallback.
 - Shell fallback is degraded mode only, because Codex shell sandbox may not have access to runtime coordination storage.
+- `lockctl` допустим только как repo-retained legacy CLI для ручной диагностики по прямому owner approval; не подменяй им `COORD_CONFLICT`, `STALE_BASE` или недоступный coordctl.
 
 ## Tool cards
 

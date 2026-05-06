@@ -15,7 +15,8 @@ if str(ROUTER_ROOT) not in __import__("sys").path:
 import agent_tool_routing as routing  # noqa: E402
 EXPECTED_V1_CAPABILITIES = {
     "lockctl-cli",
-    "lockctl-mcp",
+    "coordctl-cli",
+    "coordctl-mcp",
     "int_ssh_resolve",
     "firefox-default",
     "assess-firefox-client",
@@ -52,6 +53,13 @@ class AgentToolRoutingTest(unittest.TestCase):
         declared = {item["capability_id"] for item in payload["capabilities"]}
         self.assertEqual(declared, EXPECTED_V1_CAPABILITIES)
 
+    def test_coordctl_is_managed_and_lockctl_is_legacy_only(self) -> None:
+        payload = self._load_registry()
+        statuses = {item["capability_id"]: item["resolution_status"] for item in payload["capabilities"]}
+        self.assertEqual(statuses["coordctl-cli"], "managed")
+        self.assertEqual(statuses["coordctl-mcp"], "managed")
+        self.assertEqual(statuses["lockctl-cli"], "legacy_available")
+
     def test_sync_gate_intent_is_removed(self) -> None:
         with self.assertRaises(routing.RoutingError) as ctx:
             routing.resolve_capability("sync-gate:start", platform="linux")
@@ -62,13 +70,33 @@ class AgentToolRoutingTest(unittest.TestCase):
             routing.resolve_capability("ssh:host", platform="windows")
         self.assertEqual(ctx.exception.code, "UNKNOWN_INTENT")
 
-    def test_lockctl_mcp_resolves_to_shared_intdata_control_runtime(self) -> None:
+    def test_lockctl_mcp_is_removed_from_active_routing(self) -> None:
+        with self.assertRaises(routing.RoutingError) as ctx:
+            routing.resolve_capability("lockctl:mcp", platform="windows")
+        self.assertEqual(ctx.exception.code, "UNKNOWN_INTENT")
+
+    def test_lockctl_cli_is_legacy_only_not_active_routing(self) -> None:
+        with self.assertRaises(routing.RoutingError) as ctx:
+            routing.resolve_capability("lockctl:cli", platform="windows")
+        self.assertEqual(ctx.exception.code, "LEGACY_AVAILABLE")
+
+    def test_describe_reports_legacy_capability_as_inactive(self) -> None:
+        payload = routing.describe_capability("lockctl-cli")
+        self.assertEqual(payload["resolution_status"], "legacy_available")
+        self.assertFalse(payload["active_route"])
+
+    def test_describe_reports_coordctl_capability_as_active(self) -> None:
+        payload = routing.describe_capability("coordctl-cli")
+        self.assertEqual(payload["resolution_status"], "managed")
+        self.assertTrue(payload["active_route"])
+
+    def test_coordctl_mcp_resolves_to_shared_intdata_control_runtime(self) -> None:
         self.assertEqual(
-            routing.resolve_capability("lockctl:mcp", platform="windows")["selected_binding"]["binding_origin"],
+            routing.resolve_capability("coordctl:mcp", platform="windows")["selected_binding"]["binding_origin"],
             "codex/bin/mcp-intdata-cli.cmd",
         )
         self.assertEqual(
-            routing.resolve_capability("lockctl:mcp", platform="linux")["selected_binding"]["binding_origin"],
+            routing.resolve_capability("coordctl:mcp", platform="linux")["selected_binding"]["binding_origin"],
             "codex/bin/mcp-intdata-cli.sh",
         )
 

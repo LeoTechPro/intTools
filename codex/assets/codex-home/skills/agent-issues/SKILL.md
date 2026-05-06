@@ -1,6 +1,6 @@
 ---
 name: agent-issues
-description: 'Multica-first процесс работы с задачами агентов: Multica Issues, coordctl/lockctl coordination, worklog/closed и движение статусов. Используй для tracked-мутаций файлов, работ с issue, coordination sessions/intents, Multica status/worklog и closure.'
+description: 'Multica-first процесс работы с задачами агентов: Multica Issues, coordctl coordination, worklog/closed и движение статусов. Используй для tracked-мутаций файлов, работ с issue, coordination sessions/intents, Multica status/worklog и closure.'
 metadata:
   knowledge_mode: hybrid-core-reference
   last_verified_at: "2026-05-01"
@@ -16,14 +16,14 @@ metadata:
 - Используй официальный документированный `multica` CLI для чтения/записи issues; если в runtime установлен официальный Multica MCP plugin (`mcp__multica__`), можно использовать его. Не используй `intdata-control` как Multica-прослойку.
 - Если Multica недоступна, задача считается заблокированной: остановись, сообщи владельцу конкретный блокер и продолжай без Multica только после явного разрешения владельца.
 - Привязывай реализацию к Multica issue + lock-flow проекта, если lock-flow существует.
-- Поддерживай coordination state через runtime `coordctl`; если проект ещё требует legacy file locks, используй `lockctl` как fallback.
+- Поддерживай coordination state через runtime `coordctl`; `lockctl` не является fallback по умолчанию и допускается только как legacy CLI для ручной диагностики по прямому owner approval.
 - В `FINISH` выполняй closure-процедуры по текущему Multica issue; push/PR/remote-операции — только при явном разрешении.
 
 ## Цель
 Работать с Multica Issues и проектным lock-flow в любом репозитории без hardcoded paths.
 - OpenSpec = источник требований/контекста; Multica Issues = трекинг исполнения, worklog, статусы и история runs.
 - В MCP-enabled runtime используй project-approved OpenSpec MCP tools для OpenSpec list/show/status/validate/lifecycle операций; direct `openspec` или repo-local `codex/bin/openspec*` wrappers не являются PATH fallback.
-- Используй issue-linked coordination metadata только когда проект/задача требует issue-дисциплину; `coordctl.issue`/`lockctl.issue` — optional metadata, и для non-project/pre-intake work leases могут браться без `INT-*` issue.
+- Используй issue-linked coordination metadata только когда проект/задача требует issue-дисциплину; `coordctl.issue` — optional metadata, и для non-project/pre-intake work leases могут браться без `INT-*` issue.
 - Создавай новые задачи только после утверждённой OpenSpec-спеки/дельты или прямого запроса владельца. Консультации без правок остаются комментариями в текущем Multica issue.
 - Codex `/goal` = runtime continuation state для текущего Codex thread; он помогает не терять objective между resume/turns, но не является durable source-of-truth.
 - Не заменяй `/goal`-ом OpenSpec, Multica, worklog, acceptance criteria, commit history или release notes.
@@ -51,21 +51,21 @@ metadata:
 - Каждый local commit для agent work должен содержать текущий Multica task id в формате `INT-*` в subject или body.
 - Отсутствие reachable Multica issue id блокирует `git commit`, push, deploy, publication, создание PR и любой close-out flow, который публикует код.
 - Если commit в текущем publication scope не содержит `INT-*`, остановись и сообщи блокер; исправляй commit metadata только самым безопасным project-approved способом и с owner approval, где оно требуется.
+- Перед `git commit`, `git push`, publish/deploy или selective staging проверь `git status --short --branch`; если есть неожиданные или чужие modified/untracked файлы, остановись и запроси owner decision.
+- Не выполняй `git stash`, `git restore`, `git checkout -- <path>`, `git reset --hard`, `git clean`, selective commit/push или иной способ скрыть/отложить чужие изменения без прямого owner approval.
 
 ## Обязательный coordination gate
 - Перед любой tracked-мутацией файла в governed repo начни `coordctl` session и возьми intent lease на конкретный file/hunk region.
 - Предпочитай standalone plugin/MCP tools, если они доступны: `coordctl_session_start`, `coordctl_intent_acquire`, `coordctl_status`, `coordctl_heartbeat`, `coordctl_release`, `coordctl_cleanup`, `coordctl_gc`, `coordctl_merge_dry_run`.
-- Если проект ещё явно требует legacy file-level дисциплину, дополнительно используй `lockctl_acquire`, `lockctl_renew`, `lockctl_release_path`, `lockctl_release_issue`, `lockctl_status`, `lockctl_gc`.
 - Примеры CLI fallback:
   - Start: `coordctl session-start --repo-root <repo> --owner <owner> --branch <branch> --base <base> --issue INT-* --lease-sec 3600`
   - Intent: `coordctl intent-acquire --repo-root <repo> --path <file> --owner <owner> --base <base> --region-kind hunk --region-id <start:end> --issue INT-* --lease-sec 3600`
   - Статус: `coordctl status --repo-root <repo> --issue INT-* --format json`
   - Cleanup dry-run: `coordctl cleanup --session-id <session-id> --final-state released --dry-run --format json`
-  - Legacy lock fallback: `lockctl acquire --repo-root <repo> --path <file> --owner <owner> --issue INT-* --lease-sec 3600`
 - Используй только file paths/regions, никогда директории.
 - Продлевай долгие правки через heartbeat/renew до истечения lease.
 - Снимай coordination leases сразу после завершения, блокировки или handoff scope.
-- Никогда не редактируй coordctl/lockctl SQLite/events/runtime storage вручную.
+- Никогда не редактируй coordctl SQLite/events/runtime storage вручную.
 - Commit/push policy is handled by native Git discipline, repo hooks, and explicit owner review; this skill does not route gate-receipt tooling.
 
 ## Рабочий процесс
@@ -97,9 +97,9 @@ metadata:
 
 6. Держи coordination state синхронизированным.
    - Добавляй/продлевай/снимай sessions/intents через runtime `coordctl`; добавляй `issue=INT-*` только когда у задачи есть или требуется Multica issue.
-   - Используй `lockctl` только как legacy fallback там, где project rules ещё требуют file-level locks.
+   - Не используй `lockctl` как текущий project fallback; он допустим только как repo-retained legacy CLI для ручной диагностики по прямому owner approval.
    - Store locks only on file paths; directories are forbidden.
-   - Если в рабочем дереве есть неожиданные изменения, не откатывай/не stash'и/не трогай их без прямого запроса владельца. Зафиксируй наблюдение в Multica issue handoff/worklog.
+   - Если в рабочем дереве есть неожиданные изменения, не откатывай/не stash'и/не прячь/не трогай их без прямого запроса владельца. Зафиксируй наблюдение в Multica issue handoff/worklog.
    - Если использовался spawn-agent, фиксируй `spawn_agent_id`, `spawn_agent_utc`, `parent_session_id` в Multica worklog/comment; progress остаётся в Multica.
    - Если session/lease исчез или TTL истёк, сначала проверь `coordctl status`; ставь новый intent по текущему Multica issue и не вмешивайся в чужие.
    - Никогда не редактируй coordination runtime storage вручную.

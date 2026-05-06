@@ -22,8 +22,8 @@ Allowed statuses:
 ## Current Public Tools
 
 - `dba/` - `intDBA`, a public first-party CLI for guarded Postgres/Supabase operator workflows.
-- `lockctl/` - file lease coordinator for scoped multi-agent edits.
-- `coordctl/` - Git-aware session and hunk-level edit coordinator for parallel agent work.
+- `lockctl/` - legacy file lease coordinator retained as a manual CLI tool.
+- `coordctl/` - active Git-aware session and hunk-level edit coordinator for parallel agent work.
 - `agent_plane/` - reusable tool-plane runtime, policy-aware dispatch, and local harness.
 - `repo-ops/` - reusable repository operations helpers.
 - `vault/` - public sanitizer and runtime garbage-collection helpers only.
@@ -103,14 +103,14 @@ The validator checks that every tracked non-hidden top-level directory is presen
 
 ## Полезные команды
 
-- `lockctl --help` — справка по file lease-локам;
+- `lockctl --help` — legacy CLI справка по file lease-локам; не active Codex/project coordination surface;
 - `coordctl --help` — справка по Git-aware coordination sessions, hunk intents, cleanup и merge dry-run;
 - `python /int/tools/vault/installers/vault_sanitize.py --dry-run --profile strict` — dry-run санитарной миграции vault;
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --brain-root /int/brain` — dry-run архивации и очистки canonical runtime-root (`/int/.tmp/brain-runtime-vault`);
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --runtime-root /int/brain/runtime/vault` — compatibility-режим для legacy runtime-path (с deprecation warning);
 - `python /int/tools/dba/lib/dba.py doctor --profile intdata-dev` — проверка native PostgreSQL CLI, TCP и SQL для локально настроенного DB profile;
 - `ssh agents@vds.intdata.pro 'cd /int/tools && python /int/tools/dba/lib/dba.py migrate status --target intdata-dev'` — сравнение remote `schema_migrations` и `migration_manifest.lock` из `agents@vds.intdata.pro:/int/data`;
-- В owner-facing командах `push/publish/выкатывай/публикуй` агент не вправе сам сокращать уже подготовленный состав publication: локальный commit по своему/scope допустим как обычно, но перед самой публикацией выборочно скрывать/откладывать "чужие" правки из publication-state запрещено.
+- В owner-facing командах `commit/push/publish/выкатывай/публикуй` агент обязан сначала проверить `git status --short --branch`; при неожиданных или чужих modified/untracked файлах нужно остановиться и спросить владельца. Самостоятельно `stash`/`restore`/`checkout --`/`reset --hard`/`clean`/скрывать/откладывать "чужие" правки из publication-state запрещено.
 - `ssh vds-intdata-intdata` — canonical remote shell для IntData deploy/apply/smoke на `vds.intdata.pro`;
 - `ssh vds-intdata-agents` — canonical remote shell для consolidated Codex/OpenClaw runtime на `vds.intdata.pro` (`agents`);
 - Для dev backend intdata с локальной Windows-машины не используйте `D:\int\data`; рабочий checkout — `agents@vds.intdata.pro:/int/data`.
@@ -125,7 +125,7 @@ The validator checks that every tracked non-hidden top-level directory is presen
 - Native git sync/publish path: `git status --short --branch`, `git fetch --prune origin`, `git pull --ff-only` only on a clean checkout when behind, and owner-approved `ALLOW_MAIN_PUSH=1 git push origin main:main` for `main`;
 - `python /int/tools/codex/bin/agent_tool_routing.py validate --strict --json` — validate registry и blocker-rules для V1 high-risk tooling;
 - `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile coordctl` — standalone MCP wrapper `coordctl` для Git-aware coordination sessions, intents, cleanup, GC и merge dry-run;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control` — MCP wrapper `intData Control` для lockctl, coordctl, OpenSpec и routing; Multica ведётся через официальный `multica` CLI или официальный Multica MCP plugin, если он установлен;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control` — MCP wrapper `intData Control` для coordctl, OpenSpec и routing; Multica ведётся через официальный `multica` CLI или официальный Multica MCP plugin, если он установлен;
 - `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-runtime` — MCP wrapper для host/ssh/browser runtime tooling, vault sanitize и runtime GC;
 - `python -m unittest discover -s agent_plane/tests -p test_*.py -v` — unit/integration smoke neutral Agent Tool Plane;
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
@@ -167,7 +167,7 @@ Do not add IntBrain memory/search/fetch, people graph, PM, or context tools to a
 
 ## intData Tools Codex Plugins
 
-- Marketplace source-of-truth: `.agents/plugins/marketplace.json`.
+- Marketplace source-of-truth: `.codex/plugins/marketplace.json`.
 - Packaged plugins live in `codex/plugins/<plugin>/` and use `INSTALLED_BY_DEFAULT` + `ON_INSTALL`.
 - Core public intTools plugins: `intdata-control`, `dba`, `intdata-runtime`.
 - IntBrain plugins and MCP surfaces belong to the IntBrain contour, not to public intTools.
@@ -465,7 +465,7 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 ###### Дополнительно
 
 - Общие сниппеты (`/etc/nginx/snippets/ssl-params.conf`) должны содержать жёсткие TLS-настройки и заголовки безопасности.
-- Временное использование портов и сервисов фиксируйте в issue/worklog и сопровождайте machine-wide `lockctl` lease по изменяемым файлам. При оффлайне допускается запись в `AGENTS/issues.json` (`offline_queue`); после синхронизации с GitHub удалите черновик и отметьте время `Synced on <UTC>`. Постоянные изменения инфраструктуры отражайте в паспорте объектов `AGENTS/object_passport.yaml`.
+- Временное использование портов и сервисов фиксируйте в issue/worklog и сопровождайте machine-wide `coordctl` session/intent по изменяемым файлам. При оффлайне допускается запись в `AGENTS/issues.json` (`offline_queue`); после синхронизации с GitHub удалите черновик и отметьте время `Synced on <UTC>`. Постоянные изменения инфраструктуры отражайте в паспорте объектов `AGENTS/object_passport.yaml`.
 
 ###### Перевыпуск сертификатов через snap `certbot`
 
@@ -928,7 +928,7 @@ curl -X POST http://127.0.0.1:11434/v1/chat/completions \
 
 #### lockctl
 
-`lockctl` is the machine-local writer-lock runtime for Codex/OpenClaw on this host.
+`lockctl` is a legacy machine-local writer-lock CLI retained in the repo for manual diagnostics. Current Codex/OpenClaw project coordination uses `coordctl`.
 
 ##### Shell UX
 
@@ -1017,7 +1017,7 @@ lockctl gc --format json
 ##### Notes
 
 - Do not edit SQLite or `events.jsonl` directly.
-- Active `/int/*` repos now treat `lockctl` as the runtime source of truth for active file locks.
+- Active `/int/*` repos now treat `coordctl` as the runtime source of truth for active coordination. `lockctl` remains a legacy manual CLI only.
 
 ### `coordctl/`
 

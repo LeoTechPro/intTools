@@ -139,6 +139,22 @@ class CoordCtlCoreTest(unittest.TestCase):
                 self.assertFalse(result["ok"])
                 self.assertEqual(result["error"], "SESSION_MISMATCH")
 
+    def test_intent_session_rejects_moved_base_ref(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            old_main = git(repo, "rev-parse", "main")
+            newer = commit_content(repo, "a\nb\nc\nnew\ne\nf\ng\nh\ni\n", "newer", parent=old_main)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+                session = coordctl_core.cmd_session_start(mock.Mock(repo_root=str(repo), owner="agent:a", issue=None, branch="agent/a", base="main", worktree_path=None, lease_sec=60))
+                git(repo, "reset", "--hard", newer)
+                result = coordctl_core.cmd_intent_acquire(
+                    mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base=old_main, region_kind="hunk", region_id="4:4", lease_sec=60, session_id=session["session"]["session_id"])
+                )
+                self.assertFalse(result["ok"])
+                self.assertEqual(result["error"], "STALE_BASE")
+                self.assertEqual(result["current_base_commit"], newer)
+
     def test_cleanup_dry_run_does_not_finalize_session(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)

@@ -8,7 +8,7 @@
         "lockctl:cli"
       ],
       "canonical_engine": "lockctl/lockctl_core.py",
-      "resolution_status": "managed",
+      "resolution_status": "legacy_available",
       "approved_fallback_skills": [],
       "runtime_bindings": [
         {
@@ -69,54 +69,6 @@
             "macos"
           ],
           "adapter_targets_engine": "lockctl/lockctl_core.py",
-          "parity_required": true
-        }
-      ]
-    },
-    {
-      "capability_id": "lockctl-mcp",
-      "logical_intents": [
-        "lockctl-mcp",
-        "lockctl:mcp"
-      ],
-      "canonical_engine": "codex/bin/mcp-intdata-cli.py",
-      "resolution_status": "managed",
-      "approved_fallback_skills": [],
-      "runtime_bindings": [
-        {
-          "binding_origin": "codex/bin/mcp-intdata-cli.py",
-          "binding_kind": "engine",
-          "binding_role": "canonical",
-          "binding_origin_type": "repo-path",
-          "platforms_supported": [
-            "windows",
-            "linux",
-            "macos"
-          ],
-          "adapter_targets_engine": null,
-          "parity_required": true
-        },
-        {
-          "binding_origin": "codex/bin/mcp-intdata-cli.cmd",
-          "binding_kind": "adapter",
-          "binding_role": "primary",
-          "binding_origin_type": "repo-path",
-          "platforms_supported": [
-            "windows"
-          ],
-          "adapter_targets_engine": "codex/bin/mcp-intdata-cli.py",
-          "parity_required": true
-        },
-        {
-          "binding_origin": "codex/bin/mcp-intdata-cli.sh",
-          "binding_kind": "adapter",
-          "binding_role": "primary",
-          "binding_origin_type": "repo-path",
-          "platforms_supported": [
-            "linux",
-            "macos"
-          ],
-          "adapter_targets_engine": "codex/bin/mcp-intdata-cli.py",
           "parity_required": true
         }
       ]

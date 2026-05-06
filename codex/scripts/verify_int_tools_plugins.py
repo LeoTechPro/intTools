@@ -14,7 +14,7 @@ MCP_SERVER = ROOT / "codex" / "bin" / "mcp-intdata-cli.py"
 EXPECTED_COUNTS = {
     "coordctl": 8,
     "intbrain": 27,
-    "intdata-control": 26,
+    "intdata-control": 20,
     "intdata-runtime": 8,
     "dba": 1,
 }
@@ -39,12 +39,6 @@ TOOL_SKILLS = {
         "coordctl_merge_dry_run": "coordctl",
     },
     "intdata-control": {
-        "lockctl_acquire": "lockctl",
-        "lockctl_renew": "lockctl",
-        "lockctl_release_path": "lockctl",
-        "lockctl_release_issue": "lockctl",
-        "lockctl_status": "lockctl",
-        "lockctl_gc": "lockctl",
         "coordctl_session_start": "coordctl",
         "coordctl_intent_acquire": "coordctl",
         "coordctl_status": "coordctl",
@@ -122,7 +116,6 @@ REQUIRED_CARD_MARKERS = [
 ]
 
 GUARDED_TOOLS = {
-    "lockctl_acquire", "lockctl_renew", "lockctl_release_path", "lockctl_release_issue", "lockctl_gc",
     "coordctl_session_start", "coordctl_intent_acquire", "coordctl_heartbeat", "coordctl_release", "coordctl_cleanup", "coordctl_gc",
     "openspec_archive", "openspec_change_mutate", "openspec_spec_mutate", "openspec_new", "openspec_exec_mutate",
     "host_bootstrap", "recovery_bundle", "browser_profile_launch",
@@ -147,6 +140,8 @@ REMOVED_INTDATA_CONTROL_TOOLS = {
     "multica_repo_checkout", "openspec_change", "openspec_spec", "openspec_exec",
     "sync_gate", "sync_gate_start", "sync_gate_finish", "int_git_sync_gate", "int_git_sync_gate.py",
     "mcp-lockctl.py", "mcp-lockctl.sh", "mcp-lockctl.cmd", "lockctl-mcp",
+    "lockctl_acquire", "lockctl_renew", "lockctl_release_path", "lockctl_release_issue",
+    "lockctl_status", "lockctl_gc",
     "multica_autopilot_report_sidecar.py", "AUTOPILOT_REPORT_TARGETS", "AUTOPILOT_REPORT_STATE_PATH",
     "publish_repo.py", "publish_data.py", "publish_assess.py", "publish_crm.py", "publish_id.py",
     "publish_nexus.py", "publish_bundle_dint.py", "publish_brain_dev.py",
@@ -248,8 +243,13 @@ def tools_for(profile: str) -> list[dict[str, Any]]:
 
 def verify_manifests(report: dict[str, Any]) -> None:
     marketplace_path = ROOT / ".codex" / "plugins" / "marketplace.json"
+    legacy_marketplace_path = ROOT / ".agents" / "plugins" / "marketplace.json"
+    if legacy_marketplace_path.exists():
+        report["manifest_warnings"].append(
+            f"ignored legacy/runtime marketplace catalog: {display_path(legacy_marketplace_path)}"
+        )
     if not marketplace_path.exists():
-        report["manifest_warnings"].append(f"missing marketplace catalog; skipped marketplace entry checks: {display_path(marketplace_path)}")
+        report["manifest_errors"].append(f"missing required marketplace catalog: {display_path(marketplace_path)}")
         entries = {}
     else:
         marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))

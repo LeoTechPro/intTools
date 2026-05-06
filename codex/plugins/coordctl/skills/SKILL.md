@@ -8,7 +8,7 @@ description: Standalone coordctl skill for Git-aware coordination of parallel ag
 - Prefer the standalone `mcp__coordctl__coordctl_*` tools when available.
 - If only `intdata-control` is loaded, use `mcp__intdata_control__coordctl_*`; it is the compatibility surface.
 - Use shell fallback only when MCP tools are unavailable: `python D:\int\tools\coordctl\coordctl.py ...`.
-- Keep `lockctl` as legacy fallback only for workflows that still require coarse file locks.
+- Do not use `lockctl` as a default fallback. It remains a repo-retained legacy CLI for manual diagnostics only with direct owner approval.
 
 ## Required discipline
 

@@ -30,7 +30,7 @@ description: Глубокое hostile-ревью предыдущего резу
 ## intData Control Checks
 
 - Перед выводами о governance проверьте repo `AGENTS.md`, relevant OpenSpec package и текущий Multica/lock state, если tools доступны.
-- Для `/int/tools` tracked-mutation выводов сверяйте `lockctl`, `routing_validate`, `host_preflight`/`host_verify`, native git state и plugin verifier по необходимости; `int_git_sync_gate`/`sync_gate_*` удалены.
+- Для `/int/tools` tracked-mutation выводов сверяйте `coordctl`, `routing_validate`, `host_preflight`/`host_verify`, native git state и plugin verifier по необходимости; `lockctl` не active surface, `int_git_sync_gate`/`sync_gate_*` удалены.
 - Если MCP tool отсутствует или exposed surface не совпадает с правилами, фиксируйте это как drift/blocker; не подменяйте прямым CLI fallback без owner approval.
 - Секреты, runtime env и credential values не печатайте.
 

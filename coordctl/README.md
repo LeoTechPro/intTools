@@ -2,8 +2,8 @@
 
 `coordctl` is a parallel, Git-aware coordination utility for multi-agent edits.
 
-It does not replace `lockctl` yet. `lockctl` remains the file-level fallback while
-`coordctl` proves hunk-level coordination in local and shadow-mode tests.
+It replaces active `lockctl` usage for current Codex project coordination. `lockctl`
+remains in the repo as a legacy CLI for manual diagnostics with direct owner approval.
 
 ## Runtime State
 
