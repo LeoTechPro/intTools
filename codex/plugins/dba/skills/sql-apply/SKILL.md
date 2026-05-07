@@ -1,22 +1,34 @@
 ---
 name: sql-apply
-description: dba SQL/apply. Используйте для controlled SQL execution/apply workflows с read-only defaults и отдельными gates для writes.
+description: dba SQL/apply. Используйте для controlled SQL execution/apply workflows с read-only dry-run мышлением и явным approval gate.
 ---
 
-# intDBA SQL/apply
+# intDBA SQL apply
 
-- `intdata_cli` является command-router; выбирай subcommand по этой карточке, а не угадывай shell-команду.
-- Use only for planning SQL/apply. Live apply is forbidden unattended.
+## When to use
+- Use for controlled SQL execution or apply workflows that are already approved.
 
-## Tool cards
+## Do first
+- Confirm the target profile, SQL source, and blast radius.
+- Prefer the plugin or `intdata_cli` surface instead of ad hoc shell SQL.
+- Summarize the target profile, SQL scope, and apply result or blocker.
 
-### intdata_cli
-    - Когда: нужно выполнить intDBA command-router subcommand.
-    - Required inputs: `command`
-    - Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `args`
-    - Режим: read-only by default
-    - Approval / issue requirements: Read-only subcommands без approval; apply/dump/restore/local-test требуют owner approval, `issue_context=INT-*` и безопасный disposable/local target.
-    - Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-    - Пример вызова: `{"name":"intdata_cli","arguments":{"command": "dba", "args": ["doctor", "status"]}}`
-    - Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
-- Subcommand cards: `doctor/status` read-only; `migrate status` read-only; `migrate apply`, SQL apply, dump/restore/clone/copy/local-test mutating и запрещены unattended.
+## Expected result
+- The intended SQL apply workflow is executed against the correct approved target.
+
+## Checks
+- The target profile is explicit.
+- Mutation includes approval and `issue_context=INT-*`.
+- Read-only inspection has already answered what can be answered without apply.
+
+## Stop when
+- The profile or SQL target is unknown.
+- Mutation is requested without approval.
+- The tool returns policy or config errors.
+
+## Ask user when
+- More than one SQL target or profile could match.
+- The SQL source or expected side effects are unclear.
+
+## Tool map
+- `intdata_cli`: use `command="dba"` with approved SQL apply or execution args on the intended profile.

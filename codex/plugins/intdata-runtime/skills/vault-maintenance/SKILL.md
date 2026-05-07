@@ -1,31 +1,36 @@
 ---
 name: vault-maintenance
-description: Runtime vault maintenance. Используйте для vault sanitize и runtime vault GC workflows без вывода секретов.
+description: Runtime vault maintenance. Используйте для vault sanitize и runtime vault GC workflow.
 ---
 
 # Runtime vault maintenance
 
-- Используй эту capability-группу только когда задача совпадает с trigger ниже.
-- Каждый raw MCP tool описан отдельной карточкой; не вызывай tools, которых нет в карточках.
+## When to use
+- Use for approved runtime vault sanitize or garbage-collection maintenance.
 
-## Tool cards
+## Do first
+- Confirm the maintenance target and whether the request is sanitize or GC.
+- Prefer the runtime MCP tools.
+- Summarize affected scope, dry-run results, and applied maintenance status.
 
-### intdata_vault_sanitize
-- Когда: нужно проверить или выполнить vault sanitize.
-- Required inputs: нет
-- Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `dry_run`, `vault_root`, `brain_root`, `tools_root`, `runtime_root`, `args`
-- Режим: read-only by default
-- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
-- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-- Пример вызова: `{"name":"intdata_vault_sanitize","arguments":{"dry_run": true, "vault_root": "D:/int/2brain", "brain_root": "D:/int/brain"}}`
-- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
+## Expected result
+- The requested vault maintenance action is performed on the intended runtime scope.
 
-### intdata_runtime_vault_gc
-- Когда: нужно проверить или выполнить runtime vault GC.
-- Required inputs: нет
-- Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `dry_run`, `brain_root`, `runtime_root`, `archive_root`, `args`
-- Режим: read-only by default
-- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
-- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-- Пример вызова: `{"name":"intdata_runtime_vault_gc","arguments":{"dry_run": true, "brain_root": "D:/int/brain"}}`
-- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
+## Checks
+- Mutating maintenance includes approval and `issue_context=INT-*`.
+- Dry-run is used when the scope is uncertain.
+- The vault target is explicit.
+
+## Stop when
+- Required args are missing.
+- MCP returns policy or config errors.
+- The request would mutate state without approval.
+- The target vault scope is ambiguous.
+
+## Ask user when
+- The maintenance target or blast radius is unclear.
+- GC or sanitize would remove data outside the stated scope.
+
+## Tool map
+- `intdata_vault_sanitize`: mutating sanitize operation; approval required.
+- `intdata_runtime_vault_gc`: mutating vault GC; prefer dry-run first when scope is unclear.

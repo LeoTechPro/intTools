@@ -5,47 +5,34 @@ description: Runtime host diagnostics. Используйте для host_prefli
 
 # Runtime host diagnostics
 
-- Используй эту capability-группу только когда задача совпадает с trigger ниже.
-- Каждый raw MCP tool описан отдельной карточкой; не вызывай tools, которых нет в карточках.
+## When to use
+- Use for runtime readiness checks, helper verification, approved bootstrap, and recovery bundle collection.
 
-## Tool cards
+## Do first
+- Confirm whether the request is read-only diagnostics or mutating maintenance.
+- Prefer the runtime MCP tools.
+- Summarize readiness verdicts, verification results, bootstrap changes, or recovery bundle output.
 
-### host_preflight
-- Когда: нужно проверить локальную runtime readiness.
-- Required inputs: нет
-- Optional/schema inputs: `cwd`, `timeout_sec`, `json`
-- Режим: read-only
-- Approval / issue requirements: Не требуется для read-only вызова. Если команда превращается в запись, остановиться и получить owner approval.
-- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-- Пример вызова: `{"name":"host_preflight","arguments":{}}`
-- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
+## Expected result
+- One clear host diagnostics action is completed for the intended contour.
 
-### host_verify
-- Когда: нужно проверить host helper contour.
-- Required inputs: нет
-- Optional/schema inputs: `cwd`, `timeout_sec`, `args`
-- Режим: read-only
-- Approval / issue requirements: Не требуется для read-only вызова. Если команда превращается в запись, остановиться и получить owner approval.
-- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-- Пример вызова: `{"name":"host_verify","arguments":{}}`
-- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
+## Checks
+- Read-only tasks use `host_preflight` or `host_verify`.
+- Mutating tasks include approval and `issue_context=INT-*`.
+- The target host or contour is explicit.
 
-### host_bootstrap
-- Когда: нужно установить/обновить host tooling.
-- Required inputs: `confirm_mutation`, `issue_context`
-- Optional/schema inputs: `cwd`, `timeout_sec`, `args`
-- Режим: mutating
-- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
-- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-- Пример вызова: `{"name":"host_bootstrap","arguments":{"confirm_mutation": true, "issue_context": "INT-226"}}`
-- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
+## Stop when
+- Required args are missing.
+- MCP returns policy or config errors.
+- Mutation is requested without approval.
+- The host contour is ambiguous.
 
-### recovery_bundle
-- Когда: нужно собрать recovery bundle.
-- Required inputs: `confirm_mutation`, `issue_context`
-- Optional/schema inputs: `cwd`, `timeout_sec`, `args`
-- Режим: mutating
-- Approval / issue requirements: Для mutating/high-risk вызова требуются owner approval, `confirm_mutation=true` и `issue_context=INT-*`; unattended mutation запрещена.
-- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-- Пример вызова: `{"name":"recovery_bundle","arguments":{"confirm_mutation": true, "issue_context": "INT-226"}}`
-- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
+## Ask user when
+- More than one host or helper contour could match.
+- Bootstrap or recovery bundle creation changes a shared environment unexpectedly.
+
+## Tool map
+- `host_preflight`: read-only local runtime readiness check.
+- `host_verify`: read-only helper contour verification.
+- `host_bootstrap`: mutating bootstrap or update; approval required.
+- `recovery_bundle`: mutating recovery artifact collection; approval required.

@@ -1,22 +1,33 @@
 ---
 name: local-smoke
-description: dba local smoke. Используйте для read-only SQL smoke и локальных проверок профилей без migrator/admin действий.
+description: dba local smoke. Используйте для read-only SQL smoke и локальных проверок профилей без apply.
 ---
 
 # intDBA local smoke
 
-- `intdata_cli` является command-router; выбирай subcommand по этой карточке, а не угадывай shell-команду.
-- Use only with owner-approved disposable/local test profile.
+## When to use
+- Use for read-only SQL smoke checks on approved local or read-only profiles.
 
-## Tool cards
+## Do first
+- Confirm the profile and exact smoke target.
+- Prefer `intdata_cli` read-only execution.
+- Summarize the smoke query or command and the verdict.
 
-### intdata_cli
-    - Когда: нужно выполнить intDBA command-router subcommand.
-    - Required inputs: `command`
-    - Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `args`
-    - Режим: read-only by default
-    - Approval / issue requirements: Read-only subcommands без approval; apply/dump/restore/local-test требуют owner approval, `issue_context=INT-*` и безопасный disposable/local target.
-    - Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-    - Пример вызова: `{"name":"intdata_cli","arguments":{"command": "dba", "args": ["doctor", "status"]}}`
-    - Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
-- Subcommand cards: `doctor/status` read-only; `migrate status` read-only; `migrate apply`, SQL apply, dump/restore/clone/copy/local-test mutating и запрещены unattended.
+## Expected result
+- A read-only smoke result for the intended DBA profile.
+
+## Checks
+- The command stays read-only.
+- The selected profile is explicit and safe for smoke checks.
+
+## Stop when
+- The profile is unknown.
+- The request drifts into apply or mutation.
+- The tool returns policy or config errors.
+
+## Ask user when
+- More than one local profile could match.
+- The smoke query could mutate state.
+
+## Tool map
+- `intdata_cli`: use `command="dba"` with read-only smoke-oriented args on the intended profile.

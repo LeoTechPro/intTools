@@ -1,83 +1,38 @@
 ---
 name: review-find
-description: Глубокое hostile-ревью предыдущего результата агента. Используйте, когда Codex должен считать предыдущую реализацию, план или объяснение недоверенными; читать важные для поведения файлы целиком; проверять код, логи и правила по реальному текущему состоянию; и выдавать findings с доказательствами по багам, регрессиям, рискам и спорным местам.
+description: Глубокое hostile-ревью предыдущего результата агента. Используйте, когда Codex должен считать предыдущую реализацию, план или объяснение недоверенными и подтвердить выводы по реальным артефактам.
 ---
 
 # Review Find
 
-Пишите все ответы на русском языке.
+## When to use
+- Use when the user wants a hostile audit of an earlier result, implementation, plan, runtime setup, or plugin surface.
 
-## Goal
+## Do first
+- Treat the prior result as untrusted until verified.
+- Read the governing repo instructions, current code or config, and any referenced logs before forming conclusions.
+- Prefer current runtime truth over prior summaries or diffs.
+- If MCP tools are used during the audit, summarize the material results explicitly.
 
-Провести независимый hostile-аудит предыдущей реализации, плана, runtime-настройки или plugin/tooling surface.
-Не доверяйте ни коду, ни комментариям, ни утверждениям автора без проверки по реальным артефактам.
+## Expected result
+- A finding set grounded in current evidence, with bugs, regressions, risks, drift, and unverified claims clearly separated.
 
-## When to Use
+## Checks
+- Critical files are read fully when behavior depends on full context.
+- Repo rules, OpenSpec state, routing, and coordination rules are checked where relevant.
+- Every finding cites concrete evidence from code, config, logs, or reproducible behavior.
 
-- Пользователь просит проверить предыдущий результат как недоверенный.
-- Нужно найти реальные баги, регрессии, policy drift или missing verification в intData tooling/plugin/runtime контуре.
-- Нужно проверить, что OpenSpec, Multica, locks, routing, MCP tools и docs согласованы с текущим состоянием.
+## Stop when
+- The audit target is unclear.
+- Required evidence is unavailable.
+- The task has shifted from review into mutation without an explicit request.
 
-## Core Rules
+## Ask user when
+- The review target could mean more than one artifact or commit.
+- Resolving uncertainty would require new mutations, privileged access, or destructive verification.
 
-1. Считайте предыдущий результат недоверенным.
-2. Проверяйте реальное текущее состояние, а не только diff или пересказ пользователя.
-3. Читайте критичные файлы целиком, если они влияют на поведение, запуск, конфигурацию, безопасность или миграции.
-4. Не принимайте выводы на веру без доказательства в коде, конфиге, логах, тестах или воспроизводимом поведении.
-5. Разделяйте реальные баги, техдолг, архитектурные разногласия и неподтверждённые подозрения.
-6. Не вносите правки, если пользователь явно не просил исправлять код после ревью.
-
-## intData Control Checks
-
-- Перед выводами о governance проверьте repo `AGENTS.md`, relevant OpenSpec package и текущий Multica/lock state, если tools доступны.
-- Для `/int/tools` tracked-mutation выводов сверяйте `coordctl`, `routing_validate`, `host_preflight`/`host_verify`, native git state и plugin verifier по необходимости; `lockctl` не active surface, `int_git_sync_gate`/`sync_gate_*` удалены.
-- Если MCP tool отсутствует или exposed surface не совпадает с правилами, фиксируйте это как drift/blocker; не подменяйте прямым CLI fallback без owner approval.
-- Секреты, runtime env и credential values не печатайте.
-
-## Required Workflow
-
-1. Зафиксируйте scope.
-   - Определите, что именно проверяется: реализация, план, diff, ветка, набор файлов, логи, runtime или plugin cache.
-   - Если scope неочевиден, сначала восстановите его по локальному контексту.
-
-2. Загрузите правила и ограничения.
-   - Прочитайте `AGENTS.md` и process-файлы, которые реально управляют этим контуром.
-   - Учитывайте только живые правила, а не архивные копии, если пользователь не просил аудит архива.
-
-3. Соберите ground truth.
-   - Проверьте текущие файлы, конфиги, wrapper-скрипты, логи, статусы, тесты и другие доказательные источники.
-   - Для ключевых путей открывайте файлы целиком. Не ограничивайтесь `rg`-совпадениями, если поведение зависит от полного контекста.
-   - Если есть runtime-следы или лог-файлы, отделяйте активные зависимости от архивных следов.
-
-4. Проведите hostile-проверку.
-   - Ищите не подтверждение предыдущего решения, а способы его опровергнуть.
-   - Проверяйте корректность поведения, регрессии, hardcode/path/env зависимости, нарушение локальных правил, недостающие smoke и побочные эффекты.
-
-5. Сформируйте findings.
-   - Классифицируйте каждый пункт как `bug`, `regression`, `tech debt`, `architecture concern` или `unverified`.
-   - Для каждого пункта укажите severity, доказательство, влияние и короткую рекомендацию.
-   - Отдельно перечислите, с чем согласны, с чем не согласны, и какие новые риски были добавлены.
-
-## Output Contract
-
-Используйте такую структуру ответа:
-
-1. `Findings`
-   - Список замечаний по severity, от более серьёзных к менее серьёзным.
-   - Каждый пункт должен содержать путь/строку, impact и доказательство.
-
-2. `С чем согласен`
-   - Что в предыдущем плане или реализации выглядит корректным после проверки.
-
-3. `С чем не согласен`
-   - Что не подтвердилось, спорно или является архитектурным trade-off, а не багом.
-
-4. `Проверки`
-   - Какие файлы, логи, команды и тесты были реально просмотрены или запущены.
-
-Если замечаний нет, скажите это явно и перечислите, что было проверено.
-
-## Boundaries
-
-- Не используйте этот skill как замену обычному `code-review`, если пользователю нужно стандартное structured review без hostile framing.
-- Не обещайте, что найдёте больше багов, чем любой другой процесс. Задача здесь — жёстко проверить факты и дать доказательные выводы.
+## Output contract
+- `Findings`: ordered by severity with path or location, impact, and evidence.
+- `С чем согласен`: what remains correct after verification.
+- `С чем не согласен`: what is unverified, wrong, or only a tradeoff.
+- `Проверки`: what files, commands, logs, or tests were actually inspected.

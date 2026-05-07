@@ -1,85 +1,37 @@
 ---
 name: review-fix
-description: Перепроверка предыдущего ревью по реальному коду и исправление только подтверждённых замечаний. Используйте, когда Codex получает внешние findings, должен валидировать каждый тезис по текущему состоянию, классифицировать каждый пункт как подтверждённый или нет, и вносить только доказательно обоснованные адресные правки с последующей точечной проверкой.
+description: Перепроверка предыдущего ревью по реальному коду и исправление только подтверждённых замечаний. Используйте, когда нужно верифицировать findings и внести узкие правки без расширения scope.
 ---
 
 # Review Fix
 
-Пишите все ответы на русском языке.
+## When to use
+- Use when there is an existing review or finding set and the task is to confirm it against current code, then fix only confirmed issues.
 
-## Goal
+## Do first
+- Re-verify each finding against the current tree before editing.
+- Keep scope narrow: confirmed issues only, no opportunistic cleanup.
+- Follow active governance, OpenSpec, and coordination rules for the owning repo.
+- Summarize any MCP or coordination tool results that materially affected the fix.
 
-Перепроверить внешний review-текст как недоверенный источник и исправить только те замечания, которые подтверждаются реальным кодом, runtime/config state и текущими repo rules.
+## Expected result
+- Confirmed findings are fixed and unconfirmed findings are left untouched with an explicit note.
 
-## When to Use
+## Checks
+- Each fix maps to a confirmed finding.
+- Files changed are only those needed for the confirmed issues.
+- Verification covers the behavior or invariant claimed by the review.
 
-- Пользователь приносит findings другого агента, ревьюера или аудита и просит перепроверить.
-- Нужно разделить подтверждённые баги, устаревшие замечания, неподтверждённые подозрения и архитектурные мнения.
-- Нужно сделать точечные исправления в intData tooling/plugin/runtime контуре без расширения scope.
+## Stop when
+- Findings cannot be reproduced or verified.
+- Scope expands beyond the reviewed issues.
+- Required approval, issue context, or coordination state is missing.
 
-## Core Rules
+## Ask user when
+- A finding is ambiguous or depends on product intent.
+- Fixing one confirmed issue requires broader refactor or contract changes.
 
-1. Считайте входное ревью недоверенным артефактом.
-2. Проверяйте каждый тезис отдельно по текущему состоянию, а не по авторитету источника.
-3. Не исправляйте `not confirmed`, `outdated` или чисто архитектурные мнения без прямого запроса пользователя.
-4. Держите scope узким: правьте только подтверждённые пункты и только связанные с ними файлы.
-5. После правок выполняйте точечную verification/smoke по реально затронутым местам.
-
-## intData Control Checks
-
-- Для `/int/tools` перед tracked-правками соблюдайте active OpenSpec scope, Multica issue gate и `coordctl` session/intent leases. Git status/fetch/pull/push выполняйте явными native git commands; removed/forbidden `lockctl_*`, `int_git_sync_gate`/`sync_gate_*` не использовать.
-- Не используйте admin/mutating tools без owner approval, `confirm_mutation=true` и `issue_context=INT-*`.
-- Если correction меняет команды, plugin lifecycle, routing или verifier expectations, проверьте необходимость обновить root `README.md` и relevant OpenSpec/docs.
-- Секреты и runtime credential values не выводите и не записывайте в tracked files.
-
-## Required Workflow
-
-1. Разберите imported findings.
-   - Выделите отдельные тезисы из входного ревью.
-   - Не объединяйте разные проблемы в один пункт, если они требуют разной проверки.
-
-2. Проверьте каждый тезис по ground truth.
-   - Сверьте текущий код, конфиги, логи, правила, команды запуска и тесты.
-   - Для файлов, от которых зависит поведение, читайте полный файл, а не только найденные строки.
-   - Отделяйте live-состояние от архивов, backup-файлов и исторических следов.
-
-3. Классифицируйте каждый тезис.
-   - Используйте только такие статусы:
-     - `confirmed`
-     - `partially confirmed`
-     - `not confirmed`
-     - `outdated`
-     - `architecture opinion`
-
-4. Исправьте только подтверждённое.
-   - Для `confirmed` делайте адресные изменения.
-   - Для `partially confirmed` правьте только подтверждённую часть.
-   - Для `architecture opinion` не делайте “улучшений” без отдельного запроса.
-
-5. Проведите verification после правок.
-   - Запустите минимальные релевантные проверки для изменённых путей.
-   - Если проверку нельзя выполнить, скажите это явно и укажите остаточный риск.
-
-## Output Contract
-
-Используйте такую структуру ответа:
-
-1. `Verdict по imported findings`
-   - Для каждого тезиса: статус, краткое доказательство и решение.
-
-2. `Что исправлено`
-   - Только реально внесённые изменения.
-
-3. `Что отклонено`
-   - Какие пункты не подтвердились, устарели или оказались архитектурным мнением.
-
-4. `Проверки`
-   - Какие команды, smoke, тесты и ручные проверки выполнены после правок.
-
-Если ничего не подтвердилось, не вносите изменения и скажите это прямо.
-
-## Boundaries
-
-- Не подменяйте этот skill обычным `code-review`: здесь входом является внешнее ревью, а не просто репозиторий.
-- Не делайте массовый рефакторинг под видом remediation.
-- Не обещайте лучший результат, чем ручной двухтактный цикл. Воспроизводите его дисциплину: проверка по фактам, адресные правки, verification после изменений.
+## Output contract
+- List confirmed findings fixed.
+- List findings rejected or left unresolved and why.
+- Report checks run and remaining risk.

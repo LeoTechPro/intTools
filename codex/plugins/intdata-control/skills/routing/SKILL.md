@@ -1,31 +1,34 @@
 ---
 name: routing
-description: Routing registry validation. Используйте для проверки и резолва high-risk agent tool routing через canonical registry и blocked-path правила.
+description: Routing registry validation. Используйте для проверки и резолва high-risk agent tool routing перед реальным вызовом.
 ---
 
 # Routing registry validation
 
-- Используй эту capability-группу только когда задача совпадает с trigger ниже.
-- Каждый raw MCP tool описан отдельной карточкой; не вызывай tools, которых нет в карточках.
+## When to use
+- Use when a task depends on route resolution or on validating that the runtime exposes the expected tool surface.
 
-## Tool cards
+## Do first
+- Prefer the routing MCP tools.
+- State whether you are validating an existing route or resolving a new one.
+- Summarize the resolved route, mismatch, or blocker in worklog or final output.
 
-### routing_validate
-- Когда: нужно проверить high-risk routing registry.
-- Required inputs: нет
-- Optional/schema inputs: `cwd`, `timeout_sec`, `strict`, `json`
-- Режим: read-only
-- Approval / issue requirements: Не требуется для read-only вызова. Если команда превращается в запись, остановиться и получить owner approval.
-- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-- Пример вызова: `{"name":"routing_validate","arguments":{}}`
-- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
+## Expected result
+- The correct route is validated or resolved without guessing.
 
-### routing_resolve
-- Когда: нужно резолвить logical intent в canonical engine/adapter.
-- Required inputs: `intent`
-- Optional/schema inputs: `cwd`, `timeout_sec`, `platform`, `json`
-- Режим: read-only
-- Approval / issue requirements: Не требуется для read-only вызова. Если команда превращается в запись, остановиться и получить owner approval.
-- Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-- Пример вызова: `{"name":"routing_resolve","arguments":{"intent": "<intent>"}}`
-- Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
+## Checks
+- The requested route id, task class, or surface is explicit.
+- Read-only validation remains read-only.
+
+## Stop when
+- Required args are missing.
+- MCP returns policy or config errors.
+- The route definition is ambiguous or drifted.
+
+## Ask user when
+- Multiple route candidates remain plausible.
+- Resolution would justify mutating surrounding config or workflow.
+
+## Tool map
+- `routing_validate`: read-only route verification.
+- `routing_resolve`: read-only route resolution for a requested capability.

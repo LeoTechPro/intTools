@@ -3,22 +3,37 @@ name: intdata-runtime
 description: Internal int-tools skill entrypoint for the intdata-runtime plugin. Use as the router for host diagnostics, SSH routes, fallback Firefox DevTools browser testing, and runtime vault maintenance.
 ---
 
-# intData Runtime Router
+# intData Runtime
 
-- Use this skill for host diagnostics, SSH route checks, fallback Firefox DevTools browser testing, and vault maintenance.
-- Default browser-proof is internal Codex Browser / Browser Use / in-app browser. Use `firefox-devtools-testing` only after Browser Use is blocked or insufficient; fallback after that is `chrome-devtools`, then standalone Playwright.
-- Runtime, interactive, and destructive actions require explicit owner approval and issue context.
-- Start with read-only diagnostics and dry-run by default.
+## When to use
+- Use for runtime host diagnostics, SSH route discovery, approved Firefox fallback browser testing, and runtime vault maintenance.
 
-## Capability skills
+## Do first
+- Prefer the plugin MCP surface for `intdata-runtime`.
+- Pick the narrowest leaf skill before calling tools.
+- Confirm whether the task is read-only, diagnostic, or mutating maintenance.
+- Summarize material tool results in worklog or final response because raw payloads may be hidden in the UI.
 
-- `host-diagnostics`: Runtime host diagnostics.
-- `ssh`: Runtime SSH routes.
-- `firefox-devtools-testing`: Firefox DevTools fallback browser testing and browser-proof workflow.
-- `vault-maintenance`: Runtime vault maintenance.
+## Expected result
+- The correct runtime surface is used with clear target host, browser contour, or vault scope.
 
-## General rules
+## Checks
+- The target contour or host is explicit.
+- Read-only diagnostics stay read-only.
+- Mutating maintenance has explicit approval and issue context.
 
-- Select the capability skill first, then the concrete tool card.
-- Do not call mutating/high-risk tools without owner approval, `confirm_mutation=true`, and `issue_context=INT-*`.
-- If required args are unknown, stop as blocker and do not replace MCP with direct shell fallback.
+## Stop when
+- Required args are unknown.
+- MCP returns policy or config errors.
+- The request needs mutation without approval.
+- The target contour or runtime scope is ambiguous.
+
+## Ask user when
+- More than one host, browser contour, or vault target could match.
+- A maintenance action would mutate shared runtime state.
+
+## Skill map
+- `host-diagnostics`: preflight, verify, bootstrap, recovery bundle.
+- `ssh`: canonical SSH route discovery.
+- `firefox-devtools-testing`: approved fallback browser testing after in-app surfaces.
+- `vault-maintenance`: sanitize or GC runtime vault data.

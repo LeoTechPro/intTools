@@ -1,23 +1,34 @@
 ---
 name: migrations
-description: dba migrations. Используйте только для gated migration workflows, readiness checks и owner-approved apply paths.
+description: dba migrations. Используйте только для gated migration workflows, readiness checks и owner-approved apply.
 ---
 
 # intDBA migrations
 
-- `intdata_cli` является command-router; выбирай subcommand по этой карточке, а не угадывай shell-команду.
-- Use for migration review/status. `migrate apply` is mutating and requires approval.
-- Для dev backend intdata с локальной Windows-машины не используйте `D:\int\data`; рабочий checkout находится на `agents@vds.intdata.pro:/int/data`.
+## When to use
+- Use for migration readiness, migration status, and owner-approved migration apply workflows.
 
-## Tool cards
+## Do first
+- Confirm the target profile and whether the request is status-only or apply.
+- Prefer `intdata_cli` or the plugin migration surface.
+- Summarize migration status, pending items, and apply result or blocker.
 
-### intdata_cli
-    - Когда: нужно выполнить intDBA command-router subcommand.
-    - Required inputs: `command`
-    - Optional/schema inputs: `cwd`, `timeout_sec`, `confirm_mutation`, `issue_context`, `args`
-    - Режим: read-only by default
-    - Approval / issue requirements: Read-only subcommands без approval; apply/dump/restore/local-test требуют owner approval, `issue_context=INT-*` и безопасный disposable/local target.
-    - Не использовать когда: нет нужного контекста, target/profile не подтверждён, требуется production/destructive действие без явной команды владельца, или задача относится к Cabinet.
-    - Пример вызова: `{"name":"intdata_cli","arguments":{"command": "dba", "args": ["doctor", "status"]}}`
-    - Fallback/blocker: если required args неизвестны, MCP вернул policy/config error, или запрос требует mutation без approval, остановиться и записать blocker вместо shell fallback.
-- Subcommand cards: `doctor/status` read-only; `migrate status` read-only; `migrate apply`, SQL apply, dump/restore/clone/copy/local-test mutating и запрещены unattended.
+## Expected result
+- The intended migration workflow is completed with clear approval boundaries.
+
+## Checks
+- Status-only requests remain read-only.
+- Apply requests include explicit approval and `issue_context=INT-*`.
+- The target profile is explicit.
+
+## Stop when
+- The profile is unknown.
+- Mutation is requested without approval.
+- The tool returns policy or config errors.
+
+## Ask user when
+- More than one migration target could match.
+- Apply semantics or target contour are unclear.
+
+## Tool map
+- `intdata_cli`: use `command="dba"` for `migrate status` or approved `migrate apply` paths with an explicit profile.
