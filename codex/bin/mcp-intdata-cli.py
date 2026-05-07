@@ -136,7 +136,7 @@ PROFILE_TOOLS: dict[str, list[dict[str, Any]]] = {
 }
 
 OPEN_SPEC_READ_ONLY = {"list", "show", "validate", "status", "instructions", "templates", "schemas", "completion", "help"}
-PROFILE_COMMANDS: dict[str, dict[str, list[str]]] = {"dba": {"dba": ["python", str(ROOT_DIR / "dba" / "lib" / "dba.py")]}}
+PROFILE_COMMANDS: dict[str, dict[str, list[str]]] = {"dba": {"dba": [sys.executable, str(ROOT_DIR / "dba" / "lib" / "dba.py")]}}
 
 
 def _as_int(raw: Any, default: int) -> int:
@@ -194,6 +194,13 @@ def _run(argv: list[str], *, cwd: str, timeout_sec: int | None = None) -> dict[s
     timeout = int(timeout_sec or 60)
     completed = subprocess.run(argv, cwd=cwd, text=True, capture_output=True, timeout=timeout, shell=False)
     return {"ok": completed.returncode == 0, "returncode": completed.returncode, "argv": argv, "cwd": cwd, "stdout": completed.stdout, "stderr": completed.stderr}
+
+
+def _script_entrypoint(name: str, *, windows_ext: str = ".cmd") -> list[str]:
+    path = ROOT_DIR / "codex" / "bin" / f"{name}{windows_ext if os.name == 'nt' else ''}"
+    if os.name == "nt":
+        return ["cmd.exe", "/d", "/s", "/c", str(path)]
+    return [str(path)]
 
 
 def _powershell_base() -> list[str]:
@@ -276,14 +283,14 @@ def _call_governance(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     cwd = _cwd(arguments.get("cwd"))
     timeout = arguments.get("timeout_sec")
     if name == "routing_validate":
-        argv = ["python", str(ROOT_DIR / "codex" / "bin" / "agent_tool_routing.py"), "validate"]
+        argv = [sys.executable, str(ROOT_DIR / "codex" / "bin" / "agent_tool_routing.py"), "validate"]
         if arguments.get("strict"):
             argv.append("--strict")
         if arguments.get("json"):
             argv.append("--json")
         return _run(argv, cwd=cwd, timeout_sec=timeout)
     if name == "routing_resolve":
-        argv = ["python", str(ROOT_DIR / "codex" / "bin" / "agent_tool_routing.py"), "resolve", "--intent", str(arguments["intent"])]
+        argv = [sys.executable, str(ROOT_DIR / "codex" / "bin" / "agent_tool_routing.py"), "resolve", "--intent", str(arguments["intent"])]
         if arguments.get("platform"):
             argv.extend(["--platform", str(arguments["platform"])])
         if arguments.get("json"):
@@ -296,7 +303,7 @@ def _call_runtime(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     cwd = _cwd(arguments.get("cwd"))
     timeout = arguments.get("timeout_sec")
     if name == "host_verify":
-        payload = _run(["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "codex-host-verify.cmd"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout)
+        payload = _run([*_script_entrypoint("codex-host-verify"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout)
         output = f"{payload.get('stdout', '')}\n{payload.get('stderr', '')}"
         verify_ok = payload["returncode"] == 0 and "codex host verify: FAILED" not in output
         payload["verify_ok"] = verify_ok
@@ -312,12 +319,12 @@ def _call_runtime(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         return payload
     if name == "host_bootstrap":
         _require_mutation(arguments)
-        return _run(["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "codex-host-bootstrap.cmd"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout or 300)
+        return _run([*_script_entrypoint("codex-host-bootstrap"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout or 300)
     if name == "recovery_bundle":
         _require_mutation(arguments)
-        return _run(["cmd.exe", "/d", "/s", "/c", str(ROOT_DIR / "codex" / "bin" / "codex-recovery-bundle.cmd"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout or 300)
+        return _run([*_script_entrypoint("codex-recovery-bundle"), *_safe_args(arguments.get("args"))], cwd=cwd, timeout_sec=timeout or 300)
     if name == "ssh_resolve":
-        argv = ["python", str(ROOT_DIR / "codex" / "bin" / "int_ssh_resolve.py"), "--requested-host", str(arguments["host"]), "--capability", "int_ssh_resolve", "--binding-origin", "codex/bin/mcp-intdata-cli.py"]
+        argv = [sys.executable, str(ROOT_DIR / "codex" / "bin" / "int_ssh_resolve.py"), "--requested-host", str(arguments["host"]), "--capability", "int_ssh_resolve", "--binding-origin", "codex/bin/mcp-intdata-cli.py"]
         if arguments.get("mode"):
             argv.extend(["--mode", str(arguments["mode"])])
         if arguments.get("json"):
@@ -331,7 +338,7 @@ def _call_runtime(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         profile_config = BROWSER_PROFILE_REGISTRY.get(profile)
         if not profile_config:
             raise ValueError(f"unknown browser profile: {profile}")
-        argv = ["python", str(ROOT_DIR / "codex" / "bin" / "firefox_mcp_launcher.py"), "--capability", str(profile_config["capability"]), "--binding-origin", "codex/bin/mcp-intdata-cli.py", "--profile-key", str(profile_config["profile_key"]), "--start-url", str(profile_config["start_url"]), "--viewport", str(profile_config.get("viewport", "1440x900")), *_safe_args(arguments.get("args"))]
+        argv = [sys.executable, str(ROOT_DIR / "codex" / "bin" / "firefox_mcp_launcher.py"), "--capability", str(profile_config["capability"]), "--binding-origin", "codex/bin/mcp-intdata-cli.py", "--profile-key", str(profile_config["profile_key"]), "--start-url", str(profile_config["start_url"]), "--viewport", str(profile_config.get("viewport", "1440x900")), *_safe_args(arguments.get("args"))]
         return _run(argv, cwd=cwd, timeout_sec=timeout)
     raise ValueError(f"unknown runtime tool: {name}")
 
@@ -367,7 +374,7 @@ def _call_vault(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if not dry_run:
         _require_mutation(arguments)
     script = "vault_sanitize.py" if name == "intdata_vault_sanitize" else "runtime_vault_gc.py"
-    argv = ["python", str(ROOT_DIR / "vault" / "installers" / script)]
+    argv = [sys.executable, str(ROOT_DIR / "vault" / "installers" / script)]
     if dry_run:
         argv.append("--dry-run")
     else:
