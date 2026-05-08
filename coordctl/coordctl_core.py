@@ -792,6 +792,124 @@ def _git_optional(repo_root: str, *args: str) -> dict[str, Any]:
     }
 
 
+def _parse_git_status_porcelain_z(raw: str) -> list[dict[str, Any]]:
+    records = raw.split("\0")
+    entries: list[dict[str, Any]] = []
+    index = 0
+    while index < len(records):
+        record = records[index]
+        index += 1
+        if not record:
+            continue
+        if len(record) < 4 or record[2] != " ":
+            raise CoordCtlError("GIT_STATUS_PARSE_ERROR", f"unexpected git status record: {record!r}")
+        xy = record[:2]
+        path = record[3:]
+        original_path = None
+        if "R" in xy or "C" in xy:
+            if index >= len(records) or not records[index]:
+                raise CoordCtlError("GIT_STATUS_PARSE_ERROR", f"missing source path for git status record: {record!r}")
+            original_path = records[index]
+            index += 1
+        untracked = xy == "??"
+        unmerged = xy in {"DD", "AU", "UD", "UA", "DU", "AA", "UU"} or "U" in xy
+        entries.append(
+            {
+                "index_status": xy[0],
+                "original_path": original_path,
+                "path": path,
+                "staged": xy[0] not in {" ", "?", "!"},
+                "unstaged": xy[1] not in {" ", "?", "!"},
+                "unmerged": unmerged,
+                "untracked": untracked,
+                "worktree_status": xy[1],
+                "xy": xy,
+            }
+        )
+    return entries
+
+
+def _status_paths(entries: list[dict[str, Any]]) -> list[str]:
+    return sorted(str(entry["path"]) for entry in entries)
+
+
+def cmd_commit_scope_check(args: argparse.Namespace) -> dict[str, Any]:
+    repo_root = normalize_repo_root(args.repo_root)
+    cp = git(repo_root, "status", "--porcelain=v1", "-z", "--untracked-files=all")
+    entries = _parse_git_status_porcelain_z(cp.stdout)
+    unmerged_entries = [entry for entry in entries if entry["unmerged"]]
+    staged_entries = [entry for entry in entries if entry["staged"] and not entry["unmerged"]]
+    unstaged_entries = [entry for entry in entries if entry["unstaged"] and not entry["unmerged"]]
+    partial_file_entries = [entry for entry in staged_entries if entry["unstaged"]]
+    untracked_entries = [entry for entry in entries if entry["untracked"]]
+    problems: list[dict[str, Any]] = []
+    warnings: list[dict[str, Any]] = []
+    if unmerged_entries:
+        problems.append(
+            {
+                "code": "UNMERGED_STATE",
+                "message": "repository has unmerged paths; commit scope cannot be verified",
+                "paths": _status_paths(unmerged_entries),
+            }
+        )
+    if partial_file_entries:
+        problems.append(
+            {
+                "code": "PARTIAL_FILE_STAGED",
+                "message": "a staged file also has unstaged changes; stage the complete file or stop and ask the owner",
+                "paths": _status_paths(partial_file_entries),
+            }
+        )
+    if not staged_entries:
+        problems.append(
+            {
+                "code": "NO_STAGED_CHANGES",
+                "message": "no staged changes are ready for commit",
+                "paths": [],
+            }
+        )
+    visible_uncommitted_entries = [entry for entry in unstaged_entries if not entry["staged"]] + untracked_entries
+    if visible_uncommitted_entries:
+        warnings.append(
+            {
+                "code": "UNCOMMITTED_OWNER_STATE_VISIBLE",
+                "message": "uncommitted file-level owner state is present but not part of this commit",
+                "paths": _status_paths(visible_uncommitted_entries),
+            }
+        )
+    ok = not problems
+    payload: dict[str, Any] = {
+        "action": "commit_scope_check",
+        "counts": {
+            "entries": len(entries),
+            "partial_files": len(partial_file_entries),
+            "staged": len(staged_entries),
+            "unmerged": len(unmerged_entries),
+            "unstaged": len(unstaged_entries),
+            "untracked": len(untracked_entries),
+        },
+        "entries": entries,
+        "errors": problems,
+        "ok": ok,
+        "owner_action_required": not ok and any(problem["code"] in {"PARTIAL_FILE_STAGED", "UNMERGED_STATE"} for problem in problems),
+        "paths": {
+            "partial_files": _status_paths(partial_file_entries),
+            "staged": _status_paths(staged_entries),
+            "unmerged": _status_paths(unmerged_entries),
+            "unstaged": _status_paths([entry for entry in unstaged_entries if not entry["staged"]]),
+            "untracked": _status_paths(untracked_entries),
+        },
+        "policy": "File-level subset commits are allowed. Partial-file staging and hidden clean-tree bypasses require explicit owner decision.",
+        "ready_to_commit": ok,
+        "repo_root": repo_root,
+        "warnings": warnings,
+    }
+    if not ok:
+        payload["error"] = problems[0]["code"]
+        payload["message"] = problems[0]["message"]
+    return payload
+
+
 def _branch_exists(repo_root: str, branch: str) -> bool:
     return git(repo_root, "rev-parse", "--verify", f"{branch}^{{commit}}", check=False).returncode == 0
 
@@ -1010,6 +1128,10 @@ def build_parser() -> argparse.ArgumentParser:
     status.add_argument("--all", action="store_true")
     add_format(status)
 
+    commit_scope = sub.add_parser("commit-scope-check", help="Verify that a commit will not hide dirty owner state.")
+    commit_scope.add_argument("--repo-root", required=True)
+    add_format(commit_scope)
+
     heartbeat = sub.add_parser("heartbeat", help="Renew a session and its active leases.")
     heartbeat.add_argument("--session-id", required=True)
     heartbeat.add_argument("--lease-sec", type=int, default=DEFAULT_LEASE_SEC)
@@ -1051,6 +1173,8 @@ def dispatch(args: argparse.Namespace) -> dict[str, Any]:
         return cmd_intent_acquire(args)
     if args.command == "status":
         return cmd_status(args)
+    if args.command == "commit-scope-check":
+        return cmd_commit_scope_check(args)
     if args.command == "heartbeat":
         return cmd_heartbeat(args)
     if args.command == "release":

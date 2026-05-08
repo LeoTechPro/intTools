@@ -155,6 +155,62 @@ class CoordCtlCoreTest(unittest.TestCase):
                 self.assertEqual(result["error"], "STALE_BASE")
                 self.assertEqual(result["current_base_commit"], newer)
 
+    def test_commit_scope_check_allows_fully_staged_commit(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            (repo / "invoice.js").write_text(CONTENT.replace("c", "C"), encoding="utf-8")
+            git(repo, "add", "invoice.js")
+
+            result = coordctl_core.cmd_commit_scope_check(mock.Mock(repo_root=str(repo)))
+
+            self.assertTrue(result["ok"])
+            self.assertTrue(result["ready_to_commit"])
+            self.assertEqual(result["counts"]["staged"], 1)
+            self.assertEqual(result["counts"]["unstaged"], 0)
+            self.assertEqual(result["counts"]["untracked"], 0)
+
+    def test_commit_scope_check_allows_selected_complete_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            (repo / "invoice.js").write_text(CONTENT.replace("c", "C"), encoding="utf-8")
+            git(repo, "add", "invoice.js")
+            (repo / "other.txt").write_text("left out\n", encoding="utf-8")
+
+            result = coordctl_core.cmd_commit_scope_check(mock.Mock(repo_root=str(repo)))
+
+            self.assertTrue(result["ok"])
+            self.assertTrue(result["ready_to_commit"])
+            self.assertFalse(result["owner_action_required"])
+            self.assertEqual(result["counts"]["staged"], 1)
+            self.assertEqual(result["counts"]["partial_files"], 0)
+            self.assertEqual(result["counts"]["untracked"], 1)
+            self.assertIn("other.txt", result["paths"]["untracked"])
+            self.assertEqual(result["warnings"][0]["code"], "UNCOMMITTED_OWNER_STATE_VISIBLE")
+
+    def test_commit_scope_check_blocks_partial_file_state(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            (repo / "invoice.js").write_text(CONTENT.replace("c", "C"), encoding="utf-8")
+            git(repo, "add", "invoice.js")
+            (repo / "invoice.js").write_text(CONTENT.replace("c", "C").replace("g", "G"), encoding="utf-8")
+            (repo / "diagnostics.txt").write_text("left out\n", encoding="utf-8")
+
+            result = coordctl_core.cmd_commit_scope_check(mock.Mock(repo_root=str(repo)))
+
+            self.assertFalse(result["ok"])
+            self.assertFalse(result["ready_to_commit"])
+            self.assertTrue(result["owner_action_required"])
+            self.assertEqual(result["error"], "PARTIAL_FILE_STAGED")
+            self.assertEqual(result["counts"]["staged"], 1)
+            self.assertEqual(result["counts"]["unstaged"], 1)
+            self.assertEqual(result["counts"]["partial_files"], 1)
+            self.assertEqual(result["counts"]["untracked"], 1)
+            self.assertIn("invoice.js", result["paths"]["partial_files"])
+            self.assertIn("diagnostics.txt", result["paths"]["untracked"])
+
     def test_cleanup_dry_run_does_not_finalize_session(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)

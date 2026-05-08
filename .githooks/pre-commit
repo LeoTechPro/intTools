@@ -1,0 +1,21 @@
+#!/bin/bash
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+coordctl_script="$repo_root/coordctl/coordctl.py"
+
+if [[ ! -f "$coordctl_script" ]]; then
+  echo "Commit rejected: coordctl pre-commit guard is missing: $coordctl_script" >&2
+  exit 1
+fi
+
+python_bin="${PYTHON:-python}"
+if ! command -v "$python_bin" >/dev/null 2>&1; then
+  python_bin="python3"
+fi
+
+if ! output="$("$python_bin" "$coordctl_script" commit-scope-check --repo-root "$repo_root" --format json 2>&1)"; then
+  echo "Commit rejected: partial-file staging or unverifiable commit scope." >&2
+  echo "$output" >&2
+  exit 1
+fi
