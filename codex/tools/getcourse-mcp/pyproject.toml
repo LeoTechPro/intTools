@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "getcourse-mcp"
+version = "0.1.0"
+description = "Read-only MCP server for GetCourse account API"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    { name = "intData" },
+]
+keywords = ["mcp", "getcourse", "crm", "lms", "model-context-protocol"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = [
+    "httpx>=0.27",
+    "mcp>=1.0",
+]
+
+[project.scripts]
+getcourse-mcp = "getcourse_mcp.server:main"
+
+[tool.setuptools.packages.find]
+include = ["getcourse_mcp*"]
