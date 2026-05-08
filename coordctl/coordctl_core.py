@@ -833,14 +833,57 @@ def _status_paths(entries: list[dict[str, Any]]) -> list[str]:
     return sorted(str(entry["path"]) for entry in entries)
 
 
+def _parse_git_status_porcelain_v2_submodules(raw: str) -> dict[str, str]:
+    records = raw.split("\0")
+    states: dict[str, str] = {}
+    index = 0
+    while index < len(records):
+        record = records[index]
+        index += 1
+        if not record:
+            continue
+        kind = record[0]
+        if kind == "1":
+            parts = record.split(" ", 8)
+            if len(parts) >= 9 and parts[2].startswith("S"):
+                states[parts[8]] = parts[2]
+        elif kind == "2":
+            parts = record.split(" ", 9)
+            if len(parts) >= 10 and parts[2].startswith("S"):
+                states[parts[9]] = parts[2]
+            if index < len(records):
+                index += 1
+    return states
+
+
+def _staged_gitlink_with_visible_submodule_dirt(entry: dict[str, Any], submodule_states: dict[str, str]) -> bool:
+    if not (entry["staged"] and entry["unstaged"]):
+        return False
+    submodule_state = submodule_states.get(str(entry["path"]))
+    if not submodule_state or len(submodule_state) < 4:
+        return False
+    commit_changed, tracked_dirty, untracked_dirty = submodule_state[1], submodule_state[2], submodule_state[3]
+    return commit_changed == "." and (tracked_dirty != "." or untracked_dirty != ".")
+
+
 def cmd_commit_scope_check(args: argparse.Namespace) -> dict[str, Any]:
     repo_root = normalize_repo_root(args.repo_root)
     cp = git(repo_root, "status", "--porcelain=v1", "-z", "--untracked-files=all")
     entries = _parse_git_status_porcelain_z(cp.stdout)
+    submodule_states = _parse_git_status_porcelain_v2_submodules(
+        git(repo_root, "status", "--porcelain=v2", "-z", "--untracked-files=all").stdout
+    )
     unmerged_entries = [entry for entry in entries if entry["unmerged"]]
     staged_entries = [entry for entry in entries if entry["staged"] and not entry["unmerged"]]
     unstaged_entries = [entry for entry in entries if entry["unstaged"] and not entry["unmerged"]]
-    partial_file_entries = [entry for entry in staged_entries if entry["unstaged"]]
+    staged_submodule_dirty_entries = [
+        entry for entry in staged_entries if _staged_gitlink_with_visible_submodule_dirt(entry, submodule_states)
+    ]
+    partial_file_entries = [
+        entry
+        for entry in staged_entries
+        if entry["unstaged"] and not _staged_gitlink_with_visible_submodule_dirt(entry, submodule_states)
+    ]
     untracked_entries = [entry for entry in entries if entry["untracked"]]
     problems: list[dict[str, Any]] = []
     warnings: list[dict[str, Any]] = []
@@ -868,7 +911,9 @@ def cmd_commit_scope_check(args: argparse.Namespace) -> dict[str, Any]:
                 "paths": [],
             }
         )
-    visible_uncommitted_entries = [entry for entry in unstaged_entries if not entry["staged"]] + untracked_entries
+    visible_uncommitted_entries = [
+        entry for entry in unstaged_entries if not entry["staged"]
+    ] + staged_submodule_dirty_entries + untracked_entries
     if visible_uncommitted_entries:
         warnings.append(
             {

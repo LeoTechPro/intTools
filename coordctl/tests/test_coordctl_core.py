@@ -189,6 +189,74 @@ class CoordCtlCoreTest(unittest.TestCase):
             self.assertIn("other.txt", result["paths"]["untracked"])
             self.assertEqual(result["warnings"][0]["code"], "UNCOMMITTED_OWNER_STATE_VISIBLE")
 
+    def test_commit_scope_check_allows_staged_gitlink_with_visible_submodule_dirt(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            sub_src = tmp_path / "sub-src"
+            sub_src.mkdir()
+            git(sub_src, "init", "--initial-branch=main")
+            git(sub_src, "config", "user.name", "Coord Test")
+            git(sub_src, "config", "user.email", "coord@example.invalid")
+            (sub_src / "module.txt").write_text("v1\n", encoding="utf-8")
+            git(sub_src, "add", "module.txt")
+            git(sub_src, "commit", "-m", "initial")
+            git(repo, "-c", "protocol.file.allow=always", "submodule", "add", str(sub_src), "vendor/sub")
+            git(repo, "commit", "-am", "add submodule")
+
+            sub = repo / "vendor" / "sub"
+            git(sub, "config", "user.name", "Coord Test")
+            git(sub, "config", "user.email", "coord@example.invalid")
+            (sub / "module.txt").write_text("v2\n", encoding="utf-8")
+            git(sub, "add", "module.txt")
+            git(sub, "commit", "-m", "advance submodule")
+            git(repo, "add", "vendor/sub")
+            (sub / "scratch.txt").write_text("left visible\n", encoding="utf-8")
+
+            result = coordctl_core.cmd_commit_scope_check(mock.Mock(repo_root=str(repo)))
+
+            self.assertTrue(result["ok"])
+            self.assertTrue(result["ready_to_commit"])
+            self.assertFalse(result["owner_action_required"])
+            self.assertEqual(result["counts"]["staged"], 1)
+            self.assertEqual(result["counts"]["partial_files"], 0)
+            self.assertIn("vendor/sub", result["paths"]["staged"])
+            self.assertIn("vendor/sub", result["warnings"][0]["paths"])
+
+    def test_commit_scope_check_blocks_staged_gitlink_when_submodule_head_moves_again(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            sub_src = tmp_path / "sub-src"
+            sub_src.mkdir()
+            git(sub_src, "init", "--initial-branch=main")
+            git(sub_src, "config", "user.name", "Coord Test")
+            git(sub_src, "config", "user.email", "coord@example.invalid")
+            (sub_src / "module.txt").write_text("v1\n", encoding="utf-8")
+            git(sub_src, "add", "module.txt")
+            git(sub_src, "commit", "-m", "initial")
+            git(repo, "-c", "protocol.file.allow=always", "submodule", "add", str(sub_src), "vendor/sub")
+            git(repo, "commit", "-am", "add submodule")
+
+            sub = repo / "vendor" / "sub"
+            git(sub, "config", "user.name", "Coord Test")
+            git(sub, "config", "user.email", "coord@example.invalid")
+            (sub / "module.txt").write_text("v2\n", encoding="utf-8")
+            git(sub, "add", "module.txt")
+            git(sub, "commit", "-m", "advance submodule")
+            git(repo, "add", "vendor/sub")
+            (sub / "module.txt").write_text("v3\n", encoding="utf-8")
+            git(sub, "add", "module.txt")
+            git(sub, "commit", "-m", "advance again")
+
+            result = coordctl_core.cmd_commit_scope_check(mock.Mock(repo_root=str(repo)))
+
+            self.assertFalse(result["ok"])
+            self.assertFalse(result["ready_to_commit"])
+            self.assertTrue(result["owner_action_required"])
+            self.assertEqual(result["error"], "PARTIAL_FILE_STAGED")
+            self.assertIn("vendor/sub", result["paths"]["partial_files"])
+
     def test_commit_scope_check_blocks_partial_file_state(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
