@@ -1,28 +1,37 @@
 {
-    "hooks":  {
-                  "SessionStart":  [
-                                       {
-                                           "matcher":  "startup|resume",
-                                           "hooks":  [
-                                                         {
-                                                             "type":  "command",
-                                                             "command":  "python D:\\int\\tools\\.codex\\hooks\\int_runtime_context_guard.py",
-                                                             "timeout":  10
-                                                         }
-                                                     ]
-                                       }
-                                   ],
-                  "PreToolUse":  [
-                                     {
-                                         "matcher":  "Bash",
-                                         "hooks":  [
-                                                       {
-                                                           "type":  "command",
-                                                           "command":  "python D:\\int\\tools\\.codex\\hooks\\int_runtime_context_guard.py",
-                                                           "timeout":  10
-                                                       }
-                                                   ]
-                                     }
-                                 ]
-              }
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python D:\\int\\tools\\.codex\\hooks\\int_runtime_context_guard.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python D:\\int\\tools\\.codex\\hooks\\int_runtime_context_guard.py",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "C:\\Users\\intData\\.local\\bin\\graphify.EXE hook-check"
+          }
+        ]
+      }
+    ]
+  }
 }
