@@ -22,6 +22,7 @@ BRAIN_MCP = INT_ROOT / "brain" / "mcp" / "intbrain" / "bin" / "mcp-intbrain.py"
 COORDCTL_DIR = ROOT_DIR / "coordctl"
 if str(COORDCTL_DIR) not in sys.path:
     sys.path.insert(0, str(COORDCTL_DIR))
+os.environ.setdefault("COORDCTL_RECLAIM_DEAD_LOCAL_PIDS", "1")
 
 from coordctl_core import (
     CoordCtlError,

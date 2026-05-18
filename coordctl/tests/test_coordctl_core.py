@@ -63,7 +63,7 @@ class CoordCtlCoreTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             repo = make_repo(tmp_path)
-            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state"), coordctl_core.RECLAIM_DEAD_LOCAL_PIDS_ENV: ""}, clear=False):
                 session = coordctl_core.cmd_session_start(mock.Mock(repo_root=str(repo), owner="agent:a", issue="INT-1", branch="agent/a", base="main", worktree_path=None, lease_sec=60))
                 session_id = session["session"]["session_id"]
                 status = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner=None, issue=None))
@@ -72,6 +72,55 @@ class CoordCtlCoreTest(unittest.TestCase):
                 self.assertTrue(coordctl_core.cmd_release(mock.Mock(session_id=session_id, repo_root=None, issue=None))["changed"])
                 status_after = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner=None, issue=None))
                 self.assertEqual(status_after["counts"]["sessions"], 0)
+
+    def test_dead_local_pid_reclaim_is_env_gated(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state"), coordctl_core.RECLAIM_DEAD_LOCAL_PIDS_ENV: ""}, clear=False):
+                session = coordctl_core.cmd_session_start(mock.Mock(repo_root=str(repo), owner="agent:a", issue=None, branch="agent/a", base="main", worktree_path=None, lease_sec=60))
+                session_id = session["session"]["session_id"]
+                coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base="main", region_kind="hunk", region_id="4:4", lease_sec=60, session_id=session_id))
+
+                with mock.patch.object(coordctl_core, "pid_alive", return_value=False):
+                    status = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner=None, issue=None, all=False))
+
+                self.assertEqual(status["counts"], {"sessions": 1, "leases": 1})
+                self.assertEqual(status["expired_now"], {"sessions": [], "leases": []})
+
+    def test_dead_local_pid_reclaim_expires_when_enabled(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state"), coordctl_core.RECLAIM_DEAD_LOCAL_PIDS_ENV: ""}, clear=False):
+                session = coordctl_core.cmd_session_start(mock.Mock(repo_root=str(repo), owner="agent:a", issue=None, branch="agent/a", base="main", worktree_path=None, lease_sec=60))
+                session_id = session["session"]["session_id"]
+                lease = coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base="main", region_kind="hunk", region_id="4:4", lease_sec=60, session_id=session_id))
+
+                with mock.patch.dict(os.environ, {coordctl_core.RECLAIM_DEAD_LOCAL_PIDS_ENV: "1"}, clear=False), mock.patch.object(coordctl_core, "pid_alive", return_value=False):
+                    status = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner=None, issue=None, all=False))
+                    status_all = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner=None, issue=None, all=True))
+
+                self.assertEqual(status["counts"], {"sessions": 0, "leases": 0})
+                self.assertIn(session_id, status["expired_now"]["sessions"])
+                self.assertIn(lease["lease"]["lease_id"], status["expired_now"]["leases"])
+                self.assertEqual(status_all["sessions"][0]["state"], "expired")
+                self.assertEqual(status_all["leases"][0]["state"], "expired")
+
+    def test_dead_local_pid_reclaim_keeps_live_process_rows(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+                session = coordctl_core.cmd_session_start(mock.Mock(repo_root=str(repo), owner="agent:a", issue=None, branch="agent/a", base="main", worktree_path=None, lease_sec=60))
+                session_id = session["session"]["session_id"]
+                coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base="main", region_kind="hunk", region_id="4:4", lease_sec=60, session_id=session_id))
+
+                with mock.patch.dict(os.environ, {coordctl_core.RECLAIM_DEAD_LOCAL_PIDS_ENV: "1"}, clear=False), mock.patch.object(coordctl_core, "pid_alive", return_value=True):
+                    status = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner=None, issue=None, all=False))
+
+                self.assertEqual(status["counts"], {"sessions": 1, "leases": 1})
+                self.assertEqual(status["expired_now"], {"sessions": [], "leases": []})
 
     def test_non_overlapping_hunks_same_file_are_allowed(self):
         with tempfile.TemporaryDirectory() as tmp:
