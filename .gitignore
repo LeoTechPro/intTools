@@ -46,3 +46,8 @@ node_modules/
 
 # local/legacy Codex app runtime artifacts; plugin source lives under .codex/
 .agents/
+
+# Graphify generated state
+graphify-out/cache/
+graphify-out/manifest.json
+graphify-out/cost.json

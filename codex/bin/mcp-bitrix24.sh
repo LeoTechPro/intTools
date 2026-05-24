@@ -6,15 +6,16 @@ ROOT_DIR="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
 source "$ROOT_DIR/lib/codex-env.sh"
 
 env_name="bitrix24-mcp.env"
-APP_BIN="${HOME}/.local/bin/bitrix24-mcp"
+APP_ROOT="$ROOT_DIR/tools/bitrix24-mcp"
 codex_source_env_file "$env_name" || true
 
-if [[ -z "${BITRIX_WEBHOOK_URL:-}" ]]; then
+if [[ -z "${BITRIX_WEBHOOK_URL:-}${BITRIX_WEBHOOK_BASE_URL:-}" ]]; then
   cat >&2 <<EOF
-mcp-bitrix24: BITRIX_WEBHOOK_URL is not set.
+mcp-bitrix24: BITRIX_WEBHOOK_URL or BITRIX_WEBHOOK_BASE_URL is not set.
 Set it in $(codex_primary_env_hint "$env_name") or export it before starting Codex.
 EOF
   exit 1
 fi
 
-exec "${APP_BIN}"
+export PYTHONPATH="$APP_ROOT${PYTHONPATH:+:$PYTHONPATH}"
+exec python -m bitrix24_mcp

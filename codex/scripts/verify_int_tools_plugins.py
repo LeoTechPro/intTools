@@ -11,6 +11,11 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 MCP_SERVER = ROOT / "codex" / "bin" / "mcp-intdata-cli.py"
+MARKETPLACE_NAME = "intdata"
+MARKETPLACE_DISPLAY_NAME = "intData"
+PUBLIC_PLUGIN_NAMES = ("intdata-control", "intdata-runtime", "intbrain", "dba")
+COMPATIBILITY_PROFILE_NAMES = ("coordctl",)
+FORBIDDEN_PUBLIC_PLUGIN_NAMES = {"coordctl", "agent-plane"}
 EXPECTED_COUNTS = {
     "coordctl": 8,
     "intbrain": 27,
@@ -66,7 +71,7 @@ TOOL_SKILLS = {
         "host_bootstrap": "host-diagnostics",
         "recovery_bundle": "host-diagnostics",
         "ssh_resolve": "ssh",
-            "browser_profile_launch": "firefox-devtools-testing",
+        "browser_profile_launch": "firefox-devtools-testing",
         "intdata_vault_sanitize": "vault-maintenance",
         "intdata_runtime_vault_gc": "vault-maintenance",
     },
@@ -94,7 +99,7 @@ TOOL_SKILLS = {
         "intbrain_pm_task_create": "pm-dashboard-tasks",
         "intbrain_pm_task_patch": "pm-dashboard-tasks",
         "intbrain_memory_recent_work": "session-memory",
-    "intbrain_memory_session_brief": "session-memory",
+        "intbrain_memory_session_brief": "session-memory",
         "intbrain_memory_sync_sessions": "session-memory",
         "intbrain_import_vault_pm": "external-imports",
         "intbrain_memory_import_mempalace": "external-imports",
@@ -103,6 +108,7 @@ TOOL_SKILLS = {
         "intdata_cli": "doctor-status",
     },
 }
+COORDCTL_TOOL_NAMES = set(TOOL_SKILLS["coordctl"])
 
 REQUIRED_CARD_MARKERS = [
     "Когда:",
@@ -243,19 +249,36 @@ def tools_for(profile: str) -> list[dict[str, Any]]:
 
 def verify_manifests(report: dict[str, Any]) -> None:
     marketplace_path = ROOT / ".codex" / "plugins" / "marketplace.json"
-    legacy_marketplace_path = ROOT / ".agents" / "plugins" / "marketplace.json"
-    if legacy_marketplace_path.exists():
-        report["manifest_warnings"].append(
-            f"ignored legacy/runtime marketplace catalog: {display_path(legacy_marketplace_path)}"
-        )
     if not marketplace_path.exists():
         report["manifest_errors"].append(f"missing required marketplace catalog: {display_path(marketplace_path)}")
         entries = {}
     else:
         marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
-        entries = {entry["name"]: entry for entry in marketplace["plugins"]}
-    for name, plugin_dir in PLUGIN_DIRS.items():
-        if entries and name not in entries:
+        if marketplace.get("name") != MARKETPLACE_NAME:
+            report["manifest_errors"].append(
+                f"marketplace name must be {MARKETPLACE_NAME!r}, got {marketplace.get('name')!r}"
+            )
+        interface = marketplace.get("interface") or {}
+        if interface.get("displayName") != MARKETPLACE_DISPLAY_NAME:
+            report["manifest_errors"].append(
+                f"marketplace displayName must be {MARKETPLACE_DISPLAY_NAME!r}, got {interface.get('displayName')!r}"
+            )
+        plugins = marketplace.get("plugins")
+        if not isinstance(plugins, list):
+            report["manifest_errors"].append("marketplace plugins must be a list")
+            entries = {}
+        else:
+            entries = {entry["name"]: entry for entry in plugins if isinstance(entry, dict) and "name" in entry}
+            public_names = set(entries)
+            forbidden = sorted(public_names & FORBIDDEN_PUBLIC_PLUGIN_NAMES)
+            if forbidden:
+                report["manifest_errors"].append({"forbidden_public_plugins": forbidden})
+            unexpected = sorted(public_names - set(PUBLIC_PLUGIN_NAMES) - FORBIDDEN_PUBLIC_PLUGIN_NAMES)
+            if unexpected:
+                report["manifest_errors"].append({"unexpected_public_plugins": unexpected})
+    for name in PUBLIC_PLUGIN_NAMES:
+        plugin_dir = PLUGIN_DIRS[name]
+        if name not in entries:
             report["manifest_errors"].append(f"missing marketplace entry: {name}")
             continue
         manifest = json.loads((plugin_dir / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
@@ -429,6 +452,9 @@ def verify_guard_cases(profile: str) -> None:
 def build_report(skip_guards: bool) -> dict[str, Any]:
     report: dict[str, Any] = {
         "ok": True,
+        "marketplace_name": MARKETPLACE_NAME,
+        "public_plugins": list(PUBLIC_PLUGIN_NAMES),
+        "compatibility_profiles": list(COMPATIBILITY_PROFILE_NAMES),
         "expected_counts": EXPECTED_COUNTS,
         "counts": {},
         "manifest_errors": [],
@@ -451,9 +477,18 @@ def build_report(skip_guards: bool) -> dict[str, Any]:
         if leaked:
             report["cabinet_errors"].append({"profile": profile, "tools": leaked})
         if profile == "intdata-control":
+            missing_coordctl = sorted(COORDCTL_TOOL_NAMES - names)
+            if missing_coordctl:
+                report["mapping_errors"].append({"profile": profile, "missing_coordctl_tools": missing_coordctl})
             removed = sorted(name for name in names if name.startswith("multica_") or name in REMOVED_INTDATA_CONTROL_TOOLS)
             if removed:
                 report["mapping_errors"].append({"profile": profile, "removed_tools_present": removed})
+        if profile == "coordctl" and names != COORDCTL_TOOL_NAMES:
+            report["mapping_errors"].append({
+                "profile": profile,
+                "expected_coordctl_tools": sorted(COORDCTL_TOOL_NAMES),
+                "actual_tools": sorted(names),
+            })
         verify_skill_coverage(profile, tools, report)
         if not skip_guards:
             verify_guard_cases(profile)
@@ -488,7 +523,7 @@ def main() -> int:
             status = "ok" if not row["missing_guidance"] else "; ".join(row["missing_guidance"])
             print(f"{row['profile']}/{row['tool']} -> {row['skill']} -> {status}")
         if report["ok"]:
-            print("ok: int-tools plugin manifests, MCP smoke, skill cards, Cabinet exclusion, doc guard, and guard checks passed")
+            print("ok: intData plugin manifests, MCP smoke, coordctl primary surface, skill cards, Cabinet exclusion, doc guard, and guard checks passed")
     return 0 if report["ok"] else 1
 
 

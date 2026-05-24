@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tilda-mcp"
+version = "0.1.0"
+description = "Minimal MCP server for the official Tilda API"
+requires-python = ">=3.11"
+dependencies = [
+    "fastmcp",
+    "httpx",
+]
+
+[project.scripts]
+tilda-mcp = "tilda_mcp.server:main"
+
+[tool.setuptools.packages.find]
+include = ["tilda_mcp*"]

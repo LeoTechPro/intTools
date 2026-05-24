@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import ctypes
 import json
 import os
 from pathlib import Path
@@ -19,6 +20,7 @@ from uuid import uuid4
 ISO_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 DEFAULT_LEASE_SEC = 60
 MAX_LEASE_SEC = 3600
+RECLAIM_DEAD_LOCAL_PIDS_ENV = "COORDCTL_RECLAIM_DEAD_LOCAL_PIDS"
 EXIT_OK = 0
 EXIT_COMMAND_ERROR = 2
 SUPPORTED_REGION_KINDS = {"file", "hunk"}
@@ -49,6 +51,39 @@ def utc_now() -> datetime:
 
 def iso_utc(value: datetime) -> str:
     return value.astimezone(timezone.utc).strftime(ISO_FORMAT)
+
+
+def env_flag(name: str) -> bool:
+    return str(os.environ.get(name, "")).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    if os.name == "nt":
+        # os.kill(pid, 0) is a signal-style probe on Unix, but on Windows it can
+        # terminate the target process. Query the process status without sending
+        # any signal so coordctl cleanup cannot kill Codex/MCP processes.
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        process_query_limited_information = 0x1000
+        still_active = 259
+        error_access_denied = 5
+
+        handle = kernel32.OpenProcess(process_query_limited_information, False, pid)
+        if not handle:
+            return ctypes.get_last_error() == error_access_denied
+        try:
+            exit_code = ctypes.c_ulong()
+            if not kernel32.GetExitCodeProcess(handle, ctypes.byref(exit_code)):
+                return True
+            return exit_code.value == still_active
+        finally:
+            kernel32.CloseHandle(handle)
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
 
 
 def _resolve_tools_root() -> Path:
@@ -418,7 +453,34 @@ def lease_to_dict(row: sqlite3.Row) -> dict[str, Any]:
     }
 
 
+def expire_stale_local_process_rows(conn: sqlite3.Connection) -> dict[str, list[str]]:
+    if not env_flag(RECLAIM_DEAD_LOCAL_PIDS_ENV):
+        return {"sessions": [], "leases": []}
+
+    hostname = socket.gethostname()
+    stale_sessions = [
+        str(row["session_id"])
+        for row in conn.execute("SELECT session_id, pid FROM sessions WHERE state = 'active' AND hostname = ?", (hostname,)).fetchall()
+        if not pid_alive(int(row["pid"]))
+    ]
+    stale_leases = [
+        str(row["lease_id"])
+        for row in conn.execute("SELECT lease_id, pid FROM leases WHERE state = 'active' AND hostname = ?", (hostname,)).fetchall()
+        if not pid_alive(int(row["pid"]))
+    ]
+    if stale_sessions:
+        conn.executemany("UPDATE sessions SET state = 'expired' WHERE session_id = ?", [(sid,) for sid in stale_sessions])
+    if stale_leases:
+        conn.executemany("UPDATE leases SET state = 'expired' WHERE lease_id = ?", [(lid,) for lid in stale_leases])
+    for sid in stale_sessions:
+        emit_event(conn, "session_expire", sid, {"reason": "dead_local_pid", "session_id": sid})
+    for lid in stale_leases:
+        emit_event(conn, "lease_expire", lid, {"lease_id": lid, "reason": "dead_local_pid"})
+    return {"sessions": stale_sessions, "leases": stale_leases}
+
+
 def expire_active(conn: sqlite3.Connection) -> dict[str, list[str]]:
+    stale = expire_stale_local_process_rows(conn)
     now = iso_utc(utc_now())
     expired_sessions = [str(row["session_id"]) for row in conn.execute("SELECT session_id FROM sessions WHERE state = 'active' AND expires_utc <= ?", (now,)).fetchall()]
     expired_leases = [str(row["lease_id"]) for row in conn.execute("SELECT lease_id FROM leases WHERE state = 'active' AND expires_utc <= ?", (now,)).fetchall()]
@@ -430,7 +492,7 @@ def expire_active(conn: sqlite3.Connection) -> dict[str, list[str]]:
         emit_event(conn, "session_expire", sid, {"session_id": sid})
     for lid in expired_leases:
         emit_event(conn, "lease_expire", lid, {"lease_id": lid})
-    return {"sessions": expired_sessions, "leases": expired_leases}
+    return {"sessions": stale["sessions"] + expired_sessions, "leases": stale["leases"] + expired_leases}
 
 
 def _optional_session_id(args: argparse.Namespace) -> str | None:

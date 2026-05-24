@@ -1,6 +1,6 @@
 {
   "name": "intdata-control",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Инструменты intData Control для coordctl, OpenSpec и routing.",
   "author": {
     "name": "IntData",
@@ -24,8 +24,7 @@
     "defaultPrompt": [
       "Проверить OpenSpec status и coordctl state для текущей задачи.",
       "Перед tracked-правками регистрировать coordctl session и file/hunk intent leases.",
-      "Для недоверенного ревью использовать review-find/review-fix и проверять claims по ground truth.",
-      "Проверить routing перед завершением; git publish выполнять native git commands."
+      "Для недоверенного ревью использовать review-find/review-fix и проверять claims по ground truth."
     ]
   }
 }

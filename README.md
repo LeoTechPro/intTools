@@ -124,8 +124,8 @@ The validator checks that every tracked non-hidden top-level directory is presen
 - `D:\int\tools\codex\bin\openspec.cmd` — tracked Windows CMD operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `intdata-control` OpenSpec tools first;
 - Native git sync/publish path: `git status --short --branch`, `git fetch --prune origin`, `git pull --ff-only` only on a clean checkout when behind, and owner-approved `ALLOW_MAIN_PUSH=1 git push origin main:main` for `main`;
 - `python /int/tools/codex/bin/agent_tool_routing.py validate --strict --json` — validate registry и blocker-rules для V1 high-risk tooling;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile coordctl` — standalone MCP wrapper `coordctl` для Git-aware coordination sessions, intents, cleanup, GC и merge dry-run;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control` — MCP wrapper `intData Control` для coordctl, OpenSpec и routing; Multica ведётся через официальный `multica` CLI или официальный Multica MCP plugin, если он установлен;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control` — primary Codex App MCP wrapper для coordctl, OpenSpec и routing; Multica ведётся через официальный `multica` CLI или официальный Multica MCP plugin, если он установлен;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile coordctl` — legacy/compat standalone MCP wrapper для Git-aware coordination sessions, intents, cleanup, GC и merge dry-run;
 - `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-runtime` — MCP wrapper для host/ssh/browser runtime tooling, vault sanitize и runtime GC;
 - `python -m unittest discover -s agent_plane/tests -p test_*.py -v` — unit/integration smoke neutral Agent Tool Plane;
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
@@ -165,14 +165,15 @@ IntBrain lives in its own contour and is not a public intTools tool.
 
 Do not add IntBrain memory/search/fetch, people graph, PM, or context tools to an intTools-wide MCP. Tool-specific intTools MCP surfaces must stay scoped to their owning public tool, and any future catalog MCP must be read-only over catalog metadata only.
 
-## intData Tools Codex Plugins
+## intData Codex Plugins
 
 - Marketplace source-of-truth: `.codex/plugins/marketplace.json`.
 - Packaged plugins live in `codex/plugins/<plugin>/` and use `INSTALLED_BY_DEFAULT` + `ON_INSTALL`.
-- Core public intTools plugins: `intdata-control`, `dba`, `intdata-runtime`.
-- IntBrain plugins and MCP surfaces belong to the IntBrain contour, not to public intTools.
+- Local marketplace identity: `intdata` / `intData`.
+- Public marketplace plugins: `intdata-control`, `intdata-runtime`, `intbrain`, `dba`.
+- `coordctl` is the canonical coordination runtime/tool family, exposed to Codex App through `intdata-control`; the standalone `coordctl` MCP profile is retained only as a compatibility entrypoint.
 - Active plugin category: `Developer Tools`.
-- Removed active plugin IDs: `lockctl`, `multica`, `openspec`, `intdata-governance`, `intdata-vault`, `mempalace`, `cabinet`.
+- Removed active plugin IDs: `coordctl`, `agent-plane`, `lockctl`, `multica`, `openspec`, `intdata-governance`, `intdata-vault`, `mempalace`, `cabinet`.
 - Cabinet-related inventory/import tooling is outside public intTools; old standalone local product directories are not deleted without count-check and owner acceptance.
 - CLI-backed plugins use `codex/bin/mcp-intdata-cli.py` through profile launchers. Wrappers accept structured command args only; arbitrary shell strings are not supported.
 - Mutating commands require `confirm_mutation: true` and `issue_context` in `INT-*` format.
@@ -1041,8 +1042,8 @@ CLI entrypoints:
 - Linux/macOS wrapper: `/int/tools/coordctl/coordctl`
 - Python CLI: `/int/tools/coordctl/coordctl.py`
 - Windows wrappers: `/int/tools/coordctl/coordctl.ps1`, `/int/tools/coordctl/coordctl.cmd`
-- Standalone MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile coordctl`
-- Compatibility MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile intdata-control`
+- Primary Codex App MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile intdata-control`
+- Legacy/compat standalone MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile coordctl`
 
 ##### Runtime model
 
