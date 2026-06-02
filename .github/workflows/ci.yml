@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Ruff (syntax/undefined baseline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install ruff
+      # Narrow baseline: real bugs only (syntax errors + undefined names),
+      # so it stays green on this large polyglot monorepo while still
+      # catching breakage. Widen the rule set as the codebase is cleaned up.
+      - run: ruff check --select E9,F63,F7,F82 --output-format=github .
+
+  requirements:
+    name: Root requirements install
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      # Verifies the root requirements actually resolve into a clean venv
+      # (the previous system pip-freeze did not).
+      - run: pip install -r requirements.txt
+
+  tools-tests:
+    name: Packaged MCP tool tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: [bitrix24-mcp, getcourse-mcp]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install ${{ matrix.tool }}
+        run: pip install -e "codex/tools/${{ matrix.tool }}" pytest
+      - name: Test ${{ matrix.tool }}
+        run: pytest "codex/tools/${{ matrix.tool }}" -q
