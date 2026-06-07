@@ -617,7 +617,7 @@ bash /int/tools/codex/tools/obsidian-desktop/install.sh
 docker compose -f /int/id/docker-compose.yaml --profile mailpit ps
 ```
 - **run-mailpit.sh** — zero-wait цикл (`rebuild → restart → logs → log-scan → smoke`), готовит каталоги и проверяет API `/api/v1/info` через `mail.intdata.pro`.
-- **meta-intdata-mailpit-dev.service** — systemd-юнит (см. `configs/systemd/`) для автономного рестарта.
+- **meta-intdata-mailpit-dev.service** — systemd-юнит (см. `configs/systemd/`) для автономного рестарта. Optional host-local env читается из `/etc/intdata/mailpit/mailpit.env`.
 
 ###### Быстрый старт
 
@@ -628,7 +628,7 @@ docker compose -f /int/id/docker-compose.yaml --profile mailpit ps
 ####    sudo htpasswd -bc /etc/intdata/mailpit/ui.htpasswd intdata-ui '<ui-password>'
 ####    # TLS сертификаты mail.intdata.pro / smtp.intdata.pro поместите в /etc/intdata/mailpit/tls/
 #
-#### 2. Экспортируйте переменные (или заполните .env):
+#### 2. Экспортируйте переменные (или заполните /etc/intdata/mailpit/mailpit.env для systemd):
 export SMTP_PASSWORD='<smtp-password>'
 export MAILPIT_SMTP_USER='intdata-smtp'
 export MAILPIT_UI_USER='intdata-ui'
@@ -1133,4 +1133,3 @@ bash /int/tools/openclaw/ops/verify.sh
 - `collect_audit.sh` — сбор audit snapshot по текущему checkout `/int/probe`
 - `docs/critical_assets.txt` — список must-survive assets и внешних runtime-path
 - `docs/machine-audit-2026-03-02.md` — исторический audit snapshot, перенесённый из `probe`
-

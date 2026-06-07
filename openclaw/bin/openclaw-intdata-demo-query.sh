@@ -16,7 +16,7 @@ EOF
 COMMAND="$1"
 shift || true
 
-ENV_FILE="${INTDATA_ENV_FILE:-/int/data/.env}"
+ENV_FILE="${INTDATA_ENV_FILE:-/etc/intdata/openclaw/intdata-demo.env}"
 if [[ -f "$ENV_FILE" ]]; then
   set -a
   # shellcheck disable=SC1090
@@ -28,7 +28,7 @@ SUPABASE_URL="${INTDATA_SUPABASE_URL:-${SUPABASE_URL:-https://api.intdata.pro}}"
 SERVICE_KEY="${INTDATA_SERVICE_ROLE_KEY:-${SUPABASE_SERVICE_ROLE_KEY:-${SERVICE_ROLE_KEY:-}}}"
 
 if [[ -z "$SERVICE_KEY" ]]; then
-  echo "openclaw-intdata-demo-query: missing service role key; set INTDATA_SERVICE_ROLE_KEY or provide /int/data/.env" >&2
+  echo "openclaw-intdata-demo-query: missing service role key; set INTDATA_SERVICE_ROLE_KEY or provide ${ENV_FILE}" >&2
   exit 78
 fi
 
