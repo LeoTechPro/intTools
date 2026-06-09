@@ -81,7 +81,10 @@ class CoordCtlIntegrationTest(unittest.TestCase):
             merge_b = git(repo, "merge", "--no-edit", "agent-b", check=False)
             self.assertEqual(merge_b.returncode, 0, merge_b.stderr)
 
-    def test_overlapping_same_file_edits_are_blocked_before_git_conflict(self):
+    def test_overlapping_same_file_edits_are_recorded_and_git_conflict_is_reported_separately(self):
+        # Supervisory model: both overlapping intents are recorded (ok:true) and
+        # the overlap is a warning. The real Git conflict is reported separately
+        # by merge-dry-run / git itself, not by refusing the intent.
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             repo = make_repo(tmp_path)
@@ -94,8 +97,8 @@ class CoordCtlIntegrationTest(unittest.TestCase):
                 dry = coordctl_core.cmd_merge_dry_run(mock.Mock(repo_root=str(repo), target="agent-c", branch="agent-d"))
 
             self.assertTrue(first["ok"])
-            self.assertFalse(second["ok"])
-            self.assertEqual(second["error"], "COORD_CONFLICT")
+            self.assertTrue(second["ok"])
+            self.assertIn("COORD_OVERLAP", {w["code"] for w in second["warnings"]})
             self.assertFalse(dry["ok"])
             self.assertEqual(dry["error"], "MERGE_CONFLICT")
             self.assertFalse(dry["clean"])

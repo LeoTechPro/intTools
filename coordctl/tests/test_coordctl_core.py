@@ -45,6 +45,7 @@ def make_repo(root: Path) -> Path:
 
 
 class CoordCtlCoreTest(unittest.TestCase):
+    @unittest.skipUnless(os.name == "nt", "Windows drive-letter path semantics; backslash is only a separator on Windows")
     def test_resolve_state_dir_uses_env_override(self):
         with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": r"D:\\tmp\\coordctl-state"}, clear=False):
             self.assertEqual(coordctl_core.resolve_state_dir(), Path(r"D:\tmp\coordctl-state").resolve())
@@ -69,7 +70,7 @@ class CoordCtlCoreTest(unittest.TestCase):
                 status = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner=None, issue=None))
                 self.assertEqual(status["counts"]["sessions"], 1)
                 self.assertTrue(coordctl_core.cmd_heartbeat(mock.Mock(session_id=session_id, lease_sec=60))["ok"])
-                self.assertTrue(coordctl_core.cmd_release(mock.Mock(session_id=session_id, repo_root=None, issue=None))["changed"])
+                self.assertTrue(coordctl_core.cmd_release(mock.Mock(session_id=session_id, repo_root=None, issue=None, lease_id=None, owner=None, path=None))["changed"])
                 status_after = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner=None, issue=None))
                 self.assertEqual(status_after["counts"]["sessions"], 0)
 
@@ -132,7 +133,9 @@ class CoordCtlCoreTest(unittest.TestCase):
                 self.assertTrue(first["ok"])
                 self.assertTrue(second["ok"])
 
-    def test_overlapping_hunks_same_file_are_blocked(self):
+    def test_overlapping_hunks_same_file_record_overlap_warning(self):
+        # Supervisory model: the second overlapping intent is still recorded
+        # (ok:true); the overlap surfaces as a COORD_OVERLAP warning, not a refusal.
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             repo = make_repo(tmp_path)
@@ -140,8 +143,9 @@ class CoordCtlCoreTest(unittest.TestCase):
                 first = coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base="main", region_kind="hunk", region_id="4:4", lease_sec=60, session_id=None))
                 second = coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:b", issue=None, base="main", region_kind="hunk", region_id="4:4", lease_sec=60, session_id=None))
                 self.assertTrue(first["ok"])
-                self.assertFalse(second["ok"])
-                self.assertEqual(second["error"], "COORD_CONFLICT")
+                self.assertTrue(second["ok"])
+                self.assertIn("COORD_OVERLAP", {w["code"] for w in second["warnings"]})
+                self.assertTrue(second["overlaps"])
 
     def test_same_owner_same_hunk_renews(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -162,7 +166,9 @@ class CoordCtlCoreTest(unittest.TestCase):
                     coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base="missing-ref", region_kind="hunk", region_id="4:4", lease_sec=60, session_id=None))
                 self.assertEqual(ctx.exception.code, "STALE_BASE")
 
-    def test_overlapping_different_base_is_stale_base(self):
+    def test_overlapping_different_base_records_stale_base_observation(self):
+        # Different-base overlap is recorded (ok:true) with a STALE_BASE_OBSERVED
+        # warning instead of blocking the write.
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
             repo = make_repo(tmp_path)
@@ -173,8 +179,8 @@ class CoordCtlCoreTest(unittest.TestCase):
                 first = coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base="main", region_kind="hunk", region_id="4:4", lease_sec=60, session_id=None))
                 second = coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:b", issue=None, base="newer", region_kind="hunk", region_id="4:4", lease_sec=60, session_id=None))
                 self.assertTrue(first["ok"])
-                self.assertFalse(second["ok"])
-                self.assertEqual(second["error"], "STALE_BASE")
+                self.assertTrue(second["ok"])
+                self.assertIn("STALE_BASE_OBSERVED", {w["code"] for w in second["warnings"]})
 
     def test_intent_session_owner_mismatch_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -373,6 +379,154 @@ class CoordCtlCoreTest(unittest.TestCase):
                 self.assertEqual(still_there["counts"]["sessions"], 1)
                 self.assertEqual(applied["deleted"]["sessions"], 1)
                 self.assertEqual(gone["counts"]["sessions"], 0)
+
+    def test_release_by_lease_id_releases_single_orphan_lease(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+                acquired = coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base="main", region_kind="file", region_id="invoice.js", lease_sec=60, session_id=None))
+                lease_id = acquired["lease"]["lease_id"]
+                released = coordctl_core.cmd_release(mock.Mock(session_id=None, repo_root=None, issue=None, lease_id=lease_id, owner=None, path=None))
+                self.assertTrue(released["changed"])
+                self.assertEqual(len(released["released_leases"]), 1)
+                self.assertEqual(released["selector"], {"lease_id": lease_id})
+                status = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner=None, issue=None, all=False))
+                self.assertEqual(status["counts"]["leases"], 0)
+
+    def test_release_by_owner_repo_releases_only_that_owner(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+                coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base="main", region_kind="hunk", region_id="3:3", lease_sec=60, session_id=None))
+                coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:b", issue=None, base="main", region_kind="hunk", region_id="9:9", lease_sec=60, session_id=None))
+                released = coordctl_core.cmd_release(mock.Mock(session_id=None, repo_root=str(repo), issue=None, lease_id=None, owner="agent:a", path=None))
+                self.assertEqual(len(released["released_leases"]), 1)
+                self.assertEqual(released["released_leases"][0]["owner_id"], "agent:a")
+                left_a = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner="agent:a", issue=None, all=False))
+                left_b = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner="agent:b", issue=None, all=False))
+                self.assertEqual(left_a["counts"]["leases"], 0)
+                self.assertEqual(left_b["counts"]["leases"], 1)
+
+    def test_release_by_owner_without_repo_root_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+                with self.assertRaises(coordctl_core.CoordCtlError) as ctx:
+                    coordctl_core.cmd_release(mock.Mock(session_id=None, repo_root=None, issue=None, lease_id=None, owner="agent:a", path=None))
+                self.assertEqual(ctx.exception.code, "INVALID_ARGUMENT")
+
+    def test_release_path_without_owner_or_confirmation_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+                coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base="main", region_kind="file", region_id="invoice.js", lease_sec=60, session_id=None))
+                coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:b", issue=None, base="main", region_kind="file", region_id="invoice.js", lease_sec=60, session_id=None))
+                with self.assertRaises(coordctl_core.CoordCtlError) as ctx:
+                    coordctl_core.cmd_release(mock.Mock(session_id=None, repo_root=str(repo), issue=None, lease_id=None, owner=None, path="invoice.js", all_owners=False))
+                self.assertEqual(ctx.exception.code, "INVALID_ARGUMENT")
+                # --all-owners confirms the multi-owner release.
+                released = coordctl_core.cmd_release(mock.Mock(session_id=None, repo_root=str(repo), issue=None, lease_id=None, owner=None, path="invoice.js", all_owners=True))
+                self.assertEqual(len(released["released_leases"]), 2)
+
+    def test_release_path_with_owner_scopes_to_one_owner(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+                coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base="main", region_kind="file", region_id="invoice.js", lease_sec=60, session_id=None))
+                coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:b", issue=None, base="main", region_kind="file", region_id="invoice.js", lease_sec=60, session_id=None))
+                released = coordctl_core.cmd_release(mock.Mock(session_id=None, repo_root=str(repo), issue=None, lease_id=None, owner="agent:a", path="invoice.js", all_owners=False))
+                self.assertEqual(len(released["released_leases"]), 1)
+                self.assertEqual(released["released_leases"][0]["owner_id"], "agent:a")
+
+    def test_release_ambiguous_selector_groups_are_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+                session = coordctl_core.cmd_session_start(mock.Mock(repo_root=str(repo), owner="agent:a", issue=None, branch="agent/a", base="main", worktree_path=None, lease_sec=60))
+                with self.assertRaises(coordctl_core.CoordCtlError) as ctx:
+                    coordctl_core.cmd_release(mock.Mock(session_id=session["session"]["session_id"], repo_root=str(repo), issue=None, lease_id="x", owner=None, path=None, all_owners=False))
+                self.assertEqual(ctx.exception.code, "INVALID_ARGUMENT")
+
+    def test_commit_scope_report_never_hard_fails_on_no_staged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            report = coordctl_core.cmd_commit_scope_report(mock.Mock(repo_root=str(repo)))
+            self.assertTrue(report["ok"])
+            self.assertFalse(report["ready_to_commit"])
+            self.assertIn("NO_STAGED_CHANGES", {o["code"] for o in report["observations"]})
+
+    def test_commit_scope_check_warns_not_fails_on_no_staged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            result = coordctl_core.cmd_commit_scope_check(mock.Mock(repo_root=str(repo)))
+            self.assertTrue(result["ok"])
+            self.assertFalse(result["ready_to_commit"])
+            self.assertIn("NO_STAGED_CHANGES", {w["code"] for w in result["warnings"]})
+
+    def test_commit_scope_check_fails_on_partial_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            (repo / "invoice.js").write_text("a\nb\nc\nSTAGED\ne\nf\ng\nh\ni\n", encoding="utf-8")
+            git(repo, "add", "invoice.js")
+            (repo / "invoice.js").write_text("a\nb\nc\nSTAGED\ne\nf\ng\nh\nUNSTAGED\n", encoding="utf-8")
+            check = coordctl_core.cmd_commit_scope_check(mock.Mock(repo_root=str(repo)))
+            report = coordctl_core.cmd_commit_scope_report(mock.Mock(repo_root=str(repo)))
+            self.assertFalse(check["ok"])
+            self.assertEqual(check["error"], "PARTIAL_FILE_STAGED")
+            self.assertTrue(check["owner_action_required"])
+            self.assertTrue(report["ok"])  # report never blocks
+            self.assertIn("PARTIAL_FILE_STAGED", {o["code"] for o in report["observations"]})
+
+    def test_begin_autodetects_repo_and_records_session(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+                begun = coordctl_core.cmd_begin(mock.Mock(repo_root=str(repo), owner="agent:a", issue=None, branch=None, base=None, path=None, worktree_path=None, lease_sec=60))
+                self.assertTrue(begun["ok"])
+                self.assertEqual(begun["session"]["state"], "active")
+                self.assertEqual(begun["session"]["branch_name"], "main")
+                status = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner=None, issue=None, all=False))
+                self.assertEqual(status["counts"]["sessions"], 1)
+
+    def test_begin_with_path_records_coarse_intent(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+                begun = coordctl_core.cmd_begin(mock.Mock(repo_root=str(repo), owner="agent:a", issue=None, branch=None, base=None, path="invoice.js", worktree_path=None, lease_sec=60))
+                self.assertTrue(begun["ok"])
+                self.assertEqual(begun["intent"]["lease"]["path_rel"], "invoice.js")
+                self.assertEqual(begun["overlaps"], [])
+
+    def test_gc_rotate_events_archives_journal_and_preserves_table(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+                coordctl_core.cmd_session_start(mock.Mock(repo_root=str(repo), owner="agent:a", issue=None, branch="agent/a", base="main", worktree_path=None, lease_sec=60))
+                events = coordctl_core.events_path()
+                self.assertTrue(events.exists() and events.stat().st_size > 0)
+                dry = coordctl_core.cmd_gc(mock.Mock(dry_run=True, apply=False, rotate_events=True))
+                self.assertFalse(dry["events_rotation"]["rotated"])
+                self.assertGreater(dry["events_rotation"]["bytes"], 0)
+                self.assertTrue(events.exists())  # dry-run must not move it
+                applied = coordctl_core.cmd_gc(mock.Mock(dry_run=False, apply=True, rotate_events=True))
+                self.assertTrue(applied["events_rotation"]["rotated"])
+                archive_dir = coordctl_core.resolve_state_dir() / "archive"
+                self.assertTrue(any(archive_dir.glob("events-*.jsonl")))
+                # coord_events (permanent audit) is preserved: status still works.
+                status = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner=None, issue=None, all=True))
+                self.assertTrue(status["ok"])
 
 
 if __name__ == "__main__":

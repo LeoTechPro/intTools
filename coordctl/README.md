@@ -20,16 +20,24 @@ Runtime files:
 ## CLI
 
 ```bash
+coordctl begin --owner codex:session --format json   # cheap non-blocking start; autodetects repo/branch/base
+coordctl begin --owner codex:session --path README.md --format json   # also records a coarse file intent
 coordctl session-start --repo-root /int/tools --owner codex:session --branch agent/INT-1/a --base main --format json
 coordctl intent-acquire --repo-root /int/tools --path README.md --owner codex:session --base main --region-kind hunk --region-id 12:18 --lease-sec 3600 --format json
 coordctl status --repo-root /int/tools --format json
-coordctl commit-scope-check --repo-root /int/tools --format json
+coordctl commit-scope-report --repo-root /int/tools --format json   # advisory, never fails
+coordctl commit-scope-check --repo-root /int/tools --format json    # gate: fails only on unmerged/partial-file
 coordctl heartbeat --session-id <session-id> --format json
 coordctl merge-dry-run --repo-root /int/tools --target main --branch agent/INT-1/a --format json
 coordctl release --session-id <session-id> --format json
+coordctl release --repo-root /int/tools --lease-id <lease-id> --format json    # release one orphan/legacy lease
+coordctl release --repo-root /int/tools --owner codex:session --format json    # release one owner's leases
+coordctl release --repo-root /int/tools --path README.md --format json         # release leases on a path
 coordctl cleanup --session-id <session-id> --final-state released --dry-run --format json
 coordctl cleanup --session-id <session-id> --final-state merged --delete-worktree --delete-branch --apply --format json
 coordctl gc --dry-run --format json
+coordctl gc --rotate-events --dry-run --format json    # preview journal rotation + runtime sizes
+coordctl gc --rotate-events --apply --format json       # archive events.jsonl into state-dir archive/ (coord_events preserved)
 ```
 
 ## Region Model v1
@@ -38,23 +46,32 @@ coordctl gc --dry-run --format json
 - `hunk`: MVP coordination unit, identified by a base-file line range such as `12:18`.
 - `symbol`, `json_path`, and `section`: reserved for future semantic extractors and rejected in v1.
 
-Conflict detection is advisory and optimistic: overlapping active leases from another
-owner are rejected before write/merge, while non-overlapping hunks in the same file are allowed.
+Conflict detection is advisory and non-blocking: recording an intent always succeeds.
+An overlapping active lease from another owner is returned as a `COORD_OVERLAP` warning
+(or `STALE_BASE_OBSERVED` when the bases differ) in `warnings`/`overlaps`, never as a
+refusal to write. The formula is **tool = always-write + warn, agent =
+stop-on-real-overlap**: on a real overlap with another active owner on the same region
+the deciding agent stops and coordinates, but coordctl itself does not block.
 
-## Commit Scope Check
+## Commit Scope: report vs check
 
-`coordctl commit-scope-check` is a read-only pre-commit guard for owner-state transparency.
-It allows file-level subset commits: a commit may include selected complete files while other
-files remain uncommitted and visible in `git status`.
+Both commands are read-only and allow file-level subset commits: a commit may include
+selected complete files while other files remain uncommitted and visible in `git status`.
 
-It fails when a commit would publish an incomplete file-level state:
+`coordctl commit-scope-report` never fails (`ok:true` always). It returns the
+staged/unstaged/untracked/unmerged/partial breakdown plus warnings/observations
+(`NO_STAGED_CHANGES`, `UNCOMMITTED_OWNER_STATE_VISIBLE`, …) so the owner/agent can decide.
 
-- unmerged paths
-- a staged file that also has unstaged changes
-- no staged changes
+`coordctl commit-scope-check` is a gate that hard-fails (`ok:false`) ONLY for genuinely
+dangerous states:
 
-Agents must stop and ask the owner instead of staging hunks selectively, stashing, cleaning,
-restoring, or creating a separate clean worktree/repo to hide local state from publication.
+- unmerged paths (`UNMERGED_STATE`)
+- a staged file that also has unstaged changes (`PARTIAL_FILE_STAGED`)
+
+"No staged changes" is a warning, not a failure. For `PARTIAL_FILE_STAGED` an agent may
+stage the complete file itself when doing so pulls in no foreign changes; only foreign or
+unclear residue requires stopping and asking the owner. Agents MUST NOT stash, clean,
+restore, or create a separate clean worktree/repo to hide another owner's local state.
 
 ## Cleanup Discipline
 
@@ -73,4 +90,6 @@ Worktree deletion uses `git worktree remove` without force, so dirty worktrees s
 the session becomes `failed-cleanup`.
 
 `coordctl gc` is also dry-run by default. It deletes expired/final session rows and released/expired
-leases only with `--apply`; the audit trail remains in `coord_events` and `events.jsonl`.
+leases only with `--apply`; the transactional `coord_events` audit table is preserved (permanent audit).
+`gc --dry-run` also reports `runtime_sizes`. `gc --rotate-events --apply` archives the append-only
+`events.jsonl` mirror into the state-dir `archive/` folder without touching `coord_events`.

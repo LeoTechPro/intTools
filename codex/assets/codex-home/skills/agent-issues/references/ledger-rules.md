@@ -1,4 +1,4 @@
-# Lockctl / кратко про локи
+# Coordctl / кратко про coordination leases
 - В начале каждого turn читай `/int/AGENTS.md` и проектный `AGENTS.md`; machine-wide источник истины по coordination state живёт в `coordctl`.
 - Добавляй/продлевай/снимай coordination sessions/intents через `coordctl` MCP/project wrappers; `issue` — optional metadata, его стоит ставить в reachable `INT-*` только для задач с issue-дисциплиной. Никогда не редактируй runtime storage вручную.
 - На один path допустим один active writer-lock; если lease истёк, бери свежий лок вместо ручной правки старого runtime state.
@@ -9,4 +9,4 @@
 - Предпочтительно MCP/plugin: `coordctl_session_start`, `coordctl_intent_acquire`, `coordctl_status`, `coordctl_heartbeat`, `coordctl_release`, `coordctl_cleanup`, `coordctl_gc`, `coordctl_merge_dry_run`.
 - CLI fallback из PATH: `coordctl session-start|intent-acquire|status|heartbeat|release|cleanup|gc|merge-dry-run`.
 - Universal fallback только когда MCP/PATH сломан и project policy это разрешает: `python /int/tools/coordctl/coordctl.py ...`.
-- `lockctl` допустим только как repo-retained legacy CLI для ручной диагностики по прямому owner approval; не используй его для текущих project locks.
+- Retired coordination tools не используются для текущих project locks и не являются fallback.

@@ -26,6 +26,7 @@ os.environ.setdefault("COORDCTL_RECLAIM_DEAD_LOCAL_PIDS", "1")
 
 from coordctl_core import (
     CoordCtlError,
+    cmd_begin as coordctl_cmd_begin,
     cmd_gc as coordctl_cmd_gc,
     cmd_heartbeat as coordctl_cmd_heartbeat,
     cmd_cleanup as coordctl_cmd_cleanup,
@@ -116,13 +117,14 @@ VAULT_TOOLS = [
 ]
 
 COORDCTL_TOOLS = [
-    _tool("coordctl_session_start", "Start a Git-aware coordination session for an agent branch.", {"repo_root": {"type": "string"}, "owner": {"type": "string"}, "issue": {"type": "string"}, "branch": {"type": "string"}, "base": {"type": "string"}, "worktree_path": {"type": "string"}, "lease_sec": {"type": "integer"}}, ["repo_root", "owner", "branch", "base"]),
-    _tool("coordctl_intent_acquire", "Acquire or renew a Git-aware edit intent for a file region.", {"repo_root": {"type": "string"}, "path": {"type": "string"}, "owner": {"type": "string"}, "issue": {"type": "string"}, "base": {"type": "string"}, "region_kind": {"type": "string", "enum": ["file", "hunk", "symbol", "json_path", "section"]}, "region_id": {"type": "string"}, "lease_sec": {"type": "integer"}, "session_id": {"type": "string"}}, ["repo_root", "path", "owner", "base", "region_kind", "region_id"]),
+    _tool("coordctl_session_start", "Start a Git-aware coordination session for an agent branch. Advisory provenance; non-blocking.", {"repo_root": {"type": "string"}, "owner": {"type": "string"}, "issue": {"type": "string"}, "branch": {"type": "string"}, "base": {"type": "string"}, "worktree_path": {"type": "string"}, "lease_sec": {"type": "integer"}}, ["repo_root", "owner", "branch", "base"]),
+    _tool("coordctl_begin", "Cheap non-blocking entrypoint: open a session (and optional coarse file intent) with autodetected repo/branch/base. Advisory provenance.", {"repo_root": {"type": "string"}, "owner": {"type": "string"}, "issue": {"type": "string"}, "branch": {"type": "string"}, "base": {"type": "string"}, "path": {"type": "string"}, "worktree_path": {"type": "string"}, "lease_sec": {"type": "integer"}}),
+    _tool("coordctl_intent_acquire", "Record or renew a Git-aware edit intent for a file region. Always records (append-only); overlaps return as warnings, never a refusal.", {"repo_root": {"type": "string"}, "path": {"type": "string"}, "owner": {"type": "string"}, "issue": {"type": "string"}, "base": {"type": "string"}, "region_kind": {"type": "string", "enum": ["file", "hunk", "symbol", "json_path", "section"]}, "region_id": {"type": "string"}, "lease_sec": {"type": "integer"}, "session_id": {"type": "string"}}, ["repo_root", "path", "owner", "base", "region_kind", "region_id"]),
     _tool("coordctl_status", "Read active coordctl sessions and region leases.", {"repo_root": {"type": "string"}, "path": {"type": "string"}, "owner": {"type": "string"}, "issue": {"type": "string"}, "all": {"type": "boolean"}}, ["repo_root"]),
     _tool("coordctl_heartbeat", "Renew a coordctl session and its active region leases.", {"session_id": {"type": "string"}, "lease_sec": {"type": "integer"}}, ["session_id"]),
-    _tool("coordctl_release", "Release coordctl sessions and region leases by session or issue.", {"session_id": {"type": "string"}, "repo_root": {"type": "string"}, "issue": {"type": "string"}}, []),
+    _tool("coordctl_release", "Release coordctl sessions and region leases by exactly one selector group: session, issue, or lease-target (lease_id/owner/path). --owner/--path/--issue require repo_root; --path without owner needs all_owners=true.", {"session_id": {"type": "string"}, "repo_root": {"type": "string"}, "issue": {"type": "string"}, "lease_id": {"type": "string"}, "owner": {"type": "string"}, "path": {"type": "string"}, "all_owners": {"type": "boolean"}}, []),
     _tool("coordctl_cleanup", "Dry-run or apply required cleanup for a coordctl session.", {"session_id": {"type": "string"}, "final_state": {"type": "string", "enum": ["merged", "released", "abandoned", "blocked-owner", "failed-cleanup"]}, "delete_worktree": {"type": "boolean"}, "delete_branch": {"type": "boolean"}, "dry_run": {"type": "boolean"}, "apply": {"type": "boolean"}}, ["session_id"]),
-    _tool("coordctl_gc", "Dry-run or delete expired/final coordctl sessions and region leases.", {"dry_run": {"type": "boolean"}, "apply": {"type": "boolean"}}),
+    _tool("coordctl_gc", "Dry-run or delete expired/final coordctl sessions and region leases; optionally rotate the events journal (coord_events preserved).", {"dry_run": {"type": "boolean"}, "apply": {"type": "boolean"}, "rotate_events": {"type": "boolean"}}),
     _tool("coordctl_merge_dry_run", "Check whether two Git refs merge cleanly without changing tracked files.", {"repo_root": {"type": "string"}, "target": {"type": "string"}, "branch": {"type": "string"}}, ["repo_root", "target", "branch"]),
 ]
 
@@ -397,6 +399,8 @@ def _call_coordctl(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     try:
         if name == "coordctl_session_start":
             payload = coordctl_cmd_session_start(argparse.Namespace(repo_root=str(arguments.get("repo_root", "")), owner=str(arguments.get("owner", "")), issue=arguments.get("issue"), branch=str(arguments.get("branch", "")), base=str(arguments.get("base", "")), worktree_path=arguments.get("worktree_path"), lease_sec=_as_int(arguments.get("lease_sec"), 60)))
+        elif name == "coordctl_begin":
+            payload = coordctl_cmd_begin(argparse.Namespace(repo_root=arguments.get("repo_root"), owner=arguments.get("owner"), issue=arguments.get("issue"), branch=arguments.get("branch"), base=arguments.get("base"), path=arguments.get("path"), worktree_path=arguments.get("worktree_path"), lease_sec=_as_int(arguments.get("lease_sec"), 60)))
         elif name == "coordctl_intent_acquire":
             payload = coordctl_cmd_intent_acquire(argparse.Namespace(repo_root=str(arguments.get("repo_root", "")), path=str(arguments.get("path", "")), owner=str(arguments.get("owner", "")), issue=arguments.get("issue"), base=str(arguments.get("base", "")), region_kind=str(arguments.get("region_kind", "")), region_id=str(arguments.get("region_id", "")), lease_sec=_as_int(arguments.get("lease_sec"), 60), session_id=arguments.get("session_id")))
         elif name == "coordctl_status":
@@ -404,11 +408,11 @@ def _call_coordctl(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         elif name == "coordctl_heartbeat":
             payload = coordctl_cmd_heartbeat(argparse.Namespace(session_id=str(arguments.get("session_id", "")), lease_sec=_as_int(arguments.get("lease_sec"), 60)))
         elif name == "coordctl_release":
-            payload = coordctl_cmd_release(argparse.Namespace(session_id=arguments.get("session_id"), repo_root=arguments.get("repo_root"), issue=arguments.get("issue")))
+            payload = coordctl_cmd_release(argparse.Namespace(session_id=arguments.get("session_id"), repo_root=arguments.get("repo_root"), issue=arguments.get("issue"), lease_id=arguments.get("lease_id"), owner=arguments.get("owner"), path=arguments.get("path"), all_owners=bool(arguments.get("all_owners", False))))
         elif name == "coordctl_cleanup":
             payload = coordctl_cmd_cleanup(argparse.Namespace(session_id=str(arguments.get("session_id", "")), final_state=str(arguments.get("final_state") or "released"), delete_worktree=bool(arguments.get("delete_worktree", False)), delete_branch=bool(arguments.get("delete_branch", False)), dry_run=bool(arguments.get("dry_run", False)), apply=bool(arguments.get("apply", False))))
         elif name == "coordctl_gc":
-            payload = coordctl_cmd_gc(argparse.Namespace(dry_run=bool(arguments.get("dry_run", False)), apply=bool(arguments.get("apply", False))))
+            payload = coordctl_cmd_gc(argparse.Namespace(dry_run=bool(arguments.get("dry_run", False)), apply=bool(arguments.get("apply", False)), rotate_events=bool(arguments.get("rotate_events", False))))
         elif name == "coordctl_merge_dry_run":
             payload = coordctl_cmd_merge_dry_run(argparse.Namespace(repo_root=str(arguments.get("repo_root", "")), target=str(arguments.get("target", "")), branch=str(arguments.get("branch", ""))))
         else:

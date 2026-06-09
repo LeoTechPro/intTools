@@ -16,7 +16,7 @@ metadata:
 - Используй официальный документированный `multica` CLI для чтения/записи issues; если в runtime установлен официальный Multica MCP plugin (`mcp__multica__`), можно использовать его. Не используй `intdata-control` как Multica-прослойку.
 - Если Multica недоступна, задача считается заблокированной: остановись, сообщи владельцу конкретный блокер и продолжай без Multica только после явного разрешения владельца.
 - Привязывай реализацию к Multica issue + lock-flow проекта, если lock-flow существует.
-- Поддерживай coordination state через runtime `coordctl`; `lockctl` не является fallback по умолчанию и допускается только как legacy CLI для ручной диагностики по прямому owner approval.
+- Поддерживай coordination state через runtime `coordctl`; retired coordination tools не являются fallback текущих проектов.
 - В `FINISH` выполняй closure-процедуры по текущему Multica issue; push/PR/remote-операции — только при явном разрешении.
 
 ## Цель
@@ -97,7 +97,7 @@ metadata:
 
 6. Держи coordination state синхронизированным.
    - Добавляй/продлевай/снимай sessions/intents через runtime `coordctl`; добавляй `issue=INT-*` только когда у задачи есть или требуется Multica issue.
-   - Не используй `lockctl` как текущий project fallback; он допустим только как repo-retained legacy CLI для ручной диагностики по прямому owner approval.
+   - Не используй retired coordination tools как текущий project fallback; active coordination runtime — только `coordctl`.
    - Store locks only on file paths; directories are forbidden.
    - Если в рабочем дереве есть неожиданные изменения, не откатывай/не stash'и/не прячь/не трогай их без прямого запроса владельца. Зафиксируй наблюдение в Multica issue handoff/worklog.
    - Если использовался spawn-agent, фиксируй `spawn_agent_id`, `spawn_agent_utc`, `parent_session_id` в Multica worklog/comment; progress остаётся в Multica.

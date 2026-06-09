@@ -34,7 +34,7 @@ Do not expose in v1:
 - OpenSpec tools, until OpenSpec has a separate MCP surface or an explicit compatibility exception;
 - mutating IntBrain writes;
 - mutating `coordctl` tools such as session start, intent acquire, heartbeat, release, cleanup, or GC;
-- `lockctl_*`; lockctl is legacy CLI-only and not an active app/MCP surface;
+- retired coordination tools; active coordination is `coordctl` only;
 - Multica operations;
 - DB apply/migrations;
 - publish or sync-gate wrappers;

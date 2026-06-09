@@ -553,6 +553,44 @@ def cmd_session_start(args: argparse.Namespace) -> dict[str, Any]:
         return payload
 
 
+def _git_toplevel(start: str) -> str:
+    cp = git(start, "rev-parse", "--show-toplevel", check=False)
+    if cp.returncode != 0:
+        raise CoordCtlError("NOT_A_GIT_REPO", f"not inside a git repository: {start}")
+    return cp.stdout.strip()
+
+
+def cmd_begin(args: argparse.Namespace) -> dict[str, Any]:
+    # Cheap, non-blocking default entrypoint. Autodetects repo/branch/base so a
+    # session (and optional coarse intent) is a single command. Never fails on
+    # overlaps; overlaps surface only as warnings on the intent.
+    start = str(getattr(args, "repo_root", None) or os.getcwd())
+    repo_root = normalize_repo_root(_git_toplevel(start))
+    owner_id = require_owner(str(getattr(args, "owner", None) or os.environ.get("COORDCTL_OWNER", "")))
+    issue_id = normalize_issue(getattr(args, "issue", None))
+    branch = str(getattr(args, "branch", None) or "").strip() or git(repo_root, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
+    base_ref = str(getattr(args, "base", None) or "").strip() or "HEAD"
+    lease_sec = require_lease_seconds(int(getattr(args, "lease_sec", None) or DEFAULT_LEASE_SEC))
+    raw_path = getattr(args, "path", None)
+    raw_path = raw_path.strip() if isinstance(raw_path, str) and raw_path.strip() else None
+
+    session = cmd_session_start(argparse.Namespace(
+        repo_root=repo_root, owner=owner_id, issue=issue_id, branch=branch,
+        base=base_ref, worktree_path=getattr(args, "worktree_path", None), lease_sec=lease_sec,
+    ))
+    payload: dict[str, Any] = {"action": "begin", "ok": True, "session": session["session"]}
+    if raw_path:
+        intent = cmd_intent_acquire(argparse.Namespace(
+            repo_root=repo_root, path=raw_path, owner=owner_id, issue=issue_id, base=base_ref,
+            region_kind="file", region_id=raw_path, lease_sec=lease_sec,
+            session_id=session["session"]["session_id"],
+        ))
+        payload["intent"] = intent
+        payload["overlaps"] = intent.get("overlaps", [])
+        payload["warnings"] = intent.get("warnings", [])
+    return payload
+
+
 def find_active_session(conn: sqlite3.Connection, session_id: str | None) -> sqlite3.Row | None:
     if not session_id:
         return None
@@ -619,33 +657,35 @@ def cmd_intent_acquire(args: argparse.Namespace) -> dict[str, Any]:
             """,
             (repo_root, path_rel),
         ).fetchall()
+        # Supervisory model: an overlap with another owner is recorded as an
+        # observation/warning, never a refusal to write. The tool always records
+        # intent; the deciding agent is the one that stops on a real overlap.
+        overlaps: list[dict[str, Any]] = []
+        warnings: list[dict[str, Any]] = []
         for row in active_rows:
             if row["owner_id"] == owner_id:
                 continue
             same_base = row["base_blob"] == base_blob or row["base_commit"] == base_commit
-            overlaps = row["region_kind"] == "file" or region_kind == "file" or ranges_overlap(int(row["start_line"]), int(row["end_line"]), start_line, end_line)
-            if overlaps and not same_base:
-                conflict = lease_to_dict(row)
-                conn.rollback()
-                return {
-                    "conflict": conflict,
-                    "error": "STALE_BASE",
-                    "message": f"overlapping lease for {path_rel} was recorded against a different base",
-                    "ok": False,
-                    "path_rel": path_rel,
-                    "repo_root": repo_root,
-                }
-            if same_base and overlaps:
-                conflict = lease_to_dict(row)
-                conn.rollback()
-                return {
-                    "conflict": conflict,
-                    "error": "COORD_CONFLICT",
+            overlaps_region = row["region_kind"] == "file" or region_kind == "file" or ranges_overlap(int(row["start_line"]), int(row["end_line"]), start_line, end_line)
+            if not overlaps_region:
+                continue
+            overlaps.append(lease_to_dict(row))
+            if same_base:
+                warnings.append({
+                    "code": "COORD_OVERLAP",
                     "message": f"active overlapping lease exists for {path_rel}",
-                    "ok": False,
-                    "path_rel": path_rel,
-                    "repo_root": repo_root,
-                }
+                    "owner_id": row["owner_id"],
+                    "lease_id": str(row["lease_id"]),
+                    "region_id": row["region_id"],
+                })
+            else:
+                warnings.append({
+                    "code": "STALE_BASE_OBSERVED",
+                    "message": f"overlapping lease for {path_rel} was recorded against a different base",
+                    "owner_id": row["owner_id"],
+                    "lease_id": str(row["lease_id"]),
+                    "base_commit": row["base_commit"],
+                })
 
         existing = conn.execute(
             """
@@ -719,8 +759,8 @@ def cmd_intent_acquire(args: argparse.Namespace) -> dict[str, Any]:
 
         row = conn.execute("SELECT * FROM leases WHERE lease_id = ?", (lease_id,)).fetchone()
         assert row is not None
-        payload = {"action": action, "changed": True, "lease": lease_to_dict(row), "ok": True}
-        emit_event(conn, "intent_acquire", lease_id, payload)
+        payload = {"action": action, "changed": True, "lease": lease_to_dict(row), "ok": True, "overlaps": overlaps, "warnings": warnings}
+        emit_event(conn, "intent_acquire", lease_id, {"action": action, "lease_id": lease_id, "ok": True, "overlap_count": len(overlaps), "warning_codes": [str(w["code"]) for w in warnings]})
         conn.commit()
         return payload
 
@@ -799,34 +839,84 @@ def cmd_heartbeat(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def cmd_release(args: argparse.Namespace) -> dict[str, Any]:
-    session_id = getattr(args, "session_id", None)
+    session_id = _optional_session_id(args)
     issue_id = normalize_issue(getattr(args, "issue", None))
+    lease_id = (str(getattr(args, "lease_id", None) or "").strip()) or None
+    owner_id = (str(getattr(args, "owner", None) or "").strip()) or None
+    all_owners = _bool_arg(args, "all_owners", False)
     repo_root = normalize_repo_root(args.repo_root) if getattr(args, "repo_root", None) else None
-    if not session_id and not issue_id:
-        raise CoordCtlError("INVALID_ARGUMENT", "release requires --session-id or --issue")
-    if issue_id and repo_root is None:
-        raise CoordCtlError("INVALID_ARGUMENT", "release --issue requires --repo-root")
+    raw_path = getattr(args, "path", None)
+    raw_path = raw_path.strip() if isinstance(raw_path, str) and raw_path.strip() else None
+
+    # Exactly one selector group: session XOR issue XOR lease-target
+    # (lease_id/owner/path). Mixed groups would silently pick one and ignore the
+    # rest, which is bad UX for a coordination tool.
+    lease_target = bool(lease_id or owner_id or raw_path)
+    group_count = sum([bool(session_id), bool(issue_id), lease_target])
+    if group_count == 0:
+        raise CoordCtlError("INVALID_ARGUMENT", "release requires --session-id, --issue, --lease-id, --owner or --path")
+    if group_count > 1:
+        raise CoordCtlError("INVALID_ARGUMENT", "ambiguous release selectors: use exactly one of --session-id, --issue, or a lease-target (--lease-id/--owner/--path)")
+    # Broad lease-target selectors must be scoped to a repo to stay safe.
+    if (issue_id or owner_id or raw_path) and repo_root is None:
+        raise CoordCtlError("INVALID_ARGUMENT", "release by --issue/--owner/--path requires --repo-root")
+    # --path without --owner would release every owner's lease on that path.
+    if raw_path and not (owner_id or lease_id or all_owners):
+        raise CoordCtlError("INVALID_ARGUMENT", "release --path affects all owners on the path; add --owner to scope it or --all-owners to confirm")
+    path_rel = normalize_path(repo_root, raw_path) if raw_path else None
+
     with connect_db() as conn:
         conn.execute("BEGIN IMMEDIATE")
         expire_active(conn)
+        sessions: list[sqlite3.Row] = []
+        leases: list[sqlite3.Row] = []
+        selector: dict[str, Any] = {}
         if session_id:
+            selector["session_id"] = session_id
             sessions = conn.execute("SELECT * FROM sessions WHERE session_id = ? AND state = 'active'", (session_id,)).fetchall()
             leases = conn.execute("SELECT * FROM leases WHERE session_id = ? AND state = 'active'", (session_id,)).fetchall()
             conn.execute("UPDATE sessions SET state = 'released' WHERE session_id = ? AND state = 'active'", (session_id,))
             conn.execute("UPDATE leases SET state = 'released' WHERE session_id = ? AND state = 'active'", (session_id,))
-        else:
+        elif issue_id:
+            selector["issue_id"] = issue_id
+            selector["repo_root"] = repo_root
             sessions = conn.execute("SELECT * FROM sessions WHERE repo_root = ? AND issue_id = ? AND state = 'active'", (repo_root, issue_id)).fetchall()
             leases = conn.execute("SELECT * FROM leases WHERE repo_root = ? AND issue_id = ? AND state = 'active'", (repo_root, issue_id)).fetchall()
             conn.execute("UPDATE sessions SET state = 'released' WHERE repo_root = ? AND issue_id = ? AND state = 'active'", (repo_root, issue_id))
             conn.execute("UPDATE leases SET state = 'released' WHERE repo_root = ? AND issue_id = ? AND state = 'active'", (repo_root, issue_id))
+        else:
+            # lease-target selectors release leases only (fixes orphan/legacy
+            # rows that have no session_id and no issue_id).
+            conds = ["state = 'active'"]
+            params: list[Any] = []
+            if lease_id:
+                conds.append("lease_id = ?")
+                params.append(lease_id)
+                selector["lease_id"] = lease_id
+            if repo_root:
+                conds.append("repo_root = ?")
+                params.append(repo_root)
+                selector["repo_root"] = repo_root
+            if owner_id:
+                conds.append("owner_id = ?")
+                params.append(owner_id)
+                selector["owner_id"] = owner_id
+            if path_rel:
+                conds.append("path_rel = ?")
+                params.append(path_rel)
+                selector["path_rel"] = path_rel
+            where = " AND ".join(conds)
+            leases = conn.execute(f"SELECT * FROM leases WHERE {where}", params).fetchall()
+            conn.execute(f"UPDATE leases SET state = 'released' WHERE {where}", params)
         payload = {
             "action": "released",
             "changed": bool(sessions or leases),
             "ok": True,
+            "selector": selector,
             "released_sessions": [session_to_dict(row) for row in sessions],
             "released_leases": [lease_to_dict(row) for row in leases],
         }
-        emit_event(conn, "release", session_id or issue_id, payload)
+        emit_event(conn, "release", session_id or issue_id or lease_id or owner_id or path_rel, {"action": "released", "selector": selector, "released": {"sessions": len(sessions), "leases": len(leases)}, "ok": True})
         conn.commit()
         return payload
 
@@ -928,8 +1018,7 @@ def _staged_gitlink_with_visible_submodule_dirt(entry: dict[str, Any], submodule
     return commit_changed == "." and (tracked_dirty != "." or untracked_dirty != ".")
 
 
-def cmd_commit_scope_check(args: argparse.Namespace) -> dict[str, Any]:
-    repo_root = normalize_repo_root(args.repo_root)
+def _commit_scope_analysis(repo_root: str) -> dict[str, Any]:
     cp = git(repo_root, "status", "--porcelain=v1", "-z", "--untracked-files=all")
     entries = _parse_git_status_porcelain_z(cp.stdout)
     submodule_states = _parse_git_status_porcelain_v2_submodules(
@@ -947,46 +1036,17 @@ def cmd_commit_scope_check(args: argparse.Namespace) -> dict[str, Any]:
         if entry["unstaged"] and not _staged_gitlink_with_visible_submodule_dirt(entry, submodule_states)
     ]
     untracked_entries = [entry for entry in entries if entry["untracked"]]
-    problems: list[dict[str, Any]] = []
-    warnings: list[dict[str, Any]] = []
-    if unmerged_entries:
-        problems.append(
-            {
-                "code": "UNMERGED_STATE",
-                "message": "repository has unmerged paths; commit scope cannot be verified",
-                "paths": _status_paths(unmerged_entries),
-            }
-        )
-    if partial_file_entries:
-        problems.append(
-            {
-                "code": "PARTIAL_FILE_STAGED",
-                "message": "a staged file also has unstaged changes; stage the complete file or stop and ask the owner",
-                "paths": _status_paths(partial_file_entries),
-            }
-        )
-    if not staged_entries:
-        problems.append(
-            {
-                "code": "NO_STAGED_CHANGES",
-                "message": "no staged changes are ready for commit",
-                "paths": [],
-            }
-        )
     visible_uncommitted_entries = [
         entry for entry in unstaged_entries if not entry["staged"]
     ] + staged_submodule_dirty_entries + untracked_entries
-    if visible_uncommitted_entries:
-        warnings.append(
-            {
-                "code": "UNCOMMITTED_OWNER_STATE_VISIBLE",
-                "message": "uncommitted file-level owner state is present but not part of this commit",
-                "paths": _status_paths(visible_uncommitted_entries),
-            }
-        )
-    ok = not problems
-    payload: dict[str, Any] = {
-        "action": "commit_scope_check",
+    return {
+        "entries": entries,
+        "unmerged": unmerged_entries,
+        "staged": staged_entries,
+        "unstaged": unstaged_entries,
+        "partial_files": partial_file_entries,
+        "untracked": untracked_entries,
+        "visible_uncommitted": visible_uncommitted_entries,
         "counts": {
             "entries": len(entries),
             "partial_files": len(partial_file_entries),
@@ -995,10 +1055,6 @@ def cmd_commit_scope_check(args: argparse.Namespace) -> dict[str, Any]:
             "unstaged": len(unstaged_entries),
             "untracked": len(untracked_entries),
         },
-        "entries": entries,
-        "errors": problems,
-        "ok": ok,
-        "owner_action_required": not ok and any(problem["code"] in {"PARTIAL_FILE_STAGED", "UNMERGED_STATE"} for problem in problems),
         "paths": {
             "partial_files": _status_paths(partial_file_entries),
             "staged": _status_paths(staged_entries),
@@ -1006,8 +1062,90 @@ def cmd_commit_scope_check(args: argparse.Namespace) -> dict[str, Any]:
             "unstaged": _status_paths([entry for entry in unstaged_entries if not entry["staged"]]),
             "untracked": _status_paths(untracked_entries),
         },
-        "policy": "File-level subset commits are allowed. Partial-file staging and hidden clean-tree bypasses require explicit owner decision.",
-        "ready_to_commit": ok,
+    }
+
+
+def _uncommitted_owner_state_warning(analysis: dict[str, Any]) -> list[dict[str, Any]]:
+    if not analysis["visible_uncommitted"]:
+        return []
+    return [
+        {
+            "code": "UNCOMMITTED_OWNER_STATE_VISIBLE",
+            "message": "uncommitted file-level owner state is present but not part of this commit",
+            "paths": _status_paths(analysis["visible_uncommitted"]),
+        }
+    ]
+
+
+def cmd_commit_scope_report(args: argparse.Namespace) -> dict[str, Any]:
+    # Supervisory: never hard-fails. Reports staged/unstaged/untracked/unmerged/
+    # partial state plus warnings so the owner can decide.
+    repo_root = normalize_repo_root(args.repo_root)
+    analysis = _commit_scope_analysis(repo_root)
+    warnings = _uncommitted_owner_state_warning(analysis)
+    observations: list[dict[str, Any]] = []
+    if analysis["unmerged"]:
+        observations.append({"code": "UNMERGED_STATE", "paths": analysis["paths"]["unmerged"]})
+    if analysis["partial_files"]:
+        observations.append({"code": "PARTIAL_FILE_STAGED", "paths": analysis["paths"]["partial_files"]})
+    if not analysis["staged"]:
+        observations.append({"code": "NO_STAGED_CHANGES", "paths": []})
+    return {
+        "action": "commit_scope_report",
+        "counts": analysis["counts"],
+        "entries": analysis["entries"],
+        "observations": observations,
+        "ok": True,
+        "paths": analysis["paths"],
+        "policy": "Report is advisory and never blocks. File-level subset commits are allowed.",
+        "ready_to_commit": not analysis["unmerged"] and not analysis["partial_files"] and bool(analysis["staged"]),
+        "repo_root": repo_root,
+        "warnings": warnings,
+    }
+
+
+def cmd_commit_scope_check(args: argparse.Namespace) -> dict[str, Any]:
+    # Gate: hard-fails ONLY for genuinely dangerous states (unmerged paths,
+    # partial-file staging). "No staged changes" is a warning, not a blocker.
+    repo_root = normalize_repo_root(args.repo_root)
+    analysis = _commit_scope_analysis(repo_root)
+    warnings = _uncommitted_owner_state_warning(analysis)
+    problems: list[dict[str, Any]] = []
+    if analysis["unmerged"]:
+        problems.append(
+            {
+                "code": "UNMERGED_STATE",
+                "message": "repository has unmerged paths; commit scope cannot be verified",
+                "paths": analysis["paths"]["unmerged"],
+            }
+        )
+    if analysis["partial_files"]:
+        problems.append(
+            {
+                "code": "PARTIAL_FILE_STAGED",
+                "message": "a staged file also has unstaged changes; stage the complete file only if it pulls in no foreign changes, otherwise stop and ask the owner",
+                "paths": analysis["paths"]["partial_files"],
+            }
+        )
+    if not analysis["staged"]:
+        warnings.append(
+            {
+                "code": "NO_STAGED_CHANGES",
+                "message": "no staged changes are ready for commit",
+                "paths": [],
+            }
+        )
+    ok = not problems
+    payload: dict[str, Any] = {
+        "action": "commit_scope_check",
+        "counts": analysis["counts"],
+        "entries": analysis["entries"],
+        "errors": problems,
+        "ok": ok,
+        "owner_action_required": bool(problems),
+        "paths": analysis["paths"],
+        "policy": "File-level subset commits are allowed. Only unmerged paths and partial-file staging require an explicit owner decision; nothing else blocks.",
+        "ready_to_commit": ok and bool(analysis["staged"]),
         "repo_root": repo_root,
         "warnings": warnings,
     }
@@ -1121,8 +1259,42 @@ def cmd_cleanup(args: argparse.Namespace) -> dict[str, Any]:
         return payload
 
 
+def _runtime_sizes() -> dict[str, int]:
+    sizes: dict[str, int] = {}
+    for name, path in (("events_jsonl", events_path()), ("sqlite", db_path())):
+        try:
+            sizes[name] = path.stat().st_size
+        except OSError:
+            sizes[name] = 0
+    return sizes
+
+
+def _rotate_events(apply: bool) -> dict[str, Any]:
+    # Append-only journal rotation: archive events.jsonl into the state-dir
+    # archive/ folder. The transactional coord_events table is the source of
+    # truth and is intentionally left untouched (permanent audit).
+    src = events_path()
+    try:
+        size = src.stat().st_size
+    except OSError:
+        size = 0
+    if size == 0:
+        return {"rotated": False, "reason": "empty", "bytes": 0}
+    stamp = iso_utc(utc_now()).replace(":", "").replace("-", "")
+    target = resolve_state_dir() / "archive" / f"events-{stamp}-{uuid4().hex[:8]}.jsonl"
+    plan: dict[str, Any] = {"rotated": False, "bytes": size, "from": str(src), "to": str(target)}
+    if not apply:
+        return plan
+    target.parent.mkdir(parents=True, exist_ok=True)
+    src.rename(target)
+    plan["rotated"] = True
+    return plan
+
+
 def cmd_gc(args: argparse.Namespace) -> dict[str, Any]:
     apply = _apply_requested(args)
+    rotate_events = _bool_arg(args, "rotate_events", False)
+    sizes_before = _runtime_sizes()
     with connect_db() as conn:
         conn.execute("BEGIN IMMEDIATE")
         expire_active(conn)
@@ -1134,20 +1306,27 @@ def cmd_gc(args: argparse.Namespace) -> dict[str, Any]:
         lease_ids = [str(row["lease_id"]) for row in conn.execute("SELECT lease_id FROM leases WHERE state IN ('expired', 'released')").fetchall()]
         if not apply:
             conn.rollback()
-            return {
+            payload: dict[str, Any] = {
                 "action": "gc_dry_run",
                 "changed": False,
                 "delete_candidates": {"sessions": session_ids, "leases": lease_ids},
+                "runtime_sizes": sizes_before,
                 "ok": True,
             }
+            if rotate_events:
+                payload["events_rotation"] = _rotate_events(apply=False)
+            return payload
         if lease_ids:
             conn.executemany("DELETE FROM leases WHERE lease_id = ?", [(lid,) for lid in lease_ids])
         if session_ids:
             conn.executemany("DELETE FROM sessions WHERE session_id = ?", [(sid,) for sid in session_ids])
-        payload = {"action": "gc_apply", "changed": bool(session_ids or lease_ids), "deleted": {"sessions": len(session_ids), "leases": len(lease_ids)}, "ok": True}
+        payload = {"action": "gc_apply", "changed": bool(session_ids or lease_ids), "deleted": {"sessions": len(session_ids), "leases": len(lease_ids)}, "runtime_sizes": sizes_before, "ok": True}
         emit_event(conn, "gc", None, payload)
         conn.commit()
-        return payload
+    if rotate_events:
+        payload["events_rotation"] = _rotate_events(apply=True)
+        payload["runtime_sizes_after"] = _runtime_sizes()
+    return payload
 
 
 def cmd_merge_dry_run(args: argparse.Namespace) -> dict[str, Any]:
@@ -1215,6 +1394,17 @@ def build_parser() -> argparse.ArgumentParser:
     session.add_argument("--lease-sec", type=int, default=DEFAULT_LEASE_SEC)
     add_format(session)
 
+    begin = sub.add_parser("begin", help="Cheap non-blocking entrypoint: open a session (and optional coarse intent) with autodetected repo/branch/base.")
+    begin.add_argument("--repo-root", help="Defaults to the git toplevel of the current directory.")
+    begin.add_argument("--owner", help="Defaults to $COORDCTL_OWNER.")
+    begin.add_argument("--issue")
+    begin.add_argument("--branch", help="Defaults to the current branch.")
+    begin.add_argument("--base", help="Defaults to HEAD.")
+    begin.add_argument("--path", help="Optional: also record a coarse file intent for this path.")
+    begin.add_argument("--worktree-path")
+    begin.add_argument("--lease-sec", type=int, default=DEFAULT_LEASE_SEC)
+    add_format(begin)
+
     acquire = sub.add_parser("intent-acquire", help="Acquire or renew an advisory edit intent.")
     acquire.add_argument("--repo-root", required=True)
     acquire.add_argument("--path", required=True)
@@ -1235,19 +1425,27 @@ def build_parser() -> argparse.ArgumentParser:
     status.add_argument("--all", action="store_true")
     add_format(status)
 
-    commit_scope = sub.add_parser("commit-scope-check", help="Verify that a commit will not hide dirty owner state.")
+    commit_scope = sub.add_parser("commit-scope-check", help="Gate: hard-fail only on unmerged paths or partial-file staging.")
     commit_scope.add_argument("--repo-root", required=True)
     add_format(commit_scope)
+
+    commit_scope_report = sub.add_parser("commit-scope-report", help="Advisory report of staged/unstaged/untracked/unmerged/partial state; never fails.")
+    commit_scope_report.add_argument("--repo-root", required=True)
+    add_format(commit_scope_report)
 
     heartbeat = sub.add_parser("heartbeat", help="Renew a session and its active leases.")
     heartbeat.add_argument("--session-id", required=True)
     heartbeat.add_argument("--lease-sec", type=int, default=DEFAULT_LEASE_SEC)
     add_format(heartbeat)
 
-    release = sub.add_parser("release", help="Release active sessions and leases by session or issue.")
+    release = sub.add_parser("release", help="Release active sessions and leases by session, issue, lease-id, owner or path.")
     release.add_argument("--session-id")
     release.add_argument("--repo-root")
     release.add_argument("--issue")
+    release.add_argument("--lease-id")
+    release.add_argument("--owner")
+    release.add_argument("--path")
+    release.add_argument("--all-owners", action="store_true", help="Confirm a --path release that affects every owner on the path.")
     add_format(release)
 
     cleanup = sub.add_parser("cleanup", help="Dry-run or apply required session cleanup.")
@@ -1259,9 +1457,10 @@ def build_parser() -> argparse.ArgumentParser:
     cleanup.add_argument("--apply", action="store_true")
     add_format(cleanup)
 
-    gc = sub.add_parser("gc", help="Dry-run or delete expired/final coordination state.")
+    gc = sub.add_parser("gc", help="Dry-run or delete expired/final coordination state; optionally rotate the events journal.")
     gc.add_argument("--dry-run", action="store_true")
     gc.add_argument("--apply", action="store_true")
+    gc.add_argument("--rotate-events", action="store_true", help="Archive events.jsonl into the state-dir archive/ folder (coord_events table is preserved).")
     add_format(gc)
 
     merge = sub.add_parser("merge-dry-run", help="Check whether target and branch can merge cleanly.")
@@ -1276,12 +1475,16 @@ def build_parser() -> argparse.ArgumentParser:
 def dispatch(args: argparse.Namespace) -> dict[str, Any]:
     if args.command == "session-start":
         return cmd_session_start(args)
+    if args.command == "begin":
+        return cmd_begin(args)
     if args.command == "intent-acquire":
         return cmd_intent_acquire(args)
     if args.command == "status":
         return cmd_status(args)
     if args.command == "commit-scope-check":
         return cmd_commit_scope_check(args)
+    if args.command == "commit-scope-report":
+        return cmd_commit_scope_report(args)
     if args.command == "heartbeat":
         return cmd_heartbeat(args)
     if args.command == "release":

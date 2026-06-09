@@ -46,8 +46,12 @@ SECTION_TITLE_MAP = {
     "replication status": "replication_status",
 }
 
-LOCKCTL = Path(r"D:\int\tools\lockctl\lockctl.py")
-LOCK_OWNER = "codex:review-sql-fix"
+COORDCTL_CANDIDATES = [
+    Path(os.environ.get("COORDCTL_BIN", "")) if os.environ.get("COORDCTL_BIN") else None,
+    Path(r"D:\int\tools\coordctl\coordctl.py"),
+    Path("/int/tools/coordctl/coordctl.py"),
+]
+COORD_OWNER = "codex:review-sql-fix"
 
 
 class PipelineError(Exception):
@@ -539,25 +543,82 @@ def resolve_repo_fix_path(fix_path: str, repo_targets: list[Path]) -> Path:
     raise PipelineError(f"unable to resolve repo fix path '{fix_path}' inside repo_targets")
 
 
-def run_lockctl(action: str, repo_root: Path, rel_path: str) -> None:
-    cmd = [
-        sys.executable,
-        str(LOCKCTL),
-        action,
+def resolve_coordctl() -> Path:
+    for candidate in COORDCTL_CANDIDATES:
+        if candidate and candidate.exists():
+            return candidate
+    raise PipelineError("coordctl.py not found; set COORDCTL_BIN")
+
+
+def run_coordctl(args: list[str]) -> dict[str, Any]:
+    cmd = [sys.executable, str(resolve_coordctl()), *args, "--format", "json"]
+    proc = subprocess.run(cmd, capture_output=True, text=True)
+    if proc.returncode != 0:
+        stderr = proc.stderr.strip() or proc.stdout.strip()
+        raise PipelineError(f"coordctl {' '.join(args[:1])} failed: {stderr}")
+    try:
+        return json.loads(proc.stdout or "{}")
+    except json.JSONDecodeError as exc:
+        raise PipelineError(f"coordctl returned invalid JSON: {proc.stdout}") from exc
+
+
+def current_git_ref(repo_root: Path) -> tuple[str, str]:
+    def git_value(*args: str) -> str:
+        proc = subprocess.run(["git", "-C", str(repo_root), *args], capture_output=True, text=True)
+        if proc.returncode != 0:
+            stderr = proc.stderr.strip() or proc.stdout.strip()
+            raise PipelineError(f"git {' '.join(args)} failed for {repo_root}: {stderr}")
+        return proc.stdout.strip()
+
+    branch = git_value("rev-parse", "--abbrev-ref", "HEAD")
+    commit = git_value("rev-parse", "HEAD")
+    return branch, commit
+
+
+def acquire_coordctl_intent(repo_root: Path, rel_path: str) -> str:
+    branch, base = current_git_ref(repo_root)
+    session_payload = run_coordctl([
+        "session-start",
+        "--repo-root",
+        str(repo_root),
+        "--owner",
+        COORD_OWNER,
+        "--branch",
+        branch,
+        "--base",
+        base,
+        "--lease-sec",
+        "600",
+    ])
+    session = session_payload.get("session") or {}
+    session_id = str(session.get("session_id") or "")
+    if not session_id:
+        raise PipelineError(f"coordctl session-start did not return session_id: {session_payload}")
+
+    run_coordctl([
+        "intent-acquire",
         "--repo-root",
         str(repo_root),
         "--path",
         rel_path,
         "--owner",
-        LOCK_OWNER,
-    ]
-    if action == "acquire":
-        cmd += ["--lease-sec", "600"]
+        COORD_OWNER,
+        "--base",
+        base,
+        "--region-kind",
+        "file",
+        "--region-id",
+        "full",
+        "--session-id",
+        session_id,
+        "--lease-sec",
+        "600",
+    ])
+    return session_id
 
-    proc = subprocess.run(cmd, capture_output=True, text=True)
-    if proc.returncode != 0:
-        stderr = proc.stderr.strip() or proc.stdout.strip()
-        raise PipelineError(f"lockctl {action} failed: {stderr}")
+
+def release_coordctl_session(session_id: str) -> None:
+    run_coordctl(["release", "--session-id", session_id])
 
 
 def apply_repo_lane(
@@ -624,10 +685,9 @@ def apply_repo_lane(
             raise PipelineError(f"cannot resolve repo root for target: {target}")
 
         rel_path = str(target.resolve().relative_to(repo_root.resolve()))
-        lock_taken = False
+        coord_session_id = ""
         try:
-            run_lockctl("acquire", repo_root, rel_path)
-            lock_taken = True
+            coord_session_id = acquire_coordctl_intent(repo_root, rel_path)
 
             original = target.read_text(encoding="utf-8")
             if search not in original:
@@ -652,8 +712,8 @@ def apply_repo_lane(
                 }
             )
         finally:
-            if lock_taken:
-                run_lockctl("release-path", repo_root, rel_path)
+            if coord_session_id:
+                release_coordctl_session(coord_session_id)
 
     return results
 

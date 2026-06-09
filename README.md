@@ -22,7 +22,7 @@ Allowed statuses:
 ## Current Public Tools
 
 - `dba/` - `intDBA`, a public first-party CLI for guarded Postgres/Supabase operator workflows.
-- `lockctl/` - legacy file lease coordinator retained as a manual CLI tool.
+- `lockctl/` - retired file lease coordinator retained only as source/history; active coordination is `coordctl`.
 - `coordctl/` - active Git-aware session and hunk-level edit coordinator for parallel agent work.
 - `agent_plane/` - reusable tool-plane runtime, policy-aware dispatch, and local harness.
 - `repo-ops/` - reusable repository operations helpers.
@@ -103,7 +103,6 @@ The validator checks that every tracked non-hidden top-level directory is presen
 
 ## Полезные команды
 
-- `lockctl --help` — legacy CLI справка по file lease-локам; не active Codex/project coordination surface;
 - `coordctl --help` — справка по Git-aware coordination sessions, hunk intents, cleanup и merge dry-run;
 - `python /int/tools/vault/installers/vault_sanitize.py --dry-run --profile strict` — dry-run санитарной миграции vault;
 - `python /int/tools/vault/installers/runtime_vault_gc.py --dry-run --brain-root /int/brain` — dry-run архивации и очистки canonical runtime-root (`/int/.tmp/brain-runtime-vault`);
@@ -929,26 +928,14 @@ curl -X POST http://127.0.0.1:11434/v1/chat/completions \
 
 #### lockctl
 
-`lockctl` is a legacy machine-local writer-lock CLI retained in the repo for manual diagnostics. Current Codex/OpenClaw project coordination uses `coordctl`.
+`lockctl` is a legacy machine-local writer-lock implementation retained only as source in this git repository. Current Codex/OpenClaw project coordination uses `coordctl`; lockctl runtime/install artifacts are not an active project surface.
 
 ##### Shell UX
 
-Use the public shell entrypoint from `PATH`:
+Do not install or use a runtime shell entrypoint for current project work. The historical CLI source remains in this repository only:
 
 ```bash
-lockctl
-lockctl --help
-lockctl help acquire
-man lockctl
-```
-
-Bare `lockctl` prints the top-level help and exits successfully.
-
-Install launchers into user bin:
-
-```bash
-bash /int/tools/lockctl/install_lockctl.sh
-pwsh -File D:\int\tools\lockctl\install_lockctl.ps1
+/int/tools/lockctl/lockctl.py
 ```
 
 Implementation/core lives in `/int/tools/lockctl/lockctl_core.py`.
@@ -960,65 +947,37 @@ CLI entrypoints:
 - MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile intdata-control`
 
 Do not try to execute the directory `/int/tools/lockctl` itself as a binary.
+Do not add `/usr/local/bin/lockctl`, user-bin wrappers or MCP lockctl tools back as active runtime surfaces.
 
 ##### Runtime model
 
-- One active writer lease per repo-relative file.
-- Truth for active locks lives in SQLite, not in project-local YAML files.
-- Leases are short-lived and must be renewed while a write is active.
-- `issue` is optional metadata. Use it only for issue-disciplined tasks; accepted formats are legacy numeric ids and full Multica ids such as `INT-224`.
-- `release-path` is the normal per-file cleanup path.
-- `release-issue` is the normal bulk cleanup path for issue-bound repos.
+- Active runtime source of truth is `coordctl`.
+- Historical lockctl runtime history may be imported into coordctl with `/int/tools/coordctl/import_lockctl_history.py`.
+- After import verification, machine-local lockctl runtime/install artifacts can be removed with explicit owner approval for the exact commands.
 
 Runtime files:
 
-- `LOCKCTL_STATE_DIR` (если явно задан)
-- иначе `/int/tools/.runtime/lockctl` на Linux/VDS и `D:\int\tools\.runtime\lockctl` на Windows
-- SQLite: `<state_dir>/locks.sqlite`
-- Event log: `<state_dir>/events.jsonl`
+- Historical runtime path: `/int/tools/.runtime/lockctl`.
+- Historical SQLite: `/int/tools/.runtime/lockctl/locks.sqlite`.
+- Historical event log: `/int/tools/.runtime/lockctl/events.jsonl`.
+- New runtime data MUST NOT be written there.
 
 Legacy migration note:
 
-- Старый state из `$CODEX_HOME/memories/lockctl`, `~/.codex/memories/lockctl` или legacy Windows path `D:\home\leon\.codex\memories\lockctl` больше не читается автоматически; при необходимости оператор делает явный ручной импорт вне default startup path.
-- При первом запуске недостающие файлы копируются в `/int/tools/.runtime/lockctl`; старые каталоги не удаляются.
-- На `vds.intdata.pro` `/int/tools/.runtime/lockctl` является machine-local runtime и не синхронизируется через `/2brain`.
+- Старый state из `$CODEX_HOME/memories/lockctl`, `~/.codex/memories/lockctl` или legacy Windows path `D:\home\leon\.codex\memories\lockctl` больше не читается автоматически.
+- Do not auto-create or repopulate `/int/tools/.runtime/lockctl`.
 
 ##### Common examples
 
 ```bash
-lockctl acquire \
-  --repo-root /int/crm \
-  --path README.md \
-  --owner codex:session-1 \
-  --issue INT-1217 \
-  --lease-sec 60 \
-  --format json
-
-lockctl status --repo-root /int/crm --issue INT-1217 --format json
-
-lockctl acquire \
-  --repo-root /int/tools \
-  --path README.md \
-  --owner codex:session-1 \
-  --reason "non-project maintenance" \
-  --lease-sec 60 \
-  --format json
-
-lockctl release-path \
-  --repo-root /int/crm \
-  --path README.md \
-  --owner codex:session-1 \
-  --format json
-
-lockctl release-issue --repo-root /int/crm --issue INT-1217 --format json
-
-lockctl gc --format json
+python3 /int/tools/coordctl/import_lockctl_history.py --dry-run
 ```
 
 ##### Notes
 
 - Do not edit SQLite or `events.jsonl` directly.
-- Active `/int/*` repos now treat `coordctl` as the runtime source of truth for active coordination. `lockctl` remains a legacy manual CLI only.
+- Active `/int/*` repos treat `coordctl` as the runtime source of truth for active coordination.
+- `lockctl` is retained only as source/history in this git repository, not as an active runtime.
 
 ### `coordctl/`
 

@@ -17,9 +17,9 @@ PUBLIC_PLUGIN_NAMES = ("intdata-control", "intdata-runtime", "intbrain", "dba")
 COMPATIBILITY_PROFILE_NAMES = ("coordctl",)
 FORBIDDEN_PUBLIC_PLUGIN_NAMES = {"coordctl", "agent-plane"}
 EXPECTED_COUNTS = {
-    "coordctl": 8,
+    "coordctl": 9,
     "intbrain": 27,
-    "intdata-control": 20,
+    "intdata-control": 21,
     "intdata-runtime": 8,
     "dba": 1,
 }
@@ -35,6 +35,7 @@ PLUGIN_DIRS = {
 TOOL_SKILLS = {
     "coordctl": {
         "coordctl_session_start": "coordctl",
+        "coordctl_begin": "coordctl",
         "coordctl_intent_acquire": "coordctl",
         "coordctl_status": "coordctl",
         "coordctl_heartbeat": "coordctl",
@@ -45,6 +46,7 @@ TOOL_SKILLS = {
     },
     "intdata-control": {
         "coordctl_session_start": "coordctl",
+        "coordctl_begin": "coordctl",
         "coordctl_intent_acquire": "coordctl",
         "coordctl_status": "coordctl",
         "coordctl_heartbeat": "coordctl",
@@ -121,8 +123,11 @@ REQUIRED_CARD_MARKERS = [
     "Fallback/blocker:",
 ]
 
+# Destructive maintenance that still requires owner approval. coordctl
+# coordination writes (session_start/begin/intent_acquire/heartbeat/release) are
+# intentionally NOT here: they are advisory provenance, not high-risk mutation.
 GUARDED_TOOLS = {
-    "coordctl_session_start", "coordctl_intent_acquire", "coordctl_heartbeat", "coordctl_release", "coordctl_cleanup", "coordctl_gc",
+    "coordctl_cleanup", "coordctl_gc",
     "openspec_archive", "openspec_change_mutate", "openspec_spec_mutate", "openspec_new", "openspec_exec_mutate",
     "host_bootstrap", "recovery_bundle", "browser_profile_launch",
     "intdata_vault_sanitize", "intdata_runtime_vault_gc",
@@ -131,7 +136,16 @@ GUARDED_TOOLS = {
     "intbrain_memory_sync_sessions", "intbrain_memory_import_mempalace", "intdata_cli",
 }
 
+# Advisory coordination writes: always-record, non-blocking provenance. Their
+# cards must declare an advisory mode and need neither approval nor read-only
+# wording (tool = always-write + warn; agent = stop-on-real-overlap).
+ADVISORY_TOOLS = {
+    "coordctl_session_start", "coordctl_begin", "coordctl_intent_acquire",
+    "coordctl_heartbeat", "coordctl_release",
+}
+
 GUARD_WORDS = ["approval", "confirm_mutation", "issue_context", "owner approval"]
+ADVISORY_MARKERS = ["Режим: advisory", "Режим: advisory write"]
 READ_ONLY_MARKERS = ["Режим: read-only", "Режим: read-only by default"]
 CABINET_RE = re.compile(r"cabinet|intbrain_cabinet", re.IGNORECASE)
 
@@ -340,6 +354,9 @@ def verify_skill_card(profile: str, tool: dict[str, Any], report: dict[str, Any]
         missing = [word for word in GUARD_WORDS if word not in card]
         if missing:
             row["missing_guidance"].append(f"missing guard wording: {', '.join(missing)}")
+    elif tool_name in ADVISORY_TOOLS:
+        if not any(marker in card for marker in ADVISORY_MARKERS):
+            row["missing_guidance"].append("missing advisory marker")
     else:
         if not any(marker in card for marker in READ_ONLY_MARKERS):
             row["missing_guidance"].append("missing read-only marker")

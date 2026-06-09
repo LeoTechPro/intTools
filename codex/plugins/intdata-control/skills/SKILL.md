@@ -9,7 +9,7 @@ description: Internal intData skill entrypoint for the intdata-control plugin. U
 - Для Multica используй официальный `multica` CLI или официальный Multica MCP plugin, если он установлен; `intdata-control` Multica tools removed/forbidden.
 - Local delivery publish wrappers removed/forbidden: do not use `/int/tools/delivery/bin/publish_*`, `/int/tools/codex/bin/publish_*.ps1`, or an `intdata-control` `publish` tool.
 - Local sync-gate wrappers removed/forbidden: use explicit native git commands and repo hooks instead of `int_git_sync_gate` or `sync_gate_*` tools.
-- Перед tracked-правками в `/int/tools` начни `coordctl` session и возьми file/hunk intent lease; `lockctl` не является active Codex tool surface.
+- Перед tracked-правками в `/int/tools` начни `coordctl` session и возьми file/hunk intent lease.
 - Mutating tools без `confirm_mutation=true`, `issue_context=INT-*` и owner approval не вызывать.
 
 ## Capability skills
@@ -26,4 +26,4 @@ description: Internal intData skill entrypoint for the intdata-control plugin. U
 - Сначала выбирай capability skill, затем конкретную tool-card.
 - Не вызывай mutating/high-risk tools без owner approval, `confirm_mutation=true` и `issue_context=INT-*`.
 - Если required args неизвестны, остановись как blocker и не подменяй MCP прямым shell fallback.
-- `lockctl` допустим только как repo-retained legacy CLI для ручной диагностики по прямому owner approval; не используй его как fallback текущих проектов.
+- Active coordination runtime — только `coordctl`; не используй retired coordination tools как fallback текущих проектов.
