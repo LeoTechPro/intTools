@@ -508,6 +508,35 @@ class CoordCtlCoreTest(unittest.TestCase):
                 self.assertEqual(begun["intent"]["lease"]["path_rel"], "invoice.js")
                 self.assertEqual(begun["overlaps"], [])
 
+    def test_intent_without_session_auto_creates_and_reuses_session(self):
+        # Orphan-lease prevention: an intent without --session-id gets attached
+        # to an auto-created (or reused same-base) session so heartbeat can renew it.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+                first = coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base="main", region_kind="hunk", region_id="3:3", lease_sec=60, session_id=None))
+                self.assertIsNotNone(first["lease"]["session_id"])
+                second = coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base="main", region_kind="hunk", region_id="9:9", lease_sec=60, session_id=None))
+                # Same owner+repo+base → session is reused, not duplicated.
+                self.assertEqual(first["lease"]["session_id"], second["lease"]["session_id"])
+                status = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner=None, issue=None, all=False))
+                self.assertEqual(status["counts"]["sessions"], 1)
+
+    def test_status_brief_returns_compact_summary(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            repo = make_repo(tmp_path)
+            with mock.patch.dict(os.environ, {"COORDCTL_STATE_DIR": str(tmp_path / "state")}, clear=False):
+                coordctl_core.cmd_intent_acquire(mock.Mock(repo_root=str(repo), path="invoice.js", owner="agent:a", issue=None, base="main", region_kind="file", region_id="invoice.js", lease_sec=60, session_id=None))
+                brief = coordctl_core.cmd_status(mock.Mock(repo_root=str(repo), path=None, owner=None, issue=None, all=False, brief=True))
+                self.assertTrue(brief["ok"])
+                self.assertNotIn("leases", brief)
+                self.assertNotIn("sessions", brief)
+                self.assertEqual(brief["active"]["paths"], ["invoice.js"])
+                self.assertIn("agent:a", brief["active"]["owners"])
+                self.assertEqual(brief["counts"]["active_leases"], 1)
+
     def test_gc_rotate_events_archives_journal_and_preserves_table(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)

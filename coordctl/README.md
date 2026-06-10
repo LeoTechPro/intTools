@@ -2,8 +2,8 @@
 
 `coordctl` is a parallel, Git-aware coordination utility for multi-agent edits.
 
-It replaces active `lockctl` usage for current Codex project coordination. `lockctl`
-remains in the repo as a legacy CLI for manual diagnostics with direct owner approval.
+It replaces `lockctl`, which has been fully retired and removed from the repository;
+its runtime history was imported into coordctl via `import_lockctl_history.py`.
 
 ## Runtime State
 
@@ -17,6 +17,13 @@ Runtime files:
 - `coord.sqlite`
 - `events.jsonl`
 
+## Install
+
+`bash coordctl/install_coordctl.sh` (Linux/macOS; honours `COORDCTL_INSTALL_BIN`,
+default `~/.local/bin`) or `coordctl/install_coordctl.ps1` (Windows). The standard
+`codex/tools/install_tools.*` pipeline installs coordctl automatically. Set a stable
+owner id for provenance: `export COORDCTL_OWNER="<agent>:<task|INT-*>"`.
+
 ## CLI
 
 ```bash
@@ -25,6 +32,7 @@ coordctl begin --owner codex:session --path README.md --format json   # also rec
 coordctl session-start --repo-root /int/tools --owner codex:session --branch agent/INT-1/a --base main --format json
 coordctl intent-acquire --repo-root /int/tools --path README.md --owner codex:session --base main --region-kind hunk --region-id 12:18 --lease-sec 3600 --format json
 coordctl status --repo-root /int/tools --format json
+coordctl status --repo-root /int/tools --brief --format json   # compact: counts + active owners/paths
 coordctl commit-scope-report --repo-root /int/tools --format json   # advisory, never fails
 coordctl commit-scope-check --repo-root /int/tools --format json    # gate: fails only on unmerged/partial-file
 coordctl heartbeat --session-id <session-id> --format json

@@ -9,8 +9,6 @@ from pathlib import Path
 from unittest import mock
 
 MODULE_DIR = Path(__file__).resolve().parents[1]
-TOOLS_ROOT = MODULE_DIR.parent
-LOCKCTL_DIR = TOOLS_ROOT / "lockctl"
 if str(MODULE_DIR) not in sys.path:
     sys.path.insert(0, str(MODULE_DIR))
 
@@ -106,35 +104,6 @@ class CoordCtlIntegrationTest(unittest.TestCase):
             merge_d = git(repo, "merge", "--no-edit", "agent-d", check=False)
             self.assertNotEqual(merge_d.returncode, 0)
             git(repo, "merge", "--abort", check=False)
-
-    def test_legacy_lockctl_blocks_whole_file_where_coordctl_allows_non_overlap(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            repo = make_repo(tmp_path)
-            lock_state = tmp_path / "lock-state"
-            env = {**os.environ, "LOCKCTL_STATE_DIR": str(lock_state)}
-            first_cp = subprocess.run(
-                [sys.executable, str(LOCKCTL_DIR / "lockctl.py"), "acquire", "--repo-root", str(repo), "--path", "invoice.js", "--owner", "agent:a", "--lease-sec", "60", "--format", "json"],
-                text=True,
-                capture_output=True,
-                env=env,
-                check=True,
-            )
-            second_cp = subprocess.run(
-                [sys.executable, str(LOCKCTL_DIR / "lockctl.py"), "acquire", "--repo-root", str(repo), "--path", "invoice.js", "--owner", "agent:b", "--lease-sec", "60", "--format", "json"],
-                text=True,
-                capture_output=True,
-                env=env,
-                check=False,
-            )
-            import json
-
-            first = json.loads(first_cp.stdout)
-            second = json.loads(second_cp.stdout)
-
-            self.assertTrue(first["ok"])
-            self.assertFalse(second["ok"])
-            self.assertEqual(second["error"], "LOCK_CONFLICT")
 
     def test_cleanup_apply_refuses_unmerged_branch_delete(self):
         with tempfile.TemporaryDirectory() as tmp:

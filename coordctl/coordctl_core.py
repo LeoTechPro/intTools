@@ -19,6 +19,9 @@ from uuid import uuid4
 
 ISO_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 DEFAULT_LEASE_SEC = 60
+# `begin` is the cheap default entrypoint for a whole work stint, so its default
+# lease must survive real thinking/editing time without a heartbeat loop.
+DEFAULT_BEGIN_LEASE_SEC = 600
 MAX_LEASE_SEC = 3600
 RECLAIM_DEAD_LOCAL_PIDS_ENV = "COORDCTL_RECLAIM_DEAD_LOCAL_PIDS"
 EXIT_OK = 0
@@ -211,6 +214,18 @@ def connect_db() -> sqlite3.Connection:
         CREATE INDEX IF NOT EXISTS idx_leases_issue_state
           ON leases(repo_root, issue_id, state, expires_utc);
 
+        CREATE INDEX IF NOT EXISTS idx_leases_state_hostname
+          ON leases(state, hostname, expires_utc);
+
+        CREATE INDEX IF NOT EXISTS idx_leases_session_state
+          ON leases(session_id, state, expires_utc);
+
+        CREATE INDEX IF NOT EXISTS idx_leases_repo_owner_state
+          ON leases(repo_root, owner_id, state, expires_utc);
+
+        CREATE INDEX IF NOT EXISTS idx_sessions_state_hostname
+          ON sessions(state, hostname, expires_utc);
+
         CREATE TABLE IF NOT EXISTS coord_events (
           event_id INTEGER PRIMARY KEY AUTOINCREMENT,
           event_type TEXT NOT NULL,
@@ -239,20 +254,26 @@ def emit_event(conn: sqlite3.Connection, event_type: str, object_id: str | None,
         "INSERT INTO coord_events(event_type, object_id, payload_json, created_utc) VALUES (?, ?, ?, ?)",
         (event_type, object_id, payload_json, created_utc),
     )
-    with events_path().open("a", encoding="utf-8") as handle:
-        handle.write(
-            json.dumps(
-                {
-                    "created_utc": created_utc,
-                    "event_type": event_type,
-                    "object_id": object_id,
-                    "payload": payload,
-                },
-                ensure_ascii=True,
-                sort_keys=True,
+    # events.jsonl is a best-effort mirror; the transactional coord_events table
+    # is the source of truth. A failing journal write must never roll back the
+    # transaction (e.g. disk full, permissions, stale NFS).
+    try:
+        with events_path().open("a", encoding="utf-8") as handle:
+            handle.write(
+                json.dumps(
+                    {
+                        "created_utc": created_utc,
+                        "event_type": event_type,
+                        "object_id": object_id,
+                        "payload": payload,
+                    },
+                    ensure_ascii=True,
+                    sort_keys=True,
+                )
+                + "\n"
             )
-            + "\n"
-        )
+    except OSError as exc:
+        print(f"coordctl: events.jsonl mirror write failed ({exc}); coord_events row preserved", file=sys.stderr)
 
 
 def normalize_repo_root(raw: str) -> str:
@@ -546,7 +567,8 @@ def cmd_session_start(args: argparse.Namespace) -> dict[str, Any]:
             ),
         )
         row = conn.execute("SELECT * FROM sessions WHERE session_id = ?", (session_id,)).fetchone()
-        assert row is not None
+        if row is None:
+            raise CoordCtlError("INTERNAL_ERROR", f"session {session_id} not found after insert")
         payload = {"action": "session_started", "changed": True, "ok": True, "session": session_to_dict(row)}
         emit_event(conn, "session_start", session_id, payload)
         conn.commit()
@@ -570,7 +592,7 @@ def cmd_begin(args: argparse.Namespace) -> dict[str, Any]:
     issue_id = normalize_issue(getattr(args, "issue", None))
     branch = str(getattr(args, "branch", None) or "").strip() or git(repo_root, "rev-parse", "--abbrev-ref", "HEAD").stdout.strip()
     base_ref = str(getattr(args, "base", None) or "").strip() or "HEAD"
-    lease_sec = require_lease_seconds(int(getattr(args, "lease_sec", None) or DEFAULT_LEASE_SEC))
+    lease_sec = require_lease_seconds(int(getattr(args, "lease_sec", None) or DEFAULT_BEGIN_LEASE_SEC))
     raw_path = getattr(args, "path", None)
     raw_path = raw_path.strip() if isinstance(raw_path, str) and raw_path.strip() else None
 
@@ -647,6 +669,52 @@ def cmd_intent_acquire(args: argparse.Namespace) -> dict[str, Any]:
                 }
             if issue_id is None:
                 issue_id = session["issue_id"]
+
+        auto_session = False
+        if session is None and not session_id:
+            # Orphan-lease prevention: a lease without a session cannot be
+            # renewed by heartbeat and silently expires mid-work. Reuse the
+            # caller's active same-base session for this repo, else create one.
+            reuse = conn.execute(
+                """
+                SELECT * FROM sessions
+                WHERE repo_root = ? AND owner_id = ? AND base_commit = ? AND state = 'active'
+                ORDER BY heartbeat_utc DESC LIMIT 1
+                """,
+                (repo_root, owner_id, base_commit),
+            ).fetchone()
+            if reuse is not None:
+                session_id = str(reuse["session_id"])
+                if issue_id is None:
+                    issue_id = reuse["issue_id"]
+            else:
+                branch_cp = git(repo_root, "rev-parse", "--abbrev-ref", "HEAD", check=False)
+                branch = branch_cp.stdout.strip() if branch_cp.returncode == 0 and branch_cp.stdout.strip() else "HEAD"
+                session_id = str(uuid4())
+                auto_session = True
+                conn.execute(
+                    """
+                    INSERT INTO sessions(
+                      session_id, repo_root, owner_id, issue_id, branch_name, base_ref, base_commit,
+                      acquired_utc, heartbeat_utc, expires_utc, worktree_path, cleanup_status, cleanup_utc,
+                      hostname, pid, state
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, NULL, ?, ?, 'active')
+                    """,
+                    (
+                        session_id,
+                        repo_root,
+                        owner_id,
+                        issue_id,
+                        branch,
+                        base_ref,
+                        base_commit,
+                        iso_utc(now),
+                        iso_utc(now),
+                        iso_utc(expires),
+                        socket.gethostname(),
+                        os.getpid(),
+                    ),
+                )
 
         active_rows = conn.execute(
             """
@@ -758,7 +826,8 @@ def cmd_intent_acquire(args: argparse.Namespace) -> dict[str, Any]:
             action = "acquired"
 
         row = conn.execute("SELECT * FROM leases WHERE lease_id = ?", (lease_id,)).fetchone()
-        assert row is not None
+        if row is None:
+            raise CoordCtlError("INTERNAL_ERROR", f"lease {lease_id} not found after write")
         payload = {"action": action, "changed": True, "lease": lease_to_dict(row), "ok": True, "overlaps": overlaps, "warnings": warnings}
         emit_event(conn, "intent_acquire", lease_id, {"action": action, "lease_id": lease_id, "ok": True, "overlap_count": len(overlaps), "warning_codes": [str(w["code"]) for w in warnings]})
         conn.commit()
@@ -791,12 +860,28 @@ def cmd_status(args: argparse.Namespace) -> dict[str, Any]:
     owner_id = require_owner(args.owner) if args.owner else None
     issue_id = normalize_issue(args.issue) if args.issue else None
     include_all = getattr(args, "all", False) is True
+    brief = getattr(args, "brief", False) is True
     with connect_db() as conn:
         conn.execute("BEGIN IMMEDIATE")
         expired_now = expire_active(conn)
         sessions = _status_query(conn, "sessions", repo_root, None, owner_id, issue_id, include_all)
         leases = _status_query(conn, "leases", repo_root, path_rel, owner_id, issue_id, include_all)
         conn.commit()
+    if brief:
+        # Compact supervisory view: enough to answer "is anyone here?" without
+        # dumping thousands of rows.
+        active_leases = [l for l in leases if l["state"] == "active"]
+        active_sessions = [s for s in sessions if s["state"] == "active"]
+        return {
+            "active": {
+                "owners": sorted({str(l["owner_id"]) for l in active_leases} | {str(s["owner_id"]) for s in active_sessions}),
+                "paths": sorted({str(l["path_rel"]) for l in active_leases}),
+            },
+            "counts": {"sessions": len(sessions), "leases": len(leases), "active_sessions": len(active_sessions), "active_leases": len(active_leases)},
+            "filters": {"all": include_all, "issue_id": issue_id, "owner_id": owner_id, "path_rel": path_rel},
+            "ok": True,
+            "repo_root": repo_root,
+        }
     return {
         "counts": {"sessions": len(sessions), "leases": len(leases)},
         "expired_now": expired_now,
@@ -831,7 +916,8 @@ def cmd_heartbeat(args: argparse.Namespace) -> dict[str, Any]:
             (iso_utc(now), iso_utc(expires), socket.gethostname(), os.getpid(), args.session_id),
         )
         updated = conn.execute("SELECT * FROM sessions WHERE session_id = ?", (args.session_id,)).fetchone()
-        assert updated is not None
+        if updated is None:
+            raise CoordCtlError("INTERNAL_ERROR", f"session {args.session_id} not found after update")
         payload = {"action": "heartbeat", "changed": True, "ok": True, "session": session_to_dict(updated)}
         emit_event(conn, "heartbeat", args.session_id, payload)
         conn.commit()
@@ -1244,7 +1330,8 @@ def cmd_cleanup(args: argparse.Namespace) -> dict[str, Any]:
             (cleanup_state, "failed" if failures else "clean", now, session_id),
         )
         updated = conn.execute("SELECT * FROM sessions WHERE session_id = ?", (session_id,)).fetchone()
-        assert updated is not None
+        if updated is None:
+            raise CoordCtlError("INTERNAL_ERROR", f"session {session_id} not found after cleanup")
         payload = {
             "action": "cleanup_apply",
             "actions": actions,
@@ -1402,7 +1489,7 @@ def build_parser() -> argparse.ArgumentParser:
     begin.add_argument("--base", help="Defaults to HEAD.")
     begin.add_argument("--path", help="Optional: also record a coarse file intent for this path.")
     begin.add_argument("--worktree-path")
-    begin.add_argument("--lease-sec", type=int, default=DEFAULT_LEASE_SEC)
+    begin.add_argument("--lease-sec", type=int, default=DEFAULT_BEGIN_LEASE_SEC)
     add_format(begin)
 
     acquire = sub.add_parser("intent-acquire", help="Acquire or renew an advisory edit intent.")
@@ -1423,6 +1510,7 @@ def build_parser() -> argparse.ArgumentParser:
     status.add_argument("--owner")
     status.add_argument("--issue")
     status.add_argument("--all", action="store_true")
+    status.add_argument("--brief", action="store_true", help="Compact summary: counts plus active owners/paths, no row dumps.")
     add_format(status)
 
     commit_scope = sub.add_parser("commit-scope-check", help="Gate: hard-fail only on unmerged paths or partial-file staging.")

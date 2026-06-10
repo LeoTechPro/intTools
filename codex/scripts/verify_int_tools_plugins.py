@@ -178,7 +178,7 @@ ACTIVE_DOC_GUARD_PATHS = [
 ]
 
 CODEX_HOME_FALLBACK_GUARD_PATHS = [
-    ROOT / "lockctl" / "lockctl_core.py",
+    ROOT / "coordctl" / "coordctl_core.py",
     ROOT / "codex" / "bin" / "mcp-intdata-cli.py",
     ROOT / "codex" / "bin" / "mcp-salebot.mjs",
     ROOT / "codex" / "bin" / "mcp-bitrix24.sh",

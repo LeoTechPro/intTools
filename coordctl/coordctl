@@ -1,5 +1,11 @@
 #!/usr/bin/env sh
 set -eu
-script_dir="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+# Resolve symlinks so the launcher works from PATH (e.g. ~/.local/bin/coordctl).
+self="$0"
+if command -v readlink >/dev/null 2>&1; then
+  resolved="$(readlink -f -- "$self" 2>/dev/null || true)"
+  [ -n "$resolved" ] && self="$resolved"
+fi
+script_dir="$(CDPATH= cd -- "$(dirname -- "$self")" && pwd)"
 python_bin="${PYTHON:-python3}"
 exec "$python_bin" "$script_dir/coordctl.py" "$@"
