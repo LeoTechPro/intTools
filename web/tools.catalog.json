@@ -49,14 +49,6 @@
       "tags": ["proxy", "adapter", "llm"]
     },
     {
-      "root": "lockctl",
-      "name": "LockCtl",
-      "category": "governance",
-      "kind": "owned",
-      "summary": "Machine-local writer-lock для scoped файловых правок, чтобы агенты не конфликтовали в одном tooling repo.",
-      "tags": ["locks", "coordination", "safety"]
-    },
-    {
       "root": "ngt-memory",
       "name": "NGT Memory",
       "category": "reference",

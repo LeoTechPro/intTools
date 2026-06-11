@@ -1,5 +1,5 @@
 # Runtime dependencies for intTools shared/root code
-# (delivery/, agent_plane/, coordctl/, dba/, lockctl/, roistat/).
+# (delivery/, agent_plane/, coordctl/, dba/, roistat/).
 #
 # Derived from the third-party imports actually used by this code. The previous
 # contents of this file were a full system `pip freeze` (certbot, PyGObject,

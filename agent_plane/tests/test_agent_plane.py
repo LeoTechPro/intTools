@@ -57,7 +57,7 @@ class AgentPlaneTest(unittest.TestCase):
         dispatcher = StaticDispatcher()
         plane = AgentPlane(dispatcher=dispatcher, audit_store=audit)
 
-        response = plane.call_tool({"facade": "openclaw", "principal": {"chat_id": "-5266118767"}, "tool": "lockctl_acquire", "args": {}})
+        response = plane.call_tool({"facade": "openclaw", "principal": {"chat_id": "-5266118767"}, "tool": "coordctl_gc", "args": {"apply": True}})
 
         self.assertFalse(response["ok"])
         self.assertEqual(response["error"]["code"], "policy_rejected")

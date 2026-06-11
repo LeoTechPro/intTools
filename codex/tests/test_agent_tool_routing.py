@@ -14,7 +14,6 @@ if str(ROUTER_ROOT) not in __import__("sys").path:
 
 import agent_tool_routing as routing  # noqa: E402
 EXPECTED_V1_CAPABILITIES = {
-    "lockctl-cli",
     "coordctl-cli",
     "coordctl-mcp",
     "int_ssh_resolve",
@@ -53,12 +52,11 @@ class AgentToolRoutingTest(unittest.TestCase):
         declared = {item["capability_id"] for item in payload["capabilities"]}
         self.assertEqual(declared, EXPECTED_V1_CAPABILITIES)
 
-    def test_coordctl_is_managed_and_lockctl_is_legacy_only(self) -> None:
+    def test_coordctl_is_managed(self) -> None:
         payload = self._load_registry()
         statuses = {item["capability_id"]: item["resolution_status"] for item in payload["capabilities"]}
         self.assertEqual(statuses["coordctl-cli"], "managed")
         self.assertEqual(statuses["coordctl-mcp"], "managed")
-        self.assertEqual(statuses["lockctl-cli"], "legacy_available")
 
     def test_sync_gate_intent_is_removed(self) -> None:
         with self.assertRaises(routing.RoutingError) as ctx:
@@ -75,15 +73,15 @@ class AgentToolRoutingTest(unittest.TestCase):
             routing.resolve_capability("lockctl:mcp", platform="windows")
         self.assertEqual(ctx.exception.code, "UNKNOWN_INTENT")
 
-    def test_lockctl_cli_is_legacy_only_not_active_routing(self) -> None:
+    def test_lockctl_cli_is_removed_from_active_routing(self) -> None:
         with self.assertRaises(routing.RoutingError) as ctx:
             routing.resolve_capability("lockctl:cli", platform="windows")
-        self.assertEqual(ctx.exception.code, "LEGACY_AVAILABLE")
+        self.assertEqual(ctx.exception.code, "UNKNOWN_INTENT")
 
-    def test_describe_reports_legacy_capability_as_inactive(self) -> None:
-        payload = routing.describe_capability("lockctl-cli")
-        self.assertEqual(payload["resolution_status"], "legacy_available")
-        self.assertFalse(payload["active_route"])
+    def test_describe_rejects_removed_lockctl_capability(self) -> None:
+        with self.assertRaises(routing.RoutingError) as ctx:
+            routing.describe_capability("lockctl-cli")
+        self.assertEqual(ctx.exception.code, "UNKNOWN_CAPABILITY")
 
     def test_describe_reports_coordctl_capability_as_active(self) -> None:
         payload = routing.describe_capability("coordctl-cli")

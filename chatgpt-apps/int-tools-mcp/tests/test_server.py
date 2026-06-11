@@ -35,7 +35,8 @@ class ServerTest(unittest.TestCase):
         self.assertNotIn("agent_plane_call", names)
         self.assertFalse([name for name in names if name.startswith("multica_")])
         self.assertFalse([name for name in names if name.startswith("openspec_")])
-        self.assertFalse([name for name in names if name in {"lockctl_acquire", "browser_profile_launch"}])
+        self.assertFalse([name for name in names if name.startswith("lockctl_")])
+        self.assertNotIn("browser_profile_launch", names)
 
     def test_tool_descriptors_are_read_only_and_apps_friendly(self) -> None:
         app = IntToolsMcpApp(adapter=FakeAdapter(), config=ServerConfig())

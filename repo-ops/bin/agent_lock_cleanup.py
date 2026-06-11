@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Delegate expired lock cleanup to lockctl gc."""
+"""Delegate expired coordination cleanup to coordctl gc."""
 
 from __future__ import annotations
 
@@ -12,13 +12,13 @@ import shutil
 import subprocess
 import sys
 
-LOCKCTL_BIN = os.environ.get("LOCKCTL_BIN", "lockctl")
+COORDCTL_BIN = os.environ.get("COORDCTL_BIN", "coordctl")
 
 
-def resolve_lockctl_bin() -> str:
-    candidate = LOCKCTL_BIN.strip()
+def resolve_coordctl_bin() -> str:
+    candidate = COORDCTL_BIN.strip()
     if not candidate:
-        raise RuntimeError("lockctl command is empty")
+        raise RuntimeError("coordctl command is empty")
     if "/" in candidate or "\\" in candidate or re.match(r"^[A-Za-z]:", candidate):
         path = Path(candidate).expanduser()
         if os.name == "nt" and not path.is_absolute() and candidate.startswith("/") and not candidate.startswith("//"):
@@ -49,38 +49,37 @@ def resolve_lockctl_bin() -> str:
                     break
         if path.exists():
             return str(path)
-        raise RuntimeError(f"missing lockctl: {path}")
+        raise RuntimeError(f"missing coordctl: {path}")
     resolved = shutil.which(candidate)
     if resolved:
         return resolved
-    raise RuntimeError(f"missing lockctl in PATH: {candidate}")
+    repo_candidate = Path(__file__).resolve().parents[2] / "coordctl" / "coordctl"
+    if repo_candidate.exists():
+        return str(repo_candidate)
+    raise RuntimeError(f"missing coordctl in PATH: {candidate}")
 
 
-def lockctl_cmd(*args: str) -> list[str]:
-    lockctl = resolve_lockctl_bin()
-    if lockctl.lower().endswith(".py"):
-        return [sys.executable, lockctl, *args]
-    return [lockctl, *args]
+def coordctl_cmd(*args: str) -> list[str]:
+    coordctl = resolve_coordctl_bin()
+    if coordctl.lower().endswith(".py"):
+        return [sys.executable, coordctl, *args]
+    return [coordctl, *args]
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Delete expired machine-wide locks via lockctl gc.")
+    parser = argparse.ArgumentParser(description="Delete expired coordctl sessions and leases via coordctl gc.")
     parser.add_argument("--dry-run", action="store_true", help="Print compatibility summary only.")
     args = parser.parse_args()
 
-    if args.dry_run:
-        print("Dry-run: use `lockctl gc --format json` for real cleanup.")
-        return 0
-
     try:
-        cmd = lockctl_cmd("gc", "--format", "json")
+        cmd = coordctl_cmd("gc", "--dry-run" if args.dry_run else "--apply", "--format", "json")
     except RuntimeError as exc:
-        print(f"[LOCKCTL_MISSING] {exc}", file=sys.stderr)
+        print(f"[COORDCTL_MISSING] {exc}", file=sys.stderr)
         return 2
 
     cp = subprocess.run(cmd, text=True, capture_output=True, check=False)
     if cp.returncode != 0:
-        print(cp.stderr.strip() or cp.stdout.strip() or "[LOCKCTL_FAILED] gc failed", file=sys.stderr)
+        print(cp.stderr.strip() or cp.stdout.strip() or "[COORDCTL_FAILED] gc failed", file=sys.stderr)
         return cp.returncode
     try:
         payload = json.loads(cp.stdout)

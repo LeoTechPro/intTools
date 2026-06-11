@@ -75,9 +75,9 @@ class AdapterTest(unittest.TestCase):
         runtime = StubRuntime()
         adapter = IntToolsAdapter(runtime=runtime, default_owner_id=1)
 
-        result = adapter.control("lockctl_status", {"repo_root": "D:/int/tools"})
+        result = adapter.control("coordctl_status", {"repo_root": "D:/int/tools"})
 
-        self.assertEqual(runtime.calls[0][0:2], ("intdata-control", "lockctl_status"))
+        self.assertEqual(runtime.calls[0][0:2], ("intdata-control", "coordctl_status"))
         self.assertNotIn("argv", result["structuredContent"]["result"])
 
 
