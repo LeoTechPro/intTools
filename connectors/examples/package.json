@@ -1,0 +1,21 @@
+{
+  "name": "@inttools/connector-examples",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p .",
+    "clean": "rm -rf dist",
+    "lint": "tsc -p . --noEmit",
+    "test": "npm run build --silent && node --test \"dist/__tests__/*.js\""
+  },
+  "dependencies": {
+    "@inttools/connector-sdk": "file:../sdk"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "fast-check": "^3.18.0",
+    "typescript": "^5.4.2"
+  }
+}

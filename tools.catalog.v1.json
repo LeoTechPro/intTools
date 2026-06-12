@@ -33,6 +33,16 @@
       "migration_action": "Keep public bin/plugins; move or remove legacy/private assets after dry-run approval."
     },
     {
+      "id": "connectors",
+      "root": "connectors",
+      "status": "public-tool",
+      "owner": "intData",
+      "public_surface": "Reusable connector SDK and cookbook examples for product-owned CRM/LMS/SaaS integrations.",
+      "runtime_state": "No production runtime state; real credentials and deployment wiring stay in owning products.",
+      "target_home": "D:/int/tools/connectors",
+      "migration_action": "Salvaged from retired intNexus product contour as public reusable tooling."
+    },
+    {
       "id": "intdba",
       "root": "dba",
       "status": "public-tool",

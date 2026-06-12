@@ -1,0 +1,17 @@
+{
+  "name": "@inttools/connector-sdk",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p .",
+    "clean": "rm -rf dist",
+    "lint": "tsc -p . --noEmit",
+    "test": "npm run build --silent"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "typescript": "^5.4.2"
+  }
+}

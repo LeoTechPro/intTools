@@ -24,6 +24,7 @@ Allowed statuses:
 - `dba/` - `intDBA`, a public first-party CLI for guarded Postgres/Supabase operator workflows.
 - `lockctl/` - removed; fully retired, history imported into `coordctl`.
 - `coordctl/` - active Git-aware session and hunk-level edit coordinator for parallel agent work.
+- `connectors/` - reusable connector SDK and cookbook examples salvaged from retired `intNexus`.
 - `agent_plane/` - reusable tool-plane runtime, policy-aware dispatch, and local harness.
 - `repo-ops/` - reusable repository operations helpers.
 - `vault/` - public sanitizer and runtime garbage-collection helpers only.
