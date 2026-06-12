@@ -50,14 +50,3 @@ intData-maintained fork.
   we decide to maintain changes.
 - Boundary: `/int/tools` keeps recommendation metadata only, not a vendored
   checkout.
-
-## PunktB Cabinet Legacy
-
-- Status: catalog link.
-- Owner: external upstream.
-- Upstream: `git@github.com:punktbDev/cabinet.git`
-- Why it is listed: historical Assess/PunktB compatibility reference.
-- How to use it: use upstream or a temporary read-only checkout only for
-  migration research.
-- Boundary: it is not an active intData product repo and should not be wired as
-  a master submodule by default.
