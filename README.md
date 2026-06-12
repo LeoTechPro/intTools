@@ -1,8 +1,13 @@
 # intTools
 
-`/int/tools` is the public open-source catalog of first-party intData tools.
+`/int/tools` is the public open-source catalog of first-party intData tools and
+recommended external tools.
 
-This repository is not a machine-wide ops/runtime warehouse. Public source here must be reusable, installable or reviewable as a tool, adapter, sanitized template, or catalog entry.
+This repository is not a machine-wide ops/runtime warehouse. Public source here
+must be reusable, installable or reviewable as a tool, adapter, sanitized
+template, or catalog entry. External recommendations are catalog links by
+default: `/int/tools` stores the card and upstream URL, not a vendored source
+copy.
 
 ## Public Catalog Model
 
@@ -18,6 +23,9 @@ Allowed statuses:
 - `legacy-remove` - compatibility/reference material scheduled for removal after recorded destination and dry-run approval.
 
 `/int/tools` remains the compatibility source path for now. Hardcoded absolute-path contracts are technical debt and should be removed per tool as packaging matures.
+
+Human-readable third-party recommendations live in `EXTERNAL_TOOLS.md`; the
+machine-readable registry remains `tools.catalog.v1.json`.
 
 ## Current Public Tools
 

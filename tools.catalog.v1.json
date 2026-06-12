@@ -161,6 +161,46 @@
       "runtime_state": "Not stored in intTools.",
       "target_home": "External upstream or master read-only reference submodule if actively studied.",
       "migration_action": "Keep as website/catalog metadata only; do not import copied source into tools."
+    },
+    {
+      "id": "autoresearchclaw",
+      "root": "AutoResearchClaw",
+      "status": "catalog-link",
+      "owner": "external",
+      "public_surface": "Recommended external research-agent project; intTools lists why it is useful and where to get it, but does not vendor or maintain its source.",
+      "runtime_state": "No runtime state or source checkout is stored in intTools.",
+      "target_home": "External upstream: https://github.com/aiming-lab/AutoResearchClaw",
+      "migration_action": "Converted from master read-only submodule to catalog link; use upstream directly unless a future owned fork is explicitly approved."
+    },
+    {
+      "id": "claw-code-parity",
+      "root": "agent",
+      "status": "catalog-link",
+      "owner": "external",
+      "public_surface": "Recommended external agent/code-parity reference; intTools records the upstream and evaluation notes without vendoring source.",
+      "runtime_state": "No runtime state or source checkout is stored in intTools.",
+      "target_home": "External upstream: https://github.com/ultraworkers/claw-code-parity",
+      "migration_action": "Converted from master read-only submodule to catalog link; use upstream directly unless a future owned fork is explicitly approved."
+    },
+    {
+      "id": "cabinet-upstream",
+      "root": "cabinet",
+      "status": "catalog-link",
+      "owner": "external",
+      "public_surface": "Recommended external Cabinet reference; intTools keeps the pointer and notes, not a vendored checkout.",
+      "runtime_state": "No runtime state or source checkout is stored in intTools.",
+      "target_home": "External upstream: https://github.com/hilash/cabinet",
+      "migration_action": "Converted from master read-only submodule to catalog link; use upstream directly unless a future owned fork is explicitly approved."
+    },
+    {
+      "id": "punktb-cabinet-legacy",
+      "root": "assess/legacy",
+      "status": "catalog-link",
+      "owner": "external",
+      "public_surface": "Legacy external Cabinet/PunktB reference for historical Assess compatibility; listed as a reference link, not active intData source.",
+      "runtime_state": "No runtime state or source checkout is stored in intTools.",
+      "target_home": "External upstream: git@github.com:punktbDev/cabinet.git",
+      "migration_action": "Converted from master read-only submodule to catalog link; keep as historical reference unless a future migration needs a temporary read-only checkout."
     }
   ]
 }
