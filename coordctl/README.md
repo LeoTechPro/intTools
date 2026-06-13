@@ -1,6 +1,9 @@
 # coordctl
 
 `coordctl` is a parallel, Git-aware coordination utility for multi-agent edits.
+The runtime implementation is owned by intProbe-client (`/int/probe/client`):
+this tools package keeps compatibility launchers so existing `coordctl ...`
+commands continue to call `probe coord ...`.
 
 It replaces `lockctl`, which has been fully retired and removed from the repository;
 its runtime history was imported into coordctl via `import_lockctl_history.py`.
@@ -16,6 +19,9 @@ Runtime files:
 
 - `coord.sqlite`
 - `events.jsonl`
+
+Phase 1 keeps this database separate from the intProbe-client local store; DB
+merge is intentionally a later design step.
 
 ## Install
 

@@ -1,11 +1,13 @@
 #!/usr/bin/env sh
 set -eu
-# Resolve symlinks so the launcher works from PATH (e.g. ~/.local/bin/coordctl).
-self="$0"
-if command -v readlink >/dev/null 2>&1; then
-  resolved="$(readlink -f -- "$self" 2>/dev/null || true)"
-  [ -n "$resolved" ] && self="$resolved"
+probe_bin="${PROBE_BIN:-/int/probe/client/probe}"
+if [ -x "$probe_bin" ]; then
+  exec "$probe_bin" coord "$@"
 fi
-script_dir="$(CDPATH= cd -- "$(dirname -- "$self")" && pwd)"
-python_bin="${PYTHON:-python3}"
-exec "$python_bin" "$script_dir/coordctl.py" "$@"
+
+probe_client_bin="${PROBE_CLIENT_BIN:-/int/probe/client/probe-client}"
+if [ -x "$probe_client_bin" ]; then
+  exec "$probe_client_bin" coord "$@"
+fi
+
+exec probe coord "$@"
