@@ -25,7 +25,6 @@ All v1 tools are read-only and must use `annotations.readOnlyHint=true`.
 - `search`: search intData knowledge, memory, or context.
 - `fetch`: fetch one safe item id returned by `search`.
 - `routing_validate`: validate high-risk intData tooling routing registry.
-- `coordctl_status`: inspect active coordctl sessions/intents for repo/path/owner/issue.
 
 Do not expose in v1:
 
@@ -33,8 +32,8 @@ Do not expose in v1:
 - raw profile tools from `mcp-intdata-cli.py`;
 - OpenSpec tools, until OpenSpec has a separate MCP surface or an explicit compatibility exception;
 - mutating IntBrain writes;
-- mutating `coordctl` tools such as session start, intent acquire, heartbeat, release, cleanup, or GC;
-- retired coordination tools; active coordination is `coordctl` only;
+- coordctl tools; coordctl is owned by intProbe client, not intTools remote MCP;
+- retired coordination tools;
 - Multica operations;
 - DB apply/migrations;
 - publish or sync-gate wrappers;
@@ -72,7 +71,7 @@ ChatGPT Developer Mode check:
 2. Expose it with an HTTPS tunnel, for example `ngrok http 9193`.
 3. Register the app in ChatGPT Developer Mode with the tunneled `/mcp` URL.
 4. Refresh the app after changing tool descriptors.
-5. Verify `search`, `fetch`, and `coordctl_status`.
+5. Verify `search`, `fetch`, and `routing_validate`.
 
 ## Production gate
 
@@ -82,7 +81,7 @@ Production enablement requires:
 - bearer auth backed by runtime secret storage;
 - request logging and latency/error visibility;
 - rate limiting;
-- smoke tests for `tools/list`, `search`, `fetch`, auth failure, and `coordctl_status`;
+- smoke tests for `tools/list`, `search`, `fetch`, auth failure, and `routing_validate`;
 - no direct writes to `C:\Users\intData\.codex`.
 
 Repo scripts must not install, patch, mirror, or rewrite Codex home. Codex home changes may only happen through documented native Codex plugin/config flows or explicit manual owner action.

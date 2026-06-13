@@ -20,6 +20,5 @@ The v1 surface is intentionally small and read-only:
 - `search`
 - `fetch`
 - `routing_validate`
-- `coordctl_status`
 
-It must not expose generic internal dispatch, OpenSpec tools, mutating coordination tools, Multica operations, publish/sync wrappers, browser launch, DB apply, or vault non-dry-run.
+It must not expose generic internal dispatch, OpenSpec tools, coordctl tools, Multica operations, publish/sync wrappers, browser launch, DB apply, or vault non-dry-run.

@@ -14,18 +14,16 @@ MCP_SERVER = ROOT / "codex" / "bin" / "mcp-intdata-cli.py"
 MARKETPLACE_NAME = "intdata"
 MARKETPLACE_DISPLAY_NAME = "intData"
 PUBLIC_PLUGIN_NAMES = ("intdata-control", "intdata-runtime", "intbrain", "dba")
-COMPATIBILITY_PROFILE_NAMES = ("coordctl",)
+COMPATIBILITY_PROFILE_NAMES: tuple[str, ...] = ()
 FORBIDDEN_PUBLIC_PLUGIN_NAMES = {"coordctl", "agent-plane"}
 EXPECTED_COUNTS = {
-    "coordctl": 9,
     "intbrain": 27,
-    "intdata-control": 21,
+    "intdata-control": 12,
     "intdata-runtime": 8,
     "dba": 1,
 }
 
 PLUGIN_DIRS = {
-    "coordctl": ROOT / "codex" / "plugins" / "coordctl",
     "intbrain": ROOT / "codex" / "plugins" / "intbrain",
     "intdata-control": ROOT / "codex" / "plugins" / "intdata-control",
     "intdata-runtime": ROOT / "codex" / "plugins" / "intdata-runtime",
@@ -33,27 +31,7 @@ PLUGIN_DIRS = {
 }
 
 TOOL_SKILLS = {
-    "coordctl": {
-        "coordctl_session_start": "coordctl",
-        "coordctl_begin": "coordctl",
-        "coordctl_intent_acquire": "coordctl",
-        "coordctl_status": "coordctl",
-        "coordctl_heartbeat": "coordctl",
-        "coordctl_release": "coordctl",
-        "coordctl_cleanup": "coordctl",
-        "coordctl_gc": "coordctl",
-        "coordctl_merge_dry_run": "coordctl",
-    },
     "intdata-control": {
-        "coordctl_session_start": "coordctl",
-        "coordctl_begin": "coordctl",
-        "coordctl_intent_acquire": "coordctl",
-        "coordctl_status": "coordctl",
-        "coordctl_heartbeat": "coordctl",
-        "coordctl_release": "coordctl",
-        "coordctl_cleanup": "coordctl",
-        "coordctl_gc": "coordctl",
-        "coordctl_merge_dry_run": "coordctl",
         "openspec_list": "openspec-read",
         "openspec_show": "openspec-read",
         "openspec_validate": "openspec-read",
@@ -110,7 +88,6 @@ TOOL_SKILLS = {
         "intdata_cli": "doctor-status",
     },
 }
-COORDCTL_TOOL_NAMES = set(TOOL_SKILLS["coordctl"])
 
 REQUIRED_CARD_MARKERS = [
     "Когда:",
@@ -127,7 +104,6 @@ REQUIRED_CARD_MARKERS = [
 # coordination writes (session_start/begin/intent_acquire/heartbeat/release) are
 # intentionally NOT here: they are advisory provenance, not high-risk mutation.
 GUARDED_TOOLS = {
-    "coordctl_cleanup", "coordctl_gc",
     "openspec_archive", "openspec_change_mutate", "openspec_spec_mutate", "openspec_new", "openspec_exec_mutate",
     "host_bootstrap", "recovery_bundle", "browser_profile_launch",
     "intdata_vault_sanitize", "intdata_runtime_vault_gc",
@@ -136,13 +112,7 @@ GUARDED_TOOLS = {
     "intbrain_memory_sync_sessions", "intbrain_memory_import_mempalace", "intdata_cli",
 }
 
-# Advisory coordination writes: always-record, non-blocking provenance. Their
-# cards must declare an advisory mode and need neither approval nor read-only
-# wording (tool = always-write + warn; agent = stop-on-real-overlap).
-ADVISORY_TOOLS = {
-    "coordctl_session_start", "coordctl_begin", "coordctl_intent_acquire",
-    "coordctl_heartbeat", "coordctl_release",
-}
+ADVISORY_TOOLS: set[str] = set()
 
 GUARD_WORDS = ["approval", "confirm_mutation", "issue_context", "owner approval"]
 ADVISORY_MARKERS = ["Режим: advisory", "Режим: advisory write"]
@@ -178,7 +148,6 @@ ACTIVE_DOC_GUARD_PATHS = [
 ]
 
 CODEX_HOME_FALLBACK_GUARD_PATHS = [
-    ROOT / "coordctl" / "coordctl_core.py",
     ROOT / "codex" / "bin" / "mcp-intdata-cli.py",
     ROOT / "codex" / "bin" / "mcp-salebot.mjs",
     ROOT / "codex" / "bin" / "mcp-bitrix24.sh",
@@ -335,7 +304,7 @@ def verify_skill_card(profile: str, tool: dict[str, Any], report: dict[str, Any]
     if not skill:
         row["missing_guidance"].append("no skill mapping")
         return
-    path = PLUGIN_DIRS[profile] / "skills" / "SKILL.md" if profile == "coordctl" else PLUGIN_DIRS[profile] / "skills" / skill / "SKILL.md"
+    path = PLUGIN_DIRS[profile] / "skills" / skill / "SKILL.md"
     if not path.exists():
         row["missing_guidance"].append(f"missing skill file: {path}")
         return
@@ -494,18 +463,9 @@ def build_report(skip_guards: bool) -> dict[str, Any]:
         if leaked:
             report["cabinet_errors"].append({"profile": profile, "tools": leaked})
         if profile == "intdata-control":
-            missing_coordctl = sorted(COORDCTL_TOOL_NAMES - names)
-            if missing_coordctl:
-                report["mapping_errors"].append({"profile": profile, "missing_coordctl_tools": missing_coordctl})
             removed = sorted(name for name in names if name.startswith("multica_") or name in REMOVED_INTDATA_CONTROL_TOOLS)
             if removed:
                 report["mapping_errors"].append({"profile": profile, "removed_tools_present": removed})
-        if profile == "coordctl" and names != COORDCTL_TOOL_NAMES:
-            report["mapping_errors"].append({
-                "profile": profile,
-                "expected_coordctl_tools": sorted(COORDCTL_TOOL_NAMES),
-                "actual_tools": sorted(names),
-            })
         verify_skill_coverage(profile, tools, report)
         if not skip_guards:
             verify_guard_cases(profile)
@@ -540,7 +500,7 @@ def main() -> int:
             status = "ok" if not row["missing_guidance"] else "; ".join(row["missing_guidance"])
             print(f"{row['profile']}/{row['tool']} -> {row['skill']} -> {status}")
         if report["ok"]:
-            print("ok: intData plugin manifests, MCP smoke, coordctl primary surface, skill cards, Cabinet exclusion, doc guard, and guard checks passed")
+            print("ok: intData plugin manifests, MCP smoke, skill cards, Cabinet exclusion, doc guard, and guard checks passed")
     return 0 if report["ok"] else 1
 
 

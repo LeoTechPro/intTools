@@ -30,8 +30,7 @@ machine-readable registry remains `tools.catalog.v1.json`.
 ## Current Public Tools
 
 - `dba/` - `intDBA`, a public first-party CLI for guarded Postgres/Supabase operator workflows.
-- `lockctl/` - removed; fully retired, history imported into `coordctl`.
-- `coordctl/` - active Git-aware session and hunk-level edit coordinator for parallel agent work.
+- `lockctl/` - removed; fully retired, historical coordination state was migrated before coordctl moved to intProbe client.
 - `connectors/` - reusable connector SDK and cookbook examples salvaged from retired `intNexus`.
 - `agent_plane/` - reusable tool-plane runtime, policy-aware dispatch, and local harness.
 - `repo-ops/` - reusable repository operations helpers.
@@ -132,8 +131,7 @@ The validator checks that every tracked non-hidden top-level directory is presen
 - `D:\int\tools\codex\bin\openspec.cmd` — tracked Windows CMD operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `intdata-control` OpenSpec tools first;
 - Native git sync/publish path: `git status --short --branch`, `git fetch --prune origin`, `git pull --ff-only` only on a clean checkout when behind, and owner-approved `ALLOW_MAIN_PUSH=1 git push origin main:main` for `main`;
 - `python /int/tools/codex/bin/agent_tool_routing.py validate --strict --json` — validate registry и blocker-rules для V1 high-risk tooling;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control` — primary Codex App MCP wrapper для coordctl, OpenSpec и routing; Multica ведётся через официальный `multica` CLI или официальный Multica MCP plugin, если он установлен;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile coordctl` — legacy/compat standalone MCP wrapper для Git-aware coordination sessions, intents, cleanup, GC и merge dry-run;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control` — primary Codex App MCP wrapper для OpenSpec и routing; Multica ведётся через официальный `multica` CLI или официальный Multica MCP plugin, если он установлен;
 - `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-runtime` — MCP wrapper для host/ssh/browser runtime tooling, vault sanitize и runtime GC;
 - `python -m unittest discover -s agent_plane/tests -p test_*.py -v` — unit/integration smoke neutral Agent Tool Plane;
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
@@ -179,7 +177,7 @@ Do not add IntBrain memory/search/fetch, people graph, PM, or context tools to a
 - Packaged plugins live in `codex/plugins/<plugin>/` and use `INSTALLED_BY_DEFAULT` + `ON_INSTALL`.
 - Local marketplace identity: `intdata` / `intData`.
 - Public marketplace plugins: `intdata-control`, `intdata-runtime`, `intbrain`, `dba`.
-- `coordctl` is the canonical coordination runtime/tool family, exposed to Codex App through `intdata-control`; the standalone `coordctl` MCP profile is retained only as a compatibility entrypoint.
+- `coordctl` is the canonical coordination runtime/tool family, now owned by `/int/probe/client`; intTools no longer exposes coordctl MCP tools or a standalone plugin.
 - Active plugin category: `Developer Tools`.
 - Removed active plugin IDs: `coordctl`, `agent-plane`, `lockctl`, `multica`, `openspec`, `intdata-governance`, `intdata-vault`, `mempalace`, `cabinet`.
 - Cabinet-related inventory/import tooling is outside public intTools; old standalone local product directories are not deleted without count-check and owner acceptance.
@@ -936,15 +934,17 @@ curl -X POST http://127.0.0.1:11434/v1/chat/completions \
 ### `lockctl/` (removed)
 
 `lockctl` has been fully retired and removed from this repository. Its runtime
-history was imported into `coordctl` (`coordctl/import_lockctl_history.py`);
-active coordination is `coordctl` only. Do not reintroduce lockctl wrappers,
-MCP tools or runtime surfaces.
+history was imported into the probe-owned `coordctl` runtime before the tool
+moved out of this repository. Active coordination is `coordctl` only. Do not
+reintroduce lockctl wrappers, MCP tools or runtime surfaces.
 
-### `coordctl/`
+### `coordctl` (moved to intProbe client)
 
 #### coordctl
 
-`coordctl` is the Git-aware coordination runtime for parallel Codex/OpenClaw agent edits.
+`coordctl` is the Git-aware coordination runtime for parallel Codex/OpenClaw
+agent edits. It is now owned by `/int/probe/client` and exposed as a system CLI
+compatibility command.
 
 ##### Shell UX
 
@@ -956,14 +956,14 @@ coordctl --help
 coordctl help intent-acquire
 ```
 
-Implementation/core lives in `/int/tools/coordctl/coordctl_core.py`.
-CLI entrypoints:
+Implementation/core lives in `/int/probe/client/internal/coordctl`.
+CLI entrypoints on this host:
 
-- Linux/macOS wrapper: `/int/tools/coordctl/coordctl`
-- Python CLI: `/int/tools/coordctl/coordctl.py`
-- Windows wrappers: `/int/tools/coordctl/coordctl.ps1`, `/int/tools/coordctl/coordctl.cmd`
-- Primary Codex App MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile intdata-control`
-- Legacy/compat standalone MCP entrypoint: `/int/tools/codex/bin/mcp-intdata-cli.py --profile coordctl`
+- Public compatibility command: `coordctl`
+- Canonical probe command: `/int/probe/client/probe coord`
+
+`/int/tools` no longer owns coordctl source, installers, standalone plugin, or
+MCP tools.
 
 ##### Runtime model
 

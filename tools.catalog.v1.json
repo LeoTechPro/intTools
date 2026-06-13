@@ -63,16 +63,6 @@
       "migration_action": "Audit and split public templates from private/live host machinery before cleanup."
     },
     {
-      "id": "coordctl",
-      "root": "coordctl",
-      "status": "public-tool",
-      "owner": "intData",
-      "public_surface": "CLI, MCP profile, plugin, and tests for Git-aware session and hunk-level edit coordination.",
-      "runtime_state": "State directory must be configurable; default runtime state is outside tracked source.",
-      "target_home": "D:/int/tools/coordctl",
-      "migration_action": "Use as the primary coordination path for parallel agent edits; lockctl is fully retired (history imported into coordctl)."
-    },
-    {
       "id": "gemini-openai-proxy",
       "root": "gemini-openai-proxy",
       "status": "legacy-remove",

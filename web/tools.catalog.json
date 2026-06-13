@@ -33,14 +33,6 @@
       "tags": ["deploy", "configs", "runbooks"]
     },
     {
-      "root": "coordctl",
-      "name": "coordctl",
-      "category": "governance",
-      "kind": "owned",
-      "summary": "Git-aware runtime для session и hunk-level coordination, чтобы несколько агентов могли безопасно работать в одних файлах.",
-      "tags": ["coordination", "git", "agents"]
-    },
-    {
       "root": "gemini-openai-proxy",
       "name": "Gemini OpenAI Proxy",
       "category": "adapter",

@@ -53,9 +53,6 @@ def resolve_coordctl_bin() -> str:
     resolved = shutil.which(candidate)
     if resolved:
         return resolved
-    repo_candidate = Path(__file__).resolve().parents[2] / "coordctl" / "coordctl"
-    if repo_candidate.exists():
-        return str(repo_candidate)
     raise RuntimeError(f"missing coordctl in PATH: {candidate}")
 
 

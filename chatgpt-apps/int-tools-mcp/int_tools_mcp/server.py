@@ -15,7 +15,7 @@ from .adapter import IntToolsAdapter, ToolCallError
 
 PROTOCOL_VERSION = "2024-11-05"
 SERVER_VERSION = "0.1.0"
-TOOL_NAMES = ("search", "fetch", "routing_validate", "coordctl_status")
+TOOL_NAMES = ("search", "fetch", "routing_validate")
 
 
 @dataclass(frozen=True)
@@ -256,16 +256,6 @@ TOOL_DESCRIPTORS: dict[str, dict[str, Any]] = {
         "title": "Validate tool routing",
         "description": "Use this when ChatGPT needs to validate the high-risk intData tooling routing registry.",
         "inputSchema": _schema({"strict": {"type": "boolean"}, "json": {"type": "boolean"}, "cwd": {"type": "string"}, "timeout_sec": {"type": "integer", "minimum": 1, "maximum": 120}}),
-        "annotations": READ_ONLY_ANNOTATIONS,
-    },
-    "coordctl_status": {
-        "name": "coordctl_status",
-        "title": "Coordination status",
-        "description": "Use this when ChatGPT needs read-only coordctl state for a repo, path, owner, or issue.",
-        "inputSchema": _schema(
-            {"repo_root": {"type": "string", "minLength": 1}, "path": {"type": "string"}, "owner": {"type": "string"}, "issue": {"type": "string"}},
-            ["repo_root"],
-        ),
         "annotations": READ_ONLY_ANNOTATIONS,
     },
 }

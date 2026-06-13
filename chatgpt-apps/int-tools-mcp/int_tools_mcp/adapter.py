@@ -27,7 +27,6 @@ class InternalTool:
 
 CONTROL_TOOLS: dict[str, InternalTool] = {
     "routing_validate": InternalTool("intdata-control", "routing_validate"),
-    "coordctl_status": InternalTool("intdata-control", "coordctl_status"),
 }
 
 

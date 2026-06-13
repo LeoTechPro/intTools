@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass
@@ -47,9 +49,8 @@ SECTION_TITLE_MAP = {
 }
 
 COORDCTL_CANDIDATES = [
-    Path(os.environ.get("COORDCTL_BIN", "")) if os.environ.get("COORDCTL_BIN") else None,
-    Path(r"D:\int\tools\coordctl\coordctl.py"),
-    Path("/int/tools/coordctl/coordctl.py"),
+    os.environ.get("COORDCTL_BIN", "").strip() or None,
+    "coordctl",
 ]
 COORD_OWNER = "codex:review-sql-fix"
 
@@ -543,15 +544,23 @@ def resolve_repo_fix_path(fix_path: str, repo_targets: list[Path]) -> Path:
     raise PipelineError(f"unable to resolve repo fix path '{fix_path}' inside repo_targets")
 
 
-def resolve_coordctl() -> Path:
+def resolve_coordctl() -> list[str]:
     for candidate in COORDCTL_CANDIDATES:
-        if candidate and candidate.exists():
-            return candidate
-    raise PipelineError("coordctl.py not found; set COORDCTL_BIN")
+        if not candidate:
+            continue
+        if "/" in candidate or "\\" in candidate:
+            path = Path(candidate).expanduser()
+            if path.exists():
+                return [str(path)]
+            continue
+        resolved = shutil.which(candidate)
+        if resolved:
+            return [resolved]
+    raise PipelineError("coordctl not found in PATH; set COORDCTL_BIN")
 
 
 def run_coordctl(args: list[str]) -> dict[str, Any]:
-    cmd = [sys.executable, str(resolve_coordctl()), *args, "--format", "json"]
+    cmd = [*resolve_coordctl(), *args, "--format", "json"]
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
         stderr = proc.stderr.strip() or proc.stdout.strip()

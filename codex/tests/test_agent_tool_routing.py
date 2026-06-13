@@ -14,8 +14,6 @@ if str(ROUTER_ROOT) not in __import__("sys").path:
 
 import agent_tool_routing as routing  # noqa: E402
 EXPECTED_V1_CAPABILITIES = {
-    "coordctl-cli",
-    "coordctl-mcp",
     "int_ssh_resolve",
     "firefox-default",
     "assess-firefox-client",
@@ -52,11 +50,10 @@ class AgentToolRoutingTest(unittest.TestCase):
         declared = {item["capability_id"] for item in payload["capabilities"]}
         self.assertEqual(declared, EXPECTED_V1_CAPABILITIES)
 
-    def test_coordctl_is_managed(self) -> None:
-        payload = self._load_registry()
-        statuses = {item["capability_id"]: item["resolution_status"] for item in payload["capabilities"]}
-        self.assertEqual(statuses["coordctl-cli"], "managed")
-        self.assertEqual(statuses["coordctl-mcp"], "managed")
+    def test_coordctl_is_no_longer_owned_by_int_tools_routing(self) -> None:
+        with self.assertRaises(routing.RoutingError) as ctx:
+            routing.resolve_capability("coordctl:cli", platform="linux")
+        self.assertEqual(ctx.exception.code, "UNKNOWN_INTENT")
 
     def test_sync_gate_intent_is_removed(self) -> None:
         with self.assertRaises(routing.RoutingError) as ctx:
@@ -83,20 +80,10 @@ class AgentToolRoutingTest(unittest.TestCase):
             routing.describe_capability("lockctl-cli")
         self.assertEqual(ctx.exception.code, "UNKNOWN_CAPABILITY")
 
-    def test_describe_reports_coordctl_capability_as_active(self) -> None:
-        payload = routing.describe_capability("coordctl-cli")
-        self.assertEqual(payload["resolution_status"], "managed")
-        self.assertTrue(payload["active_route"])
-
-    def test_coordctl_mcp_resolves_to_shared_intdata_control_runtime(self) -> None:
-        self.assertEqual(
-            routing.resolve_capability("coordctl:mcp", platform="windows")["selected_binding"]["binding_origin"],
-            "codex/bin/mcp-intdata-cli.cmd",
-        )
-        self.assertEqual(
-            routing.resolve_capability("coordctl:mcp", platform="linux")["selected_binding"]["binding_origin"],
-            "codex/bin/mcp-intdata-cli.sh",
-        )
+    def test_describe_rejects_removed_coordctl_capability(self) -> None:
+        with self.assertRaises(routing.RoutingError) as ctx:
+            routing.describe_capability("coordctl-cli")
+        self.assertEqual(ctx.exception.code, "UNKNOWN_CAPABILITY")
 
     def test_unknown_intent_blocks(self) -> None:
         with self.assertRaises(routing.RoutingError) as ctx:

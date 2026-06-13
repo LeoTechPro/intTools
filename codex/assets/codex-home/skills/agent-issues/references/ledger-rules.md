@@ -6,7 +6,7 @@
 - Не снимай и не перезаписывай активные локи других агентов.
 
 ## Поверхность tools
-- Предпочтительно MCP/plugin: `coordctl_session_start`, `coordctl_intent_acquire`, `coordctl_status`, `coordctl_heartbeat`, `coordctl_release`, `coordctl_cleanup`, `coordctl_gc`, `coordctl_merge_dry_run`.
-- CLI fallback из PATH: `coordctl session-start|intent-acquire|status|heartbeat|release|cleanup|gc|merge-dry-run`.
-- Universal fallback только когда MCP/PATH сломан и project policy это разрешает: `python /int/tools/coordctl/coordctl.py ...`.
+- CLI из PATH: `coordctl session-start|intent-acquire|status|heartbeat|release|cleanup|gc|merge-dry-run`.
+- Canonical implementation owner: `/int/probe/client` (`probe coord ...`).
+- Если PATH сломан, починить системный `coordctl` launcher; `/int/tools` больше не содержит Python fallback.
 - Retired coordination tools не используются для текущих project locks и не являются fallback.

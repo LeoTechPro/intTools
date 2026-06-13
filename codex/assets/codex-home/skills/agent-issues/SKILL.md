@@ -56,8 +56,8 @@ metadata:
 
 ## Обязательный coordination gate
 - Перед любой tracked-мутацией файла в governed repo начни `coordctl` session и возьми intent lease на конкретный file/hunk region.
-- Предпочитай standalone plugin/MCP tools, если они доступны: `coordctl_session_start`, `coordctl_intent_acquire`, `coordctl_status`, `coordctl_heartbeat`, `coordctl_release`, `coordctl_cleanup`, `coordctl_gc`, `coordctl_merge_dry_run`.
-- Примеры CLI fallback:
+- Используй CLI `coordctl` из PATH; canonical owner — `/int/probe/client`.
+- Примеры CLI:
   - Start: `coordctl session-start --repo-root <repo> --owner <owner> --branch <branch> --base <base> --issue INT-* --lease-sec 3600`
   - Intent: `coordctl intent-acquire --repo-root <repo> --path <file> --owner <owner> --base <base> --region-kind hunk --region-id <start:end> --issue INT-* --lease-sec 3600`
   - Статус: `coordctl status --repo-root <repo> --issue INT-* --format json`
