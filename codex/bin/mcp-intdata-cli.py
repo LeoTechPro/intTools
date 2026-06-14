@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -16,7 +17,7 @@ IO_MODE = "framed"
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 INT_ROOT = ROOT_DIR.parent
-BRAIN_MCP = INT_ROOT / "brain" / "mcp" / "intbrain" / "bin" / "mcp-intbrain.py"
+BRAIN_MCP = INT_ROOT / "brain" / "client" / "mcp" / "intbrain" / "bin" / "mcp-intbrain.py"
 
 
 def _schema(properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
@@ -454,7 +455,7 @@ def _delegate_intbrain() -> int:
     if not BRAIN_MCP.exists():
         print(json.dumps({"ok": False, "error": "config_error", "message": f"brain-owned intbrain MCP not found: {BRAIN_MCP}"}), file=sys.stderr)
         return 2
-    print("warning: /int/tools intbrain profile is deprecated; delegating to /int/brain/mcp/intbrain", file=sys.stderr)
+    print("warning: /int/tools intbrain profile is deprecated; delegating to /int/brain/client/mcp/intbrain", file=sys.stderr)
     os.execv(sys.executable, [sys.executable, str(BRAIN_MCP), "--stdio"])
     return 0
 

@@ -17,7 +17,7 @@ PUBLIC_PLUGIN_NAMES = ("intdata-control", "intdata-runtime", "intbrain", "dba")
 COMPATIBILITY_PROFILE_NAMES: tuple[str, ...] = ()
 FORBIDDEN_PUBLIC_PLUGIN_NAMES = {"coordctl", "agent-plane"}
 EXPECTED_COUNTS = {
-    "intbrain": 27,
+    "intbrain": 31,
     "intdata-control": 12,
     "intdata-runtime": 8,
     "dba": 1,
@@ -60,6 +60,10 @@ TOOL_SKILLS = {
         "intbrain_memory_search": "context-memory",
         "intbrain_context_store": "context-memory",
         "intbrain_graph_link": "context-memory",
+        "intbrain_sources_search": "context-memory",
+        "intbrain_source_get": "context-memory",
+        "intbrain_source_upsert": "context-memory",
+        "intbrain_source_evaluate": "context-memory",
         "intbrain_people_resolve": "people-graph-policies",
         "intbrain_people_get": "people-graph-policies",
         "intbrain_graph_neighbors": "people-graph-policies",
@@ -109,7 +113,8 @@ GUARDED_TOOLS = {
     "intdata_vault_sanitize", "intdata_runtime_vault_gc",
     "intbrain_context_store", "intbrain_graph_link", "intbrain_group_policy_upsert", "intbrain_jobs_sync_runtime",
     "intbrain_job_policy_upsert", "intbrain_pm_task_create", "intbrain_pm_task_patch", "intbrain_import_vault_pm",
-    "intbrain_memory_sync_sessions", "intbrain_memory_import_mempalace", "intdata_cli",
+    "intbrain_memory_sync_sessions", "intbrain_memory_import_mempalace", "intbrain_source_upsert",
+    "intbrain_source_evaluate", "intdata_cli",
 }
 
 ADVISORY_TOOLS: set[str] = set()
@@ -279,8 +284,8 @@ def verify_manifests(report: dict[str, Any]) -> None:
         if name == "intbrain":
             mcp_config = json.loads((plugin_dir / ".mcp.json").read_text(encoding="utf-8"))
             args = (((mcp_config.get("mcpServers") or {}).get("intbrain") or {}).get("args") or [])
-            if "D:\\int\\brain\\mcp\\intbrain\\bin\\mcp-intbrain.py" not in args:
-                report["manifest_errors"].append("intbrain .mcp.json must point to /int/brain canonical entrypoint")
+            if "D:\\int\\brain\\client\\mcp\\intbrain\\bin\\mcp-intbrain.py" not in args:
+                report["manifest_errors"].append("intbrain .mcp.json must point to /int/brain/client canonical entrypoint")
 
 
 def extract_card(body: str, tool_name: str) -> str | None:
