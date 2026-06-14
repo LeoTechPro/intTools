@@ -978,7 +978,7 @@ MCP tools.
 Runtime files:
 
 - `COORDCTL_STATE_DIR` (если явно задан)
-- иначе `/int/tools/.runtime/coordctl` на Linux/VDS и `D:\int\tools\.runtime\coordctl` на Windows
+- иначе probe-owned state: `$XDG_STATE_HOME/intprobe-client/coordctl` или `~/.local/state/intprobe-client/coordctl` на Linux/VDS, `%LOCALAPPDATA%\intProbe\coordctl` на Windows
 - SQLite: `<state_dir>/coord.sqlite`
 - Event log: `<state_dir>/events.jsonl`
 
