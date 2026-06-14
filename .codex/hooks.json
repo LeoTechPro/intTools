@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /int/.codex/hooks/int_dispatcher.py || python D:\\int\\.codex\\hooks\\int_dispatcher.py",
+            "command": "python3 -c \"from pathlib import Path; import runpy; p=Path.cwd().resolve(); s=next((r/'.codex/hooks/int_dispatcher.py' for r in (p,*p.parents) if (r/'.codex/hooks/int_dispatcher.py').exists()), None); raise SystemExit(2) if s is None else runpy.run_path(str(s), run_name='__main__')\" || python D:\\int\\.codex\\hooks\\int_dispatcher.py",
             "timeout": 10
           }
         ]
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /int/.codex/hooks/int_dispatcher.py || python D:\\int\\.codex\\hooks\\int_dispatcher.py",
+            "command": "python3 -c \"from pathlib import Path; import runpy; p=Path.cwd().resolve(); s=next((r/'.codex/hooks/int_dispatcher.py' for r in (p,*p.parents) if (r/'.codex/hooks/int_dispatcher.py').exists()), None); raise SystemExit(2) if s is None else runpy.run_path(str(s), run_name='__main__')\" || python D:\\int\\.codex\\hooks\\int_dispatcher.py",
             "timeout": 10
           }
         ]
@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /int/.codex/hooks/int_dispatcher.py || python D:\\int\\.codex\\hooks\\int_dispatcher.py",
+            "command": "python3 -c \"from pathlib import Path; import runpy; p=Path.cwd().resolve(); s=next((r/'.codex/hooks/int_dispatcher.py' for r in (p,*p.parents) if (r/'.codex/hooks/int_dispatcher.py').exists()), None); raise SystemExit(2) if s is None else runpy.run_path(str(s), run_name='__main__')\" || python D:\\int\\.codex\\hooks\\int_dispatcher.py",
             "timeout": 10
           }
         ]
