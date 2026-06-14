@@ -6,7 +6,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python D:\\int\\tools\\.codex\\hooks\\int_runtime_context_guard.py",
+            "command": "python3 /int/.codex/hooks/int_dispatcher.py || python D:\\int\\.codex\\hooks\\int_dispatcher.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /int/.codex/hooks/int_dispatcher.py || python D:\\int\\.codex\\hooks\\int_dispatcher.py",
             "timeout": 10
           }
         ]
@@ -18,17 +29,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python D:\\int\\tools\\.codex\\hooks\\int_runtime_context_guard.py",
+            "command": "python3 /int/.codex/hooks/int_dispatcher.py || python D:\\int\\.codex\\hooks\\int_dispatcher.py",
             "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "C:\\Users\\intData\\.local\\bin\\graphify.EXE hook-check"
           }
         ]
       }
