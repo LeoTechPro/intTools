@@ -2,13 +2,21 @@
 set -euo pipefail
 
 message_file="${1:-}"
-
-if [[ -z "$message_file" || ! -f "$message_file" ]]; then
-  echo "Commit rejected: cannot read commit message." >&2
+checker="${INT_COMMIT_MESSAGE_CHECKER:-}"
+if [[ -z "$checker" ]]; then
+  workspace_root="$(git rev-parse --show-toplevel)"
+  while [[ "$workspace_root" != "$(dirname "$workspace_root")" && ! -f "$workspace_root/scripts/commit-message-check.py" ]]; do
+    workspace_root="$(dirname "$workspace_root")"
+  done
+  checker="$workspace_root/scripts/commit-message-check.py"
+fi
+if [[ ! -f "$checker" ]]; then
+  echo "Commit отклонён: не найден workspace checker scripts/commit-message-check.py." >&2
   exit 1
 fi
-
-if ! grep -Eiq '\bINT-[0-9]+\b' "$message_file"; then
-  echo "Commit rejected: message must contain a Multica issue id in INT-* format." >&2
+python_cmd="$(command -v python3 || command -v python || true)"
+if [[ -z "$python_cmd" ]]; then
+  echo "Commit отклонён: Python runtime не найден." >&2
   exit 1
 fi
+exec "$python_cmd" "$checker" "$message_file"
