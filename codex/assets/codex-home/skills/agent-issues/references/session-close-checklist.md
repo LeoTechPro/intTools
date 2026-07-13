@@ -1,8 +1,10 @@
-# Session close checklist (universal)
+# Session close checklist
 
-1. Create or update Multica issues for remaining work (if any) through the Multica MCP plugin or approved project path.
-2. Run required quality gates (per project AGENTS).
-3. Update Multica issue statuses (close completed, keep in_progress/blocked as appropriate).
-4. Ensure changes are packaged (commit/patch): commit the agreed scope only after `git status --short --branch`. If the owner explicitly ordered `push/publish/deploy`, either publish the already prepared publication-state as-is or stop and ask, but do not stash/hide/revert/defer "foreign" or unexpected changes from that publication-state on your own. Use a meaningful commit message (project language rules apply).
-5. Provide handoff details (artifact + next steps + risks).
-6. Clean temporary local artifacts (no branches, no remote ops).
+1. Сверить фактический scope с OpenSpec и текущей GitHub `INT-*` issue.
+2. Выполнить repo-specific quality gates и `git diff --check`.
+3. Проверить foreign dirty state и не включать/не откатывать его без authority.
+4. Для commit использовать whole-file staging, `coordctl commit-scope-check` и русское Conventional Commit сообщение с `INT-*`.
+5. Записать в issue только material closeout: SHAs/range, checks, gaps, risks и следующий gate.
+6. Обновить status/state только по фактическому результату.
+7. Освободить свои coordctl sessions/intents.
+8. Не выполнять push, deploy, DB apply, production или destructive action без отдельного exact owner approval.

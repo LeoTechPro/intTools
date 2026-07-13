@@ -6,7 +6,7 @@ description: Internal intData skill entrypoint for the intdata-control plugin. U
 # Маршрутизатор intData Control
 
 - Используй этот skill как входную точку для OpenSpec и routing.
-- Для Multica используй официальный `multica` CLI или официальный Multica MCP plugin, если он установлен; `intdata-control` Multica tools removed/forbidden.
+- Для `INT-*` используй authenticated `gh` против `LeoTechPro/int` и tracked workspace mapping; `intdata-control` не является issue proxy.
 - Local delivery publish wrappers removed/forbidden: do not use `/int/tools/delivery/bin/publish_*`, `/int/tools/codex/bin/publish_*.ps1`, or an `intdata-control` `publish` tool.
 - Local sync-gate wrappers removed/forbidden: use explicit native git commands and repo hooks instead of `int_git_sync_gate` or `sync_gate_*` tools.
 - Перед tracked-правками в `/int/tools` используй внешний probe-owned CLI `coordctl` для session/intent lease, если он доступен в PATH.

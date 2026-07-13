@@ -16,7 +16,7 @@ description: Глубокое hostile-ревью предыдущего резу
 
 - Пользователь просит проверить предыдущий результат как недоверенный.
 - Нужно найти реальные баги, регрессии, policy drift или missing verification в intData tooling/plugin/runtime контуре.
-- Нужно проверить, что OpenSpec, Multica, locks, routing, MCP tools и docs согласованы с текущим состоянием.
+- Нужно проверить, что OpenSpec, GitHub Issues, coordctl, routing, MCP tools и docs согласованы с текущим состоянием.
 
 ## Core Rules
 
@@ -29,7 +29,7 @@ description: Глубокое hostile-ревью предыдущего резу
 
 ## intData Control Checks
 
-- Перед выводами о governance проверьте repo `AGENTS.md`, relevant OpenSpec package и текущий Multica/lock state, если tools доступны.
+- Перед выводами о governance проверьте repo `AGENTS.md`, relevant OpenSpec package, текущую GitHub `INT-*` issue и coordctl state, если tools доступны.
 - Для `/int/tools` tracked-mutation выводов сверяйте `coordctl`, `routing_validate`, `host_preflight`/`host_verify`, native git state и plugin verifier по необходимости; active coordination runtime — только `coordctl`, `int_git_sync_gate`/`sync_gate_*` удалены.
 - Если MCP tool отсутствует или exposed surface не совпадает с правилами, фиксируйте это как drift/blocker; не подменяйте прямым CLI fallback без owner approval.
 - Секреты, runtime env и credential values не печатайте.

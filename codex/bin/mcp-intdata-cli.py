@@ -41,7 +41,7 @@ def _path_prop(description: str) -> dict[str, Any]:
 def _mutation_props() -> dict[str, Any]:
     return {
         "confirm_mutation": {"type": "boolean"},
-        "issue_context": {"type": "string", "description": "Current Multica issue identifier, e.g. INT-222."},
+        "issue_context": {"type": "string", "description": "Current LeoTechPro/int GitHub issue identifier, e.g. INT-222."},
     }
 
 

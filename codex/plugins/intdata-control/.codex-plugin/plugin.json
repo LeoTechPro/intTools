@@ -12,7 +12,7 @@
   "interface": {
     "displayName": "intData Control",
     "shortDescription": "Coord, specs и routing",
-    "longDescription": "Единая MCP-поверхность intData Control для coordctl, OpenSpec, routing validation и review workflows с явными approval/issue правилами. Git sync/publish выполняется explicit native git commands, не через sync-gate wrapper. Multica issue state ведётся через официальный multica CLI или официальный Multica MCP plugin, если он установлен. Local delivery publish wrappers removed/forbidden. Gatesctl/gate receipts removed from the active tool surface. Lockctl remains in the repo as a legacy CLI only and is not exposed as an active Codex MCP tool.",
+    "longDescription": "Единая MCP-поверхность intData Control для coordctl, OpenSpec, routing validation и review workflows с явными approval/issue правилами. Git sync/publish выполняется explicit native git commands, не через sync-gate wrapper. INT issue state хранится в LeoTechPro/int GitHub Issues и разрешается через gh с tracked legacy mapping. Local delivery publish wrappers removed/forbidden. Gatesctl/gate receipts removed from the active tool surface. Lockctl remains in the repo as a legacy CLI only and is not exposed as an active Codex MCP tool.",
     "developerName": "IntData",
     "category": "Developer Tools",
     "capabilities": [

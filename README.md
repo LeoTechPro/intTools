@@ -70,14 +70,14 @@ The validator checks that every tracked non-hidden top-level directory is presen
 
 - Для любых tracked-мутаций repo-owned tooling в `/int/tools/**` канонический process source-of-truth живёт в master/manifest репозитории `/int`, вне публичного `intTools`.
 - Agents in MCP-enabled Codex/OpenClaw runtimes use `intdata-control` OpenSpec tools for OpenSpec discovery, validation, status, and lifecycle operations; repo-local `codex/bin/openspec*` entrypoints are operator/adapter fallback paths, not a PATH fallback.
-- Agents use the official documented `multica` CLI for Multica issue state; if an official Multica MCP plugin (`mcp__multica__`) is installed, agents may use it. `intdata-control` does not expose Multica tools.
+- Agents resolve `INT-*` through authenticated `gh` against `LeoTechPro/int`; legacy numbers use the tracked workspace mapping and all API/auth/mapping failures fail closed for outward gates.
 - Перед первой правкой обязателен owner-approved change package в master-level `openspec/changes/<change-id>/`:
   - `proposal.md`
   - `tasks.md`
   - релевантный `spec.md` delta в `specs/**`
   - `design.md`, если меняется архитектура enforcement/runtime/resolver.
-- Каждый active OpenSpec package должен быть связан с Multica issue: в change указываем `Multica issue: INT-*`, а в Multica issue/worklog указываем `OpenSpec change: openspec/changes/<change-id>/`.
-- OpenSpec является source-of-truth по requirements/spec/acceptance; Multica является source-of-truth по execution/worklog/status/blockers/closure. В Multica не дублируем полный OpenSpec, только short summary и ссылки/пути.
+- Каждый active OpenSpec package должен быть связан с GitHub issue: в change указываем `GitHub issue: INT-*`, а в issue указываем `OpenSpec change: openspec/changes/<change-id>/`.
+- OpenSpec является source-of-truth по requirements/spec/acceptance; `LeoTechPro/int` Issues хранят scope/status/links/material evidence. В issue не дублируем полный OpenSpec, prompts или reasoning.
 - `AGENTS.md`, `README.md` и managed governance docs в этом repo должны обновляться только вместе с соответствующим OpenSpec change, а не отдельно от него.
 
 ## Codex и OpenClaw
@@ -131,7 +131,7 @@ The validator checks that every tracked non-hidden top-level directory is presen
 - `D:\int\tools\codex\bin\openspec.cmd` — tracked Windows CMD operator/adapter entrypoint для локального OpenSpec CLI; agents with MCP tools use `intdata-control` OpenSpec tools first;
 - Native git sync/publish path: `git status --short --branch`, `git fetch --prune origin`, `git pull --ff-only` only on a clean checkout when behind, and owner-approved `ALLOW_MAIN_PUSH=1 git push origin main:main` for `main`;
 - `python /int/tools/codex/bin/agent_tool_routing.py validate --strict --json` — validate registry и blocker-rules для V1 high-risk tooling;
-- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control` — primary Codex App MCP wrapper для OpenSpec и routing; Multica ведётся через официальный `multica` CLI или официальный Multica MCP plugin, если он установлен;
+- `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-control` — primary Codex App MCP wrapper для OpenSpec и routing; `INT-*` issue state разрешается через `gh` и workspace mapping;
 - `D:\int\tools\codex\bin\mcp-intdata-cli.cmd --profile intdata-runtime` — MCP wrapper для host/ssh/browser runtime tooling, vault sanitize и runtime GC;
 - `python -m unittest discover -s agent_plane/tests -p test_*.py -v` — unit/integration smoke neutral Agent Tool Plane;
 - `pwsh -File /int/tools/codex/bin/mcp-firefox-devtools.ps1 -ProfileKey firefox-default -StartUrl http://127.0.0.1:8080/ -DryRun` — dry-run канонического Firefox DevTools MCP launcher-а;
