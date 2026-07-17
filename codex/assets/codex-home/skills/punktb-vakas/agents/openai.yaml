@@ -1,0 +1,4 @@
+interface:
+  display_name: "Punkt B Vakas"
+  short_description: "Безопасная работа с Vakas ingress и кабинетом"
+  default_prompt: "Use $punktb-vakas to inspect Vakas configuration safely or validate an ingress event without sending it."
