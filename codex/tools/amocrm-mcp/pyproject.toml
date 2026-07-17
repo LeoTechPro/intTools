@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "amocrm-mcp"
 version = "0.1.0"
-description = "MCP server for amoCRM (Kommo) API v4 — 36 tools for leads, contacts, companies, tasks, pipelines, and more"
+description = "MCP server for amoCRM API v4 and Umnico omnichannel messaging"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"

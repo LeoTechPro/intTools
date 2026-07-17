@@ -6,13 +6,14 @@ Runtime composition:
 3. Creates AmoClient with AuthManager + RateLimitedTransport
 4. Creates FastMCP instance with AmoClient as context dependency
 5. Imports src/tools/__init__.py triggering @mcp.tool() decorator registration
-6. Asserts 36 tools registered
+6. Asserts the complete amoCRM + Umnico tool set is registered
 7. Runs FastMCP with configured transport (stdio default, sse via config)
 """
 
 from __future__ import annotations
 
 import logging
+import os
 import sys
 from typing import Any, Callable
 
@@ -20,14 +21,16 @@ from fastmcp import FastMCP
 
 from amocrm_mcp.auth import AuthError, RefreshTokenExpiredError
 from amocrm_mcp.client import AmoAPIError, AmoClient, error_response
+from amocrm_mcp.umnico_client import UmnicoAPIError, UmnicoClient
 
 logger = logging.getLogger("amocrm_mcp.server")
 
-EXPECTED_TOOL_COUNT = 36
+EXPECTED_TOOL_COUNT = 46
 
 mcp = FastMCP("amoCRM MCP Server")
 
 _client: AmoClient | None = None
+_umnico_client: UmnicoClient | None = None
 
 
 async def _registered_tools() -> dict[str, Any]:
@@ -69,6 +72,20 @@ async def execute_tool(fn: Callable[..., dict], *args: Any, **kwargs: Any) -> di
         )
 
 
+async def execute_umnico_tool(fn: Callable[..., dict], *args: Any, **kwargs: Any) -> dict:
+    """Run an Umnico handler with consistent configuration and API errors."""
+    if _umnico_client is None:
+        return error_response(
+            "Umnico is not configured",
+            503,
+            "Set UMNICO_API_KEY in the native MCP/Hermes secret store.",
+        )
+    try:
+        return await fn(_umnico_client, *args, **kwargs)
+    except UmnicoAPIError as exc:
+        return error_response(exc.message, exc.status_code, exc.detail)
+
+
 def main() -> None:
     """Compose runtime and start the MCP server."""
     import asyncio
@@ -78,7 +95,7 @@ def main() -> None:
 
 async def _async_main() -> None:
     """Async composition and server startup."""
-    global _client
+    global _client, _umnico_client
 
     logging.basicConfig(
         level=logging.INFO,
@@ -97,6 +114,16 @@ async def _async_main() -> None:
 
     _client = AmoClient(auth=auth, base_url=config.base_url)
     logger.info("AmoClient created with base_url: %s", config.base_url)
+
+    umnico_api_key = os.environ.get("UMNICO_API_KEY", "").strip()
+    if umnico_api_key:
+        _umnico_client = UmnicoClient(
+            api_key=umnico_api_key,
+            base_url=os.environ.get("UMNICO_BASE_URL", "https://api.umnico.com/v1.3"),
+        )
+        logger.info("Umnico client enabled")
+    else:
+        logger.warning("UMNICO_API_KEY is not set; Umnico tools will fail closed")
 
     import amocrm_mcp.tools  # noqa: F401 -- triggers @mcp.tool() registration
 
@@ -128,4 +155,7 @@ async def _async_main() -> None:
             await mcp.run_stdio_async()
     finally:
         await _client.close()
+        if _umnico_client is not None:
+            await _umnico_client.close()
+            _umnico_client = None
         _client = None
