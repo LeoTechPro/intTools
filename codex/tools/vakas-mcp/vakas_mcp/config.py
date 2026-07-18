@@ -64,7 +64,10 @@ def _load_endpoint(prefix: str, *, repo_root: Path) -> tuple[str | None, str]:
         raise ConfigError(f"{prefix}_FILE is not readable") from exc
     if not stat.S_ISREG(file_stat.st_mode):
         raise ConfigError(f"{prefix}_FILE must be a regular file")
-    if stat.S_IMODE(file_stat.st_mode) & 0o077:
+    # POSIX mode bits do not represent Windows ACLs. Enforce the strict
+    # group/other check where those bits are authoritative; Windows runtime
+    # secrets are protected by the user-scoped vault/NTFS ACL boundary.
+    if os.name != "nt" and stat.S_IMODE(file_stat.st_mode) & 0o077:
         raise ConfigError(f"{prefix}_FILE must not be accessible by group or others")
     try:
         endpoint = path.read_text(encoding="utf-8").strip()
