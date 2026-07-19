@@ -25,7 +25,7 @@ from amocrm_mcp.umnico_client import UmnicoAPIError, UmnicoClient
 
 logger = logging.getLogger("amocrm_mcp.server")
 
-EXPECTED_TOOL_COUNT = 46
+EXPECTED_TOOL_COUNT = 49
 
 mcp = FastMCP("amoCRM MCP Server")
 

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "amocrm-mcp"
-version = "0.1.0"
-description = "MCP server for amoCRM API v4 and Umnico omnichannel messaging"
+version = "0.2.0"
+description = "Complete public amoCRM API MCP server with Umnico messaging"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
@@ -40,3 +40,6 @@ amocrm-mcp = "amocrm_mcp.server:main"
 
 [tool.setuptools.packages.find]
 include = ["amocrm_mcp*"]
+
+[tool.setuptools.package-data]
+amocrm_mcp = ["api_manifest.json"]

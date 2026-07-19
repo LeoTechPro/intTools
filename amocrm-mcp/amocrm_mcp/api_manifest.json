@@ -1,0 +1,2167 @@
+{
+  "schema_version": 1,
+  "generated_from": [
+    "https://www.amocrm.ru/developers/content/chats/chat-api-reference",
+    "https://www.amocrm.ru/developers/content/crm_platform/account-info",
+    "https://www.amocrm.ru/developers/content/crm_platform/calls-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/catalogs-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/chat-templates-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/companies-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/contacts-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/custom-fields",
+    "https://www.amocrm.ru/developers/content/crm_platform/customers-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/customers-statuses-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/duplication-control",
+    "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes",
+    "https://www.amocrm.ru/developers/content/crm_platform/leads-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/leads_pipelines",
+    "https://www.amocrm.ru/developers/content/crm_platform/products-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/salesbot-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/short_links",
+    "https://www.amocrm.ru/developers/content/crm_platform/sources-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/subscriptions-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/tags-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/talks-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/tasks-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/unsorted-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/users-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/webhooks-api",
+    "https://www.amocrm.ru/developers/content/crm_platform/widgets-api",
+    "https://www.amocrm.ru/developers/content/files/files-api",
+    "https://www.amocrm.ru/developers/content/telephony/call_event"
+  ],
+  "excluded_surfaces": [
+    {
+      "name": "notifications-ui",
+      "reason": "Browser-only APP.notifications JavaScript API; not a server HTTP API.",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/adding_notifications"
+    }
+  ],
+  "endpoints": [
+    {
+      "id": "chats_post_v2_origin_custom_channel_id_connect",
+      "surface": "chats",
+      "method": "POST",
+      "path": "/v2/origin/custom/{channel.id}/connect",
+      "host": "account",
+      "auth": "hmac-sha1",
+      "source": "https://www.amocrm.ru/developers/content/chats/chat-api-reference"
+    },
+    {
+      "id": "chats_delete_v2_origin_custom_channel_id_disconnect",
+      "surface": "chats",
+      "method": "DELETE",
+      "path": "/v2/origin/custom/{channel.id}/disconnect",
+      "host": "account",
+      "auth": "hmac-sha1",
+      "source": "https://www.amocrm.ru/developers/content/chats/chat-api-reference"
+    },
+    {
+      "id": "chats_post_v2_origin_custom_scope_id",
+      "surface": "chats",
+      "method": "POST",
+      "path": "/v2/origin/custom/{scope_id}",
+      "host": "account",
+      "auth": "hmac-sha1",
+      "source": "https://www.amocrm.ru/developers/content/chats/chat-api-reference"
+    },
+    {
+      "id": "chats_post_v2_origin_custom_scope_id_chats",
+      "surface": "chats",
+      "method": "POST",
+      "path": "/v2/origin/custom/{scope_id}/chats",
+      "host": "account",
+      "auth": "hmac-sha1",
+      "source": "https://www.amocrm.ru/developers/content/chats/chat-api-reference"
+    },
+    {
+      "id": "chats_get_v2_origin_custom_scope_id_chats_conversation_id_history",
+      "surface": "chats",
+      "method": "GET",
+      "path": "/v2/origin/custom/{scope_id}/chats/{conversation_id}/history",
+      "host": "account",
+      "auth": "hmac-sha1",
+      "source": "https://www.amocrm.ru/developers/content/chats/chat-api-reference"
+    },
+    {
+      "id": "chats_post_v2_origin_custom_scope_id_react",
+      "surface": "chats",
+      "method": "POST",
+      "path": "/v2/origin/custom/{scope_id}/react",
+      "host": "account",
+      "auth": "hmac-sha1",
+      "source": "https://www.amocrm.ru/developers/content/chats/chat-api-reference"
+    },
+    {
+      "id": "chats_post_v2_origin_custom_scope_id_typing",
+      "surface": "chats",
+      "method": "POST",
+      "path": "/v2/origin/custom/{scope_id}/typing",
+      "host": "account",
+      "auth": "hmac-sha1",
+      "source": "https://www.amocrm.ru/developers/content/chats/chat-api-reference"
+    },
+    {
+      "id": "chats_post_v2_origin_custom_scope_id_msgid_delivery_status",
+      "surface": "chats",
+      "method": "POST",
+      "path": "/v2/origin/custom/{scope_id}/{msgid}/delivery_status",
+      "host": "account",
+      "auth": "hmac-sha1",
+      "source": "https://www.amocrm.ru/developers/content/chats/chat-api-reference"
+    },
+    {
+      "id": "files_delete_api_v4_companies_entity_id_files",
+      "surface": "files",
+      "method": "DELETE",
+      "path": "/api/v4/companies/{entity_id}/files",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_get_api_v4_companies_entity_id_files",
+      "surface": "files",
+      "method": "GET",
+      "path": "/api/v4/companies/{entity_id}/files",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_put_api_v4_companies_entity_id_files",
+      "surface": "files",
+      "method": "PUT",
+      "path": "/api/v4/companies/{entity_id}/files",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_delete_api_v4_contacts_entity_id_files",
+      "surface": "files",
+      "method": "DELETE",
+      "path": "/api/v4/contacts/{entity_id}/files",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_get_api_v4_contacts_entity_id_files",
+      "surface": "files",
+      "method": "GET",
+      "path": "/api/v4/contacts/{entity_id}/files",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_put_api_v4_contacts_entity_id_files",
+      "surface": "files",
+      "method": "PUT",
+      "path": "/api/v4/contacts/{entity_id}/files",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_delete_api_v4_customers_entity_id_files",
+      "surface": "files",
+      "method": "DELETE",
+      "path": "/api/v4/customers/{entity_id}/files",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_get_api_v4_customers_entity_id_files",
+      "surface": "files",
+      "method": "GET",
+      "path": "/api/v4/customers/{entity_id}/files",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_put_api_v4_customers_entity_id_files",
+      "surface": "files",
+      "method": "PUT",
+      "path": "/api/v4/customers/{entity_id}/files",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_get_api_v4_files_file_uuid_links",
+      "surface": "files",
+      "method": "GET",
+      "path": "/api/v4/files/{file_uuid}/links",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_delete_api_v4_leads_entity_id_files",
+      "surface": "files",
+      "method": "DELETE",
+      "path": "/api/v4/leads/{entity_id}/files",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_get_api_v4_leads_entity_id_files",
+      "surface": "files",
+      "method": "GET",
+      "path": "/api/v4/leads/{entity_id}/files",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_put_api_v4_leads_entity_id_files",
+      "surface": "files",
+      "method": "PUT",
+      "path": "/api/v4/leads/{entity_id}/files",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_delete_v1_0_files",
+      "surface": "files",
+      "method": "DELETE",
+      "path": "/v1.0/files",
+      "host": "drive",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_get_v1_0_files",
+      "surface": "files",
+      "method": "GET",
+      "path": "/v1.0/files",
+      "host": "drive",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_post_v1_0_files_restore",
+      "surface": "files",
+      "method": "POST",
+      "path": "/v1.0/files/restore",
+      "host": "drive",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_get_v1_0_files_file_uuid",
+      "surface": "files",
+      "method": "GET",
+      "path": "/v1.0/files/{file_uuid}",
+      "host": "drive",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_patch_v1_0_files_file_uuid",
+      "surface": "files",
+      "method": "PATCH",
+      "path": "/v1.0/files/{file_uuid}",
+      "host": "drive",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_get_v1_0_files_file_uuid_versions",
+      "surface": "files",
+      "method": "GET",
+      "path": "/v1.0/files/{file_uuid}/versions",
+      "host": "drive",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_post_v1_0_sessions",
+      "surface": "files",
+      "method": "POST",
+      "path": "/v1.0/sessions",
+      "host": "drive",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "files_post_v1_0_sessions_upload_session_token",
+      "surface": "files",
+      "method": "POST",
+      "path": "/v1.0/sessions/upload/{session_token}",
+      "host": "drive",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/files/files-api"
+    },
+    {
+      "id": "rest_get_api_v4_account",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/account",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/account-info"
+    },
+    {
+      "id": "rest_get_api_v4_bots",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/bots",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/salesbot-api"
+    },
+    {
+      "id": "rest_post_api_v4_bots_run",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/bots/run",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/salesbot-api"
+    },
+    {
+      "id": "rest_get_api_v4_bots_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/bots/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/salesbot-api"
+    },
+    {
+      "id": "rest_post_api_v4_bots_id_run",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/bots/{id}/run",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/salesbot-api"
+    },
+    {
+      "id": "rest_post_api_v4_bots_id_stop",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/bots/{id}/stop",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/salesbot-api"
+    },
+    {
+      "id": "rest_post_api_v4_calls",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/calls",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/calls-api"
+    },
+    {
+      "id": "rest_get_api_v4_catalogs",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/catalogs",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/catalogs-api"
+    },
+    {
+      "id": "rest_patch_api_v4_catalogs",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/catalogs",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/catalogs-api"
+    },
+    {
+      "id": "rest_post_api_v4_catalogs",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/catalogs",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/catalogs-api"
+    },
+    {
+      "id": "rest_get_api_v4_catalogs_catalog_id_custom_fields",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/catalogs/{catalog_id}/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_patch_api_v4_catalogs_catalog_id_custom_fields",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/catalogs/{catalog_id}/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_catalogs_catalog_id_custom_fields",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/catalogs/{catalog_id}/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_delete_api_v4_catalogs_catalog_id_custom_fields_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/catalogs/{catalog_id}/custom_fields/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_catalogs_catalog_id_custom_fields_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/catalogs/{catalog_id}/custom_fields/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_catalogs_catalog_id_elements",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/catalogs/{catalog_id}/elements",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/catalogs-api"
+    },
+    {
+      "id": "rest_patch_api_v4_catalogs_catalog_id_elements",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/catalogs/{catalog_id}/elements",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/catalogs-api"
+    },
+    {
+      "id": "rest_post_api_v4_catalogs_catalog_id_elements",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/catalogs/{catalog_id}/elements",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/catalogs-api"
+    },
+    {
+      "id": "rest_get_api_v4_catalogs_catalog_id_elements_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/catalogs/{catalog_id}/elements/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/catalogs-api"
+    },
+    {
+      "id": "rest_get_api_v4_catalogs_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/catalogs/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/catalogs-api"
+    },
+    {
+      "id": "rest_delete_api_v4_chats_templates",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/chats/templates",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/chat-templates-api"
+    },
+    {
+      "id": "rest_get_api_v4_chats_templates",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/chats/templates",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/chat-templates-api"
+    },
+    {
+      "id": "rest_patch_api_v4_chats_templates",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/chats/templates",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/chat-templates-api"
+    },
+    {
+      "id": "rest_post_api_v4_chats_templates",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/chats/templates",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/chat-templates-api"
+    },
+    {
+      "id": "rest_delete_api_v4_chats_templates_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/chats/templates/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/chat-templates-api"
+    },
+    {
+      "id": "rest_get_api_v4_chats_templates_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/chats/templates/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/chat-templates-api"
+    },
+    {
+      "id": "rest_patch_api_v4_chats_templates_id",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/chats/templates/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/chat-templates-api"
+    },
+    {
+      "id": "rest_post_api_v4_chats_templates_id_review",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/chats/templates/{id}/review",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/chat-templates-api"
+    },
+    {
+      "id": "rest_post_api_v4_chats_templates_id_review_review_id",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/chats/templates/{id}/review/{review_id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/chat-templates-api"
+    },
+    {
+      "id": "rest_get_api_v4_companies",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/companies",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/companies-api"
+    },
+    {
+      "id": "rest_patch_api_v4_companies",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/companies",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/companies-api"
+    },
+    {
+      "id": "rest_post_api_v4_companies",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/companies",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/companies-api"
+    },
+    {
+      "id": "rest_get_api_v4_companies_custom_fields",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/companies/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_patch_api_v4_companies_custom_fields",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/companies/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_companies_custom_fields",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/companies/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_companies_custom_fields_groups",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/companies/custom_fields/groups",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_companies_custom_fields_groups",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/companies/custom_fields/groups",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_delete_api_v4_companies_custom_fields_groups_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/companies/custom_fields/groups/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_companies_custom_fields_groups_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/companies/custom_fields/groups/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_patch_api_v4_companies_custom_fields_groups_id",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/companies/custom_fields/groups/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_delete_api_v4_companies_custom_fields_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/companies/custom_fields/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_companies_custom_fields_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/companies/custom_fields/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_companies_link",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/companies/link",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_companies_links",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/companies/links",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_post_api_v4_companies_unlink",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/companies/unlink",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_post_api_v4_companies_entity_id_link",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/companies/{entity_id}/link",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_companies_entity_id_links",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/companies/{entity_id}/links",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_post_api_v4_companies_entity_id_unlink",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/companies/{entity_id}/unlink",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_companies_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/companies/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/companies-api"
+    },
+    {
+      "id": "rest_get_api_v4_contacts",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/contacts",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/contacts-api"
+    },
+    {
+      "id": "rest_patch_api_v4_contacts",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/contacts",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/contacts-api"
+    },
+    {
+      "id": "rest_post_api_v4_contacts",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/contacts",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/contacts-api"
+    },
+    {
+      "id": "rest_get_api_v4_contacts_chats",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/contacts/chats",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/contacts-api"
+    },
+    {
+      "id": "rest_post_api_v4_contacts_chats",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/contacts/chats",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/contacts-api"
+    },
+    {
+      "id": "rest_get_api_v4_contacts_custom_fields",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/contacts/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_patch_api_v4_contacts_custom_fields",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/contacts/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_contacts_custom_fields",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/contacts/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_contacts_custom_fields_groups",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/contacts/custom_fields/groups",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_contacts_custom_fields_groups",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/contacts/custom_fields/groups",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_delete_api_v4_contacts_custom_fields_groups_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/contacts/custom_fields/groups/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_contacts_custom_fields_groups_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/contacts/custom_fields/groups/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_patch_api_v4_contacts_custom_fields_groups_id",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/contacts/custom_fields/groups/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_delete_api_v4_contacts_custom_fields_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/contacts/custom_fields/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_contacts_custom_fields_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/contacts/custom_fields/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_contacts_link",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/contacts/link",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_contacts_links",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/contacts/links",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_post_api_v4_contacts_unlink",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/contacts/unlink",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_post_api_v4_contacts_entity_id_link",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/contacts/{entity_id}/link",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_contacts_entity_id_links",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/contacts/{entity_id}/links",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_post_api_v4_contacts_entity_id_unlink",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/contacts/{entity_id}/unlink",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_contacts_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/contacts/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/contacts-api"
+    },
+    {
+      "id": "rest_get_api_v4_customers",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-api"
+    },
+    {
+      "id": "rest_patch_api_v4_customers",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/customers",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-api"
+    },
+    {
+      "id": "rest_post_api_v4_customers",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/customers",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-api"
+    },
+    {
+      "id": "rest_get_api_v4_customers_custom_fields",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_patch_api_v4_customers_custom_fields",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/customers/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_customers_custom_fields",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/customers/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_customers_custom_fields_groups",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/custom_fields/groups",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_customers_custom_fields_groups",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/customers/custom_fields/groups",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_delete_api_v4_customers_custom_fields_groups_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/customers/custom_fields/groups/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_customers_custom_fields_groups_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/custom_fields/groups/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_patch_api_v4_customers_custom_fields_groups_id",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/customers/custom_fields/groups/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_delete_api_v4_customers_custom_fields_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/customers/custom_fields/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_customers_custom_fields_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/custom_fields/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_customers_link",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/customers/link",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_customers_links",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/links",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_patch_api_v4_customers_mode",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/customers/mode",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-api"
+    },
+    {
+      "id": "rest_get_api_v4_customers_segments",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/segments",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-statuses-api"
+    },
+    {
+      "id": "rest_post_api_v4_customers_segments",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/customers/segments",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-statuses-api"
+    },
+    {
+      "id": "rest_get_api_v4_customers_segments_custom_fields",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/segments/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_patch_api_v4_customers_segments_custom_fields",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/customers/segments/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_customers_segments_custom_fields",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/customers/segments/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_delete_api_v4_customers_segments_custom_fields_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/customers/segments/custom_fields/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_customers_segments_custom_fields_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/segments/custom_fields/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_delete_api_v4_customers_segments_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/customers/segments/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-statuses-api"
+    },
+    {
+      "id": "rest_get_api_v4_customers_segments_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/segments/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-statuses-api"
+    },
+    {
+      "id": "rest_patch_api_v4_customers_segments_id",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/customers/segments/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-statuses-api"
+    },
+    {
+      "id": "rest_get_api_v4_customers_statuses",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/statuses",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-statuses-api"
+    },
+    {
+      "id": "rest_post_api_v4_customers_statuses",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/customers/statuses",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-statuses-api"
+    },
+    {
+      "id": "rest_delete_api_v4_customers_statuses_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/customers/statuses/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-statuses-api"
+    },
+    {
+      "id": "rest_get_api_v4_customers_statuses_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/statuses/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-statuses-api"
+    },
+    {
+      "id": "rest_patch_api_v4_customers_statuses_id",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/customers/statuses/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-statuses-api"
+    },
+    {
+      "id": "rest_get_api_v4_customers_transactions",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/transactions",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-api"
+    },
+    {
+      "id": "rest_delete_api_v4_customers_transactions_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/customers/transactions/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-api"
+    },
+    {
+      "id": "rest_get_api_v4_customers_transactions_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/transactions/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-api"
+    },
+    {
+      "id": "rest_post_api_v4_customers_unlink",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/customers/unlink",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_post_api_v4_customers_customer_id_transactions",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/customers/{customer_id}/transactions",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-api"
+    },
+    {
+      "id": "rest_post_api_v4_customers_entity_id_link",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/customers/{entity_id}/link",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_customers_entity_id_links",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/{entity_id}/links",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_post_api_v4_customers_entity_id_unlink",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/customers/{entity_id}/unlink",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_customers_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-api"
+    },
+    {
+      "id": "rest_post_api_v4_customers_id_bonus_points",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/customers/{id}/bonus_points",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/customers-api"
+    },
+    {
+      "id": "rest_get_api_v4_customers_id_subscriptions",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/customers/{id}/subscriptions",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/subscriptions-api"
+    },
+    {
+      "id": "rest_get_api_v4_events",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/events",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_get_api_v4_events_types",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/events/types",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_get_api_v4_events_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/events/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_get_api_v4_leads",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads-api"
+    },
+    {
+      "id": "rest_patch_api_v4_leads",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/leads",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads-api"
+    },
+    {
+      "id": "rest_post_api_v4_leads",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads-api"
+    },
+    {
+      "id": "rest_post_api_v4_leads_complex",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads/complex",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads-api"
+    },
+    {
+      "id": "rest_get_api_v4_leads_custom_fields",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_patch_api_v4_leads_custom_fields",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/leads/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_leads_custom_fields",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads/custom_fields",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_leads_custom_fields_groups",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/custom_fields/groups",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_leads_custom_fields_groups",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads/custom_fields/groups",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_delete_api_v4_leads_custom_fields_groups_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/leads/custom_fields/groups/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_leads_custom_fields_groups_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/custom_fields/groups/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_patch_api_v4_leads_custom_fields_groups_id",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/leads/custom_fields/groups/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_delete_api_v4_leads_custom_fields_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/leads/custom_fields/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_get_api_v4_leads_custom_fields_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/custom_fields/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/custom-fields"
+    },
+    {
+      "id": "rest_post_api_v4_leads_link",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads/link",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_leads_links",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/links",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_leads_pipelines",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/pipelines",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads_pipelines"
+    },
+    {
+      "id": "rest_post_api_v4_leads_pipelines",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads/pipelines",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads_pipelines"
+    },
+    {
+      "id": "rest_delete_api_v4_leads_pipelines_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/leads/pipelines/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads_pipelines"
+    },
+    {
+      "id": "rest_get_api_v4_leads_pipelines_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/pipelines/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads_pipelines"
+    },
+    {
+      "id": "rest_patch_api_v4_leads_pipelines_id",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/leads/pipelines/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads_pipelines"
+    },
+    {
+      "id": "rest_get_api_v4_leads_pipelines_pipeline_id_statuses",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/pipelines/{pipeline_id}/statuses",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads_pipelines"
+    },
+    {
+      "id": "rest_post_api_v4_leads_pipelines_pipeline_id_statuses",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads/pipelines/{pipeline_id}/statuses",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads_pipelines"
+    },
+    {
+      "id": "rest_delete_api_v4_leads_pipelines_pipeline_id_statuses_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/leads/pipelines/{pipeline_id}/statuses/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads_pipelines"
+    },
+    {
+      "id": "rest_get_api_v4_leads_pipelines_pipeline_id_statuses_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/pipelines/{pipeline_id}/statuses/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads_pipelines"
+    },
+    {
+      "id": "rest_patch_api_v4_leads_pipelines_pipeline_id_statuses_id",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/leads/pipelines/{pipeline_id}/statuses/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads_pipelines"
+    },
+    {
+      "id": "rest_post_api_v4_leads_unlink",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads/unlink",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_leads_unsorted",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/unsorted",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/unsorted-api"
+    },
+    {
+      "id": "rest_post_api_v4_leads_unsorted_forms",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads/unsorted/forms",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/unsorted-api"
+    },
+    {
+      "id": "rest_post_api_v4_leads_unsorted_sip",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads/unsorted/sip",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/unsorted-api"
+    },
+    {
+      "id": "rest_get_api_v4_leads_unsorted_summary",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/unsorted/summary",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/unsorted-api"
+    },
+    {
+      "id": "rest_get_api_v4_leads_unsorted_uid",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/unsorted/{uid}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/unsorted-api"
+    },
+    {
+      "id": "rest_post_api_v4_leads_unsorted_uid_accept",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads/unsorted/{uid}/accept",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/unsorted-api"
+    },
+    {
+      "id": "rest_delete_api_v4_leads_unsorted_uid_decline",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/leads/unsorted/{uid}/decline",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/unsorted-api"
+    },
+    {
+      "id": "rest_post_api_v4_leads_unsorted_uid_link",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads/unsorted/{uid}/link",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/unsorted-api"
+    },
+    {
+      "id": "rest_post_api_v4_leads_entity_id_link",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads/{entity_id}/link",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_leads_entity_id_links",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/{entity_id}/links",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_post_api_v4_leads_entity_id_unlink",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/leads/{entity_id}/unlink",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/entity-links-api"
+    },
+    {
+      "id": "rest_get_api_v4_leads_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/leads-api"
+    },
+    {
+      "id": "rest_get_api_v4_leads_id_subscriptions",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/leads/{id}/subscriptions",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/subscriptions-api"
+    },
+    {
+      "id": "rest_get_api_v4_roles",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/roles",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/users-api"
+    },
+    {
+      "id": "rest_post_api_v4_roles",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/roles",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/users-api"
+    },
+    {
+      "id": "rest_delete_api_v4_roles_id",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/roles/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/users-api"
+    },
+    {
+      "id": "rest_get_api_v4_roles_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/roles/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/users-api"
+    },
+    {
+      "id": "rest_patch_api_v4_roles_id",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/roles/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/users-api"
+    },
+    {
+      "id": "rest_post_api_v4_short_links",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/short_links",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/short_links"
+    },
+    {
+      "id": "rest_delete_api_v4_sources",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/sources",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/sources-api"
+    },
+    {
+      "id": "rest_get_api_v4_sources",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/sources",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/sources-api"
+    },
+    {
+      "id": "rest_patch_api_v4_sources",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/sources",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/sources-api"
+    },
+    {
+      "id": "rest_post_api_v4_sources",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/sources",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/sources-api"
+    },
+    {
+      "id": "rest_get_api_v4_sources_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/sources/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/sources-api"
+    },
+    {
+      "id": "rest_get_api_v4_talks",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/talks",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/talks-api"
+    },
+    {
+      "id": "rest_get_api_v4_talks_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/talks/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/talks-api"
+    },
+    {
+      "id": "rest_post_api_v4_talks_id_close",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/talks/{id}/close",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/talks-api"
+    },
+    {
+      "id": "rest_get_api_v4_tasks",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/tasks",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/tasks-api"
+    },
+    {
+      "id": "rest_patch_api_v4_tasks",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/tasks",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/tasks-api"
+    },
+    {
+      "id": "rest_post_api_v4_tasks",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/tasks",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/tasks-api"
+    },
+    {
+      "id": "rest_get_api_v4_tasks_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/tasks/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/tasks-api"
+    },
+    {
+      "id": "rest_get_api_v4_users",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/users",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/users-api"
+    },
+    {
+      "id": "rest_post_api_v4_users",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/users",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/users-api"
+    },
+    {
+      "id": "rest_post_api_v4_users_activate",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/users/activate",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/users-api"
+    },
+    {
+      "id": "rest_post_api_v4_users_deactivate",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/users/deactivate",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/users-api"
+    },
+    {
+      "id": "rest_get_api_v4_users_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/users/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/users-api"
+    },
+    {
+      "id": "rest_get_api_v4_website_buttons",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/website_buttons",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/sources-api"
+    },
+    {
+      "id": "rest_post_api_v4_website_buttons",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/website_buttons",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/sources-api"
+    },
+    {
+      "id": "rest_get_api_v4_website_buttons_source_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/website_buttons/{source_id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/sources-api"
+    },
+    {
+      "id": "rest_patch_api_v4_website_buttons_source_id",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/website_buttons/{source_id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/sources-api"
+    },
+    {
+      "id": "rest_post_api_v4_website_buttons_source_id_online_chat",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/website_buttons/{source_id}/online_chat",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/sources-api"
+    },
+    {
+      "id": "rest_get_api_v4_widgets",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/widgets",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/widgets-api"
+    },
+    {
+      "id": "rest_delete_api_v4_widgets_widget_code",
+      "surface": "rest",
+      "method": "DELETE",
+      "path": "/api/v4/widgets/{widget_code}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/widgets-api"
+    },
+    {
+      "id": "rest_get_api_v4_widgets_widget_code",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/widgets/{widget_code}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/widgets-api"
+    },
+    {
+      "id": "rest_post_api_v4_widgets_widget_code",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/widgets/{widget_code}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/widgets-api"
+    },
+    {
+      "id": "rest_patch_api_v4_entity_type",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/{entity_type}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/tags-api"
+    },
+    {
+      "id": "rest_get_api_v4_entity_type_notes",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/{entity_type}/notes",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_patch_api_v4_entity_type_notes",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/{entity_type}/notes",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_post_api_v4_entity_type_notes",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/{entity_type}/notes",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_get_api_v4_entity_type_notes_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/{entity_type}/notes/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_post_api_v4_entity_type_notes_id_pin",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/{entity_type}/notes/{id}/pin",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_post_api_v4_entity_type_notes_id_unpin",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/{entity_type}/notes/{id}/unpin",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_get_api_v4_entity_type_tags",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/{entity_type}/tags",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/tags-api"
+    },
+    {
+      "id": "rest_post_api_v4_entity_type_tags",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/{entity_type}/tags",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/tags-api"
+    },
+    {
+      "id": "rest_get_api_v4_entity_type_entity_id_notes",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/{entity_type}/{entity_id}/notes",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_patch_api_v4_entity_type_entity_id_notes",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/{entity_type}/{entity_id}/notes",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_post_api_v4_entity_type_entity_id_notes",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/{entity_type}/{entity_id}/notes",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_get_api_v4_entity_type_entity_id_notes_id",
+      "surface": "rest",
+      "method": "GET",
+      "path": "/api/v4/{entity_type}/{entity_id}/notes/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_patch_api_v4_entity_type_entity_id_notes_id",
+      "surface": "rest",
+      "method": "PATCH",
+      "path": "/api/v4/{entity_type}/{entity_id}/notes/{id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/events-and-notes"
+    },
+    {
+      "id": "rest_post_api_v4_salesbot_marketingbot_bot_id_continue_continue_id",
+      "surface": "rest",
+      "method": "POST",
+      "path": "/api/v4/{salesbot|marketingbot}/{bot_id}/continue/{continue_id}",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/widgets-api"
+    },
+    {
+      "id": "telephony_post_api_v2_events",
+      "surface": "telephony",
+      "method": "POST",
+      "path": "/api/v2/events/",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/telephony/call_event"
+    },
+    {
+      "id": "webhooks_delete_api_v4_webhooks",
+      "surface": "webhooks",
+      "method": "DELETE",
+      "path": "/api/v4/webhooks",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/webhooks-api"
+    },
+    {
+      "id": "webhooks_get_api_v4_webhooks",
+      "surface": "webhooks",
+      "method": "GET",
+      "path": "/api/v4/webhooks",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/webhooks-api"
+    },
+    {
+      "id": "webhooks_post_api_v4_webhooks",
+      "surface": "webhooks",
+      "method": "POST",
+      "path": "/api/v4/webhooks",
+      "host": "account",
+      "auth": "oauth-bearer",
+      "source": "https://www.amocrm.ru/developers/content/crm_platform/webhooks-api"
+    }
+  ]
+}

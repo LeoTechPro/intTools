@@ -1,12 +1,15 @@
 # amoCRM MCP Server
 
-MCP server for [amoCRM](https://www.amocrm.ru/) (Kommo) API v4. Exposes 36 tools for leads, contacts, companies, tasks, notes, pipelines, associations, analytics, and more.
+Agent-agnostic MCP server for [amoCRM](https://www.amocrm.ru/) and Umnico. It keeps the existing typed CRM tools and adds manifest-backed access to the complete documented public amoCRM HTTP API surface.
 
 Built with [FastMCP](https://github.com/jlowin/fastmcp). Works with Claude Desktop, Cursor, and any MCP-compatible client.
 
 ## Features
 
-- **36 MCP tools** across 11 domains (leads, contacts, companies, tasks, notes, pipelines, associations, account, batch, unsorted, analytics)
+- **49 MCP tools**, including existing typed workflows and complete manifest-backed API access
+- **236 documented endpoints** across REST/Webhooks, Chats, Files and telephony
+- **Reproducible parity manifest** generated only from official amoCRM documentation
+- **Chats HMAC-SHA1** request signing and **Files API binary/base64** transport
 - **OAuth 2.0** token refresh with disk persistence
 - **Rate limiting** — 7 req/s with automatic 429 backoff and jitter
 - **HAL+JSON normalization** — strips `_links`, flattens `_embedded`
@@ -35,6 +38,8 @@ You need at minimum:
 
 For automatic token refresh, also set:
 - `AMO_CLIENT_ID`, `AMO_CLIENT_SECRET`, `AMO_REFRESH_TOKEN`
+
+For Chats API set `AMO_CHAT_SECRET` in the host's native secret store. Files API discovers `drive_url` from the account; `AMO_DRIVE_URL` is an optional explicit override. Never commit real values.
 
 ### 3. Run
 
@@ -80,6 +85,20 @@ Add to `claude_desktop_config.json`:
 | **Batch** | `batch_create_leads`, `batch_create_contacts`, `batch_update_leads` | Bulk operations |
 | **Analytics** | `analytics_get_events`, `analytics_get_pipeline_analytics`, +1 | CRM analytics |
 | **Unsorted** | `unsorted_list`, `unsorted_accept`, `unsorted_reject` | Unsorted inbox |
+| **Complete API** | `amocrm_api_manifest`, `amocrm_api_endpoints`, `amocrm_api_call` | Every endpoint in the committed official registry |
+
+`amocrm_api_call` deliberately has no connector-specific confirmation flag. Codex, Hermes, or another MCP host remains responsible for its own write/destructive-action policy.
+
+## API parity audit
+
+Regenerate the endpoint manifest from official documentation and run tests:
+
+```powershell
+python scripts/update_api_manifest.py
+python -m pytest -q
+```
+
+The browser-only `APP.notifications` JavaScript API is explicitly recorded as excluded because it is not a server HTTP API.
 
 ## Getting amoCRM Credentials
 

@@ -3,6 +3,16 @@
   "generated_by": "reposition-inttools-public-catalog",
   "tools": [
     {
+      "id": "amocrm-mcp",
+      "root": "amocrm-mcp",
+      "status": "public-tool",
+      "owner": "intData",
+      "public_surface": "Agent-agnostic MCP connector for documented amoCRM REST/Webhooks, Chats, Files and telephony APIs plus Umnico messaging.",
+      "runtime_state": "OAuth tokens, chat secrets, account URLs and dependency/runtime directories remain untracked and external.",
+      "target_home": "D:/int/tools/amocrm-mcp",
+      "migration_action": "Canonical source moved out of the Codex-specific subtree; deploy through native MCP host configuration."
+    },
+    {
       "id": "agent-plane",
       "root": "agent_plane",
       "status": "public-tool",

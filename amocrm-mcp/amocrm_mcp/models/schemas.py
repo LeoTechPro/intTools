@@ -1,4 +1,4 @@
-"""Pydantic input models for all 36 MCP tools (FR-22).
+"""Pydantic input models for the typed amoCRM MCP convenience tools (FR-22).
 
 Validation-first: malformed input fails before any network call to amoCRM.
 Constraints enforced:

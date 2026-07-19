@@ -2,6 +2,14 @@
 
 Этот файл фиксирует понятные записи по каждому локальному commit репозитория `/int/tools`. Запись готовится перед commit и входит в тот же commit.
 
+## 2026-07-19
+### amoCRM MCP: agent-agnostic root и полный публичный HTTP API registry
+- Канонический source перенесён из `codex/tools/amocrm-mcp/` в top-level [amocrm-mcp/](/int/tools/amocrm-mcp), чтобы один пакет использовался Codex, Hermes и другими MCP-host'ами.
+- Добавлен committed manifest 236 документированных endpoint'ов amoCRM REST/Webhooks, Chats, Files и telephony с официальными source URL, host/auth metadata и воспроизводимым генератором.
+- Новый `amocrm_api_call` маршрутизирует любой endpoint из manifest, включая HMAC-SHA1 Chats API и binary/base64 Files API; `amocrm_api_endpoints` и `amocrm_api_manifest` дают машинно-проверяемую инвентаризацию.
+- Connector-level `confirm_send` удалён: внешние approval-политики остаются ответственностью Codex/Hermes, а коннектор передаёт API буквально.
+- Добавлены parity/client tests, обновлены runner, sanitized env example, public catalog и инструкции skill-коммуникаций без устаревшего параметра `confirm_send`.
+
 ## 2026-04-12
 ### delivery publish: канонический engine вынесен из `codex/` в cross-platform Python contour
 - Добавлен нейтральный publish contour `delivery/bin/` с cross-platform engine [delivery/bin/publish_repo.py](/int/tools/delivery/bin/publish_repo.py) и canonical wrapper [delivery/bin/publish_data.py](/int/tools/delivery/bin/publish_data.py) для `/int/data`.

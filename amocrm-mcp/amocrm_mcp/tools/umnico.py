@@ -7,7 +7,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from amocrm_mcp.client import error_response, success_response
+from amocrm_mcp.client import success_response
 from amocrm_mcp.server import execute_umnico_tool, mcp
 
 
@@ -46,7 +46,6 @@ class SendToLeadInput(LeadInput):
     sa_id: int | None = Field(default=None, gt=0)
     custom_id: str | None = Field(default=None, max_length=200)
     reply_id: int | str | None = None
-    confirm_send: bool = False
 
 
 class SendFirstInput(BaseModel):
@@ -54,7 +53,6 @@ class SendFirstInput(BaseModel):
     sa_id: int = Field(gt=0)
     text: str = Field(min_length=1, max_length=10000)
     custom_id: str | None = Field(default=None, max_length=200)
-    confirm_send: bool = False
 
 
 def _lead_search_text(lead: dict) -> str:
@@ -203,15 +201,8 @@ async def umnico_history_get(input: HistoryInput) -> dict:
 async def umnico_send_to_lead(input: SendToLeadInput) -> dict:
     """Send a text reply to an existing Umnico conversation.
 
-    Outward communication is blocked unless confirm_send is explicitly true.
     Read sources and managers first; never guess source, sa_id or user_id.
     """
-    if not input.confirm_send:
-        return error_response(
-            "Explicit confirmation required",
-            409,
-            "Review recipient, channel and final text, then repeat with confirm_send=true.",
-        )
 
     async def _execute(client):
         payload: dict = {
@@ -236,15 +227,8 @@ async def umnico_send_to_lead(input: SendToLeadInput) -> dict:
 async def umnico_send_first(input: SendFirstInput) -> dict:
     """Start a new WhatsApp, Telegram Personal or mailbox conversation.
 
-    Outward communication is blocked unless confirm_send is explicitly true.
     Confirm that the chosen integration supports write-first and comply with its limits.
     """
-    if not input.confirm_send:
-        return error_response(
-            "Explicit confirmation required",
-            409,
-            "Review destination, integration and final text, then repeat with confirm_send=true.",
-        )
 
     async def _execute(client):
         payload: dict = {

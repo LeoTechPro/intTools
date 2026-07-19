@@ -5,7 +5,7 @@ import asyncio
 import httpx
 
 from amocrm_mcp.umnico_client import UmnicoAPIError, UmnicoClient
-from amocrm_mcp.tools.umnico import SendFirstInput, umnico_send_first
+from amocrm_mcp.tools.umnico import SendFirstInput
 
 
 def test_umnico_client_sends_bearer_and_returns_json() -> None:
@@ -45,15 +45,6 @@ def test_umnico_client_maps_api_error() -> None:
     asyncio.run(run())
 
 
-def test_send_first_requires_explicit_confirmation() -> None:
-    result = asyncio.run(
-        umnico_send_first(
-            SendFirstInput(
-                destination="+70000000000",
-                sa_id=1,
-                text="guard-smoke",
-                confirm_send=False,
-            )
-        )
-    )
-    assert result["status_code"] == 409
+def test_send_inputs_have_no_connector_specific_confirmation_switch() -> None:
+    fields = SendFirstInput.model_fields
+    assert "confirm_send" not in fields

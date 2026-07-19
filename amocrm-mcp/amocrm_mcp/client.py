@@ -1,8 +1,13 @@
-from __future__ import annotations
-
+import base64
+import hashlib
+import hmac
+import json
 import logging
+import os
 import random
+import re
 from typing import Any
+from urllib.parse import quote
 
 import httpx
 from aiolimiter import AsyncLimiter
@@ -104,6 +109,155 @@ class AmoClient:
             return normalize_response(data)
 
         return response.json()
+
+    async def request_public_endpoint(
+        self,
+        endpoint: dict[str, Any],
+        path_parameters: dict[str, str | int],
+        params: dict | None = None,
+        extra_headers: dict[str, str] | None = None,
+        body: Any | None = None,
+        content_base64: str | None = None,
+        content_type: str | None = None,
+    ) -> Any:
+        """Execute one committed manifest endpoint on its documented host/auth surface."""
+        path = endpoint["path"]
+        for placeholder in re.findall(r"\{([^{}]+)\}", path):
+            key = placeholder.split(":", 1)[0]
+            if placeholder in path_parameters:
+                value = path_parameters[placeholder]
+            elif key in path_parameters:
+                value = path_parameters[key]
+            else:
+                raise AmoAPIError(400, "Missing path parameter", key)
+            path = path.replace("{" + placeholder + "}", quote(str(value), safe=""))
+        if "{" in path or "}" in path:
+            raise AmoAPIError(400, "Unresolved path parameter", path)
+
+        raw_content: bytes | None = None
+        if content_base64 is not None:
+            try:
+                raw_content = base64.b64decode(content_base64, validate=True)
+            except ValueError as exc:
+                raise AmoAPIError(400, "Invalid base64 content", str(exc)) from exc
+
+        host = endpoint["host"]
+        if host == "drive":
+            base_url = await self._resolve_drive_url()
+        elif endpoint["surface"] == "chats":
+            base_url = os.environ.get("AMO_CHAT_BASE_URL", "https://amojo.amocrm.ru").rstrip("/")
+        else:
+            base_url = self._base_url
+        url = base_url + "/" + path.lstrip("/")
+
+        reserved_headers = {"authorization", "host", "x-signature"}
+        headers: dict[str, str] = {
+            key: value
+            for key, value in (extra_headers or {}).items()
+            if key.lower() not in reserved_headers
+        }
+        if content_type:
+            headers["Content-Type"] = content_type
+        elif raw_content is not None:
+            headers["Content-Type"] = "application/octet-stream"
+
+        json_data = body if raw_content is None else None
+        if endpoint["auth"] == "hmac-sha1":
+            secret = os.environ.get("AMO_CHAT_SECRET", "").strip()
+            if not secret:
+                raise AmoAPIError(503, "Chats API is not configured", "Set AMO_CHAT_SECRET in the runtime secret store")
+            if raw_content is None:
+                raw_content = (
+                    json.dumps(body, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+                    if body is not None
+                    else b""
+                )
+                json_data = None
+                headers.setdefault("Content-Type", "application/json")
+            headers["X-Signature"] = hmac.new(secret.encode("utf-8"), raw_content, hashlib.sha1).hexdigest()
+        else:
+            headers["Authorization"] = f"Bearer {self._auth.get_access_token()}"
+
+        response = await self._send_public_request(
+            method=endpoint["method"],
+            url=url,
+            params=params,
+            json_data=json_data,
+            content=raw_content,
+            headers=headers,
+            bearer=endpoint["auth"] == "oauth-bearer",
+        )
+        return self._decode_public_response(response)
+
+    async def _resolve_drive_url(self) -> str:
+        configured = os.environ.get("AMO_DRIVE_URL", "").strip()
+        if configured:
+            return configured.rstrip("/")
+        account = await self.request("GET", "/api/v4/account", params={"with": "drive_url"})
+        drive_url = account.get("drive_url") if isinstance(account, dict) else None
+        if not drive_url:
+            raise AmoAPIError(503, "Files API drive host is unavailable", "Set AMO_DRIVE_URL or grant account drive_url access")
+        return str(drive_url).rstrip("/")
+
+    async def _send_public_request(
+        self,
+        method: str,
+        url: str,
+        params: dict | None,
+        json_data: Any | None,
+        content: bytes | None,
+        headers: dict[str, str],
+        bearer: bool,
+    ) -> httpx.Response:
+        import asyncio
+
+        for attempt in range(MAX_429_RETRIES + 1):
+            await self._limiter.acquire()
+            response = await self._client.request(
+                method,
+                url,
+                params=params,
+                json=json_data,
+                content=content,
+                headers=headers,
+            )
+            if response.status_code == 401 and bearer and attempt == 0:
+                await response.aclose()
+                await self._auth.refresh_token()
+                headers["Authorization"] = f"Bearer {self._auth.get_access_token()}"
+                continue
+            if response.status_code != 429 or attempt == MAX_429_RETRIES:
+                return response
+            retry_after = response.headers.get("Retry-After")
+            delay = float(retry_after) if retry_after else min(2 ** (attempt + 1), 60) + random.uniform(0, 1)
+            await response.aclose()
+            await asyncio.sleep(delay)
+        raise AssertionError("unreachable")
+
+    @staticmethod
+    def _decode_public_response(response: httpx.Response) -> Any:
+        if response.status_code >= 400:
+            try:
+                error_body = response.json()
+                detail = error_body.get("detail", error_body.get("title", str(error_body)))
+            except (ValueError, AttributeError):
+                detail = response.text
+            raise AmoAPIError(
+                response.status_code,
+                HTTP_STATUS_MESSAGES.get(response.status_code, f"Unexpected error (HTTP {response.status_code})."),
+                detail,
+            )
+        if response.status_code == 204 or not response.content:
+            return {}
+        content_type = response.headers.get("Content-Type", "").lower()
+        if "json" in content_type:
+            return normalize_response(response.json())
+        if content_type.startswith("text/"):
+            return {"text": response.text, "content_type": content_type}
+        return {
+            "content_base64": base64.b64encode(response.content).decode("ascii"),
+            "content_type": content_type or "application/octet-stream",
+        }
 
     async def _send_request(
         self,
