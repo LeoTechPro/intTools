@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from vakas_mcp import client, config, server
+from vakas_mcp import api_manifest, client, config, server
 
 
 class DestinationTests(unittest.TestCase):
@@ -52,6 +52,9 @@ class PayloadTests(unittest.TestCase):
 
 
 class ConfigTests(unittest.TestCase):
+    def test_repo_root_resolves_to_tools_checkout(self) -> None:
+        self.assertEqual(config._find_repo_root(), Path(__file__).resolve().parents[2])
+
     def test_endpoint_file_must_be_private_and_outside_repo(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             path = Path(temp_dir) / "endpoint"
@@ -94,6 +97,32 @@ class ServerGuardTests(unittest.TestCase):
         self.assertTrue(result["ok"])
         self.assertNotIn("private-secret-path", rendered)
         self.assertNotIn("token=secret", rendered)
+
+    def test_manifest_covers_exact_event_fields_and_registered_tools(self) -> None:
+        manifest = api_manifest.load_manifest()
+        names = {tool.name for tool in asyncio.run(server.mcp.list_tools())}
+        surfaces = {row["id"]: row for row in manifest["surfaces"]}
+
+        self.assertEqual(
+            manifest["official_source"],
+            "https://vakas-tools.ru/docs/api-servisa-vakas-tools/",
+        )
+        self.assertEqual(set(surfaces), set(client.EVENT_FIELDS))
+        for event_type, fields in client.EVENT_FIELDS.items():
+            self.assertEqual(set(surfaces[event_type]["fields"]), set(fields))
+            self.assertEqual(surfaces[event_type]["transport_method"], "POST")
+        self.assertTrue(api_manifest.tool_coverage() <= names)
+        self.assertIn("vakas_api_manifest", names)
+        self.assertEqual(len(names), 6)
+
+    def test_manifest_diagnostics_contains_no_runtime_values(self) -> None:
+        result = asyncio.run(server.vakas_api_manifest())
+        rendered = repr(result)
+
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["surface_count"], 3)
+        self.assertNotIn("private-secret-path", rendered)
+        self.assertNotIn("person@example.com", rendered)
 
     def test_default_submission_is_dry_run_without_network(self) -> None:
         with mock.patch.object(server, "_get_client") as get_client:

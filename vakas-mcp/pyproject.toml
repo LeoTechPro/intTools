@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vakas-mcp"
-version = "0.1.0"
-description = "Guarded MCP ingress client for Vakas-tools"
+version = "0.2.0"
+description = "Agent-agnostic manifest-backed guarded MCP ingress client for Vakas-tools"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11"
@@ -17,3 +17,6 @@ vakas-mcp = "vakas_mcp.server:main"
 
 [tool.setuptools.packages.find]
 include = ["vakas_mcp*"]
+
+[tool.setuptools.package-data]
+vakas_mcp = ["api_manifest.json"]

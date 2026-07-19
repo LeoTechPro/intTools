@@ -5,6 +5,7 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
+from vakas_mcp.api_manifest import load_manifest
 from vakas_mcp.client import VakasClient, VakasError, normalize_payload, payload_summary, validate_destination
 from vakas_mcp.config import Config, ConfigError
 
@@ -87,6 +88,35 @@ async def vakas_health() -> dict[str, Any]:
             "confirm_write_required": True,
             "idempotency_scope": "process_local",
             "allowed_destination": "HTTPS Vakas-tools host only",
+            "redacted": True,
+        }
+    except Exception as exc:
+        return _error(exc)
+
+
+@mcp.tool()
+async def vakas_api_manifest() -> dict[str, Any]:
+    """Return safe coverage metadata for the documented Vakas ingress API."""
+    try:
+        manifest = load_manifest()
+        return {
+            "ok": True,
+            "mode": "ingress_only",
+            "management_api": False,
+            "official_source": manifest["official_source"],
+            "verified_on": manifest["verified_on"],
+            "surface_count": len(manifest["surfaces"]),
+            "surfaces": [
+                {
+                    "id": row["id"],
+                    "official_methods": row["official_methods"],
+                    "transport_method": row["transport_method"],
+                    "risk": row["risk"],
+                    "fields": row["fields"],
+                    "tools": row["tools"],
+                }
+                for row in manifest["surfaces"]
+            ],
             "redacted": True,
         }
     except Exception as exc:

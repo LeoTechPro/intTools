@@ -33,6 +33,16 @@
       "migration_action": "Canonical source moved out of the Codex-specific subtree; deploy through native MCP host configuration."
     },
     {
+      "id": "vakas-mcp",
+      "root": "vakas-mcp",
+      "status": "public-tool",
+      "owner": "intData",
+      "public_surface": "Agent-agnostic manifest-backed MCP connector for guarded Vakas registration, report and order ingress webhooks.",
+      "runtime_state": "Secret ingress endpoints, payload data and dependency/runtime directories remain untracked and external.",
+      "target_home": "D:/int/tools/vakas-mcp",
+      "migration_action": "Canonical source moved out of the Codex-specific subtree; deploy through native MCP host configuration."
+    },
+    {
       "id": "agent-plane",
       "root": "agent_plane",
       "status": "public-tool",

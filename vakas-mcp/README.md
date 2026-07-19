@@ -7,6 +7,7 @@ This is not a management API. Bases, connected services, rules, links and event 
 ## Tools
 
 - `vakas_health`: configuration presence and safety posture without endpoint values.
+- `vakas_api_manifest`: safe coverage metadata for the three documented ingress families.
 - `vakas_validate_event`: local allowlist and payload validation.
 - `vakas_submit_registration`: registration dry-run or guarded dispatch.
 - `vakas_submit_report`: webinar report dry-run or guarded dispatch.
@@ -25,3 +26,8 @@ python -m vakas_mcp
 ```
 
 Run tests without configuring an endpoint; dry-run and validation require no cabinet access.
+
+Codex and Hermes should both launch this top-level package. The committed
+manifest is verified against the event allowlists by unit tests. Although the
+Vakas documentation permits GET for report and order intake, this connector
+uses POST only so payload values are not placed in URLs.

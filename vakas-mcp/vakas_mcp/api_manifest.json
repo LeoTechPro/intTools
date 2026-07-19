@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "official_source": "https://vakas-tools.ru/docs/api-servisa-vakas-tools/",
+  "verified_on": "2026-07-19",
+  "surfaces": [
+    {
+      "id": "registration",
+      "official_methods": ["POST"],
+      "transport_method": "POST",
+      "risk": "write",
+      "fields": ["email", "phone", "name", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "datetime", "vebinar_url"],
+      "tools": ["vakas_submit_registration"]
+    },
+    {
+      "id": "report",
+      "official_methods": ["GET", "POST"],
+      "transport_method": "POST",
+      "risk": "write",
+      "fields": ["email", "phone", "name", "dosmotrel_do_kontsa", "banner_click", "button_click", "data_webinara", "bil_minut", "web_room", "view", "viewTill", "city", "comments", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"],
+      "tools": ["vakas_submit_report"]
+    },
+    {
+      "id": "order",
+      "official_methods": ["GET", "POST"],
+      "transport_method": "POST",
+      "risk": "write",
+      "fields": ["email", "phone", "name", "number", "positions", "costMoney", "leftCostMoney", "payedMoney", "status", "paymentLink", "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"],
+      "tools": ["vakas_submit_order"]
+    }
+  ]
+}

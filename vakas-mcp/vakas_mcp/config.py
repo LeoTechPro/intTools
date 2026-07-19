@@ -17,6 +17,19 @@ class ConfigError(ValueError):
     """Raised when runtime configuration violates the safety contract."""
 
 
+def _find_repo_root() -> Path:
+    """Find the tools checkout for both source and repo-local runtime installs."""
+    marker = "tools.catalog.v1.json"
+    candidates = (Path(__file__).resolve(), Path.cwd().resolve())
+    for candidate in candidates:
+        for parent in (candidate, *candidate.parents):
+            if (parent / marker).is_file():
+                return parent
+    # Standalone installs cannot infer a wider repository boundary; protect the
+    # installed package tree at minimum and keep endpoint files external to it.
+    return Path(__file__).resolve().parents[1]
+
+
 def _positive_float(value: str, *, name: str, default: float, maximum: float) -> float:
     if not value:
         return default
@@ -89,8 +102,7 @@ class Config:
 
     @classmethod
     def load(cls) -> "Config":
-        # This resolves to /int/tools from both the source tree and the VDS runtime target.
-        repo_root = Path(__file__).resolve().parents[4]
+        repo_root = _find_repo_root()
         endpoints: dict[str, str | None] = {}
         endpoint_sources: dict[str, str] = {}
         for event_type, prefix in EVENT_ENV_PREFIX.items():
