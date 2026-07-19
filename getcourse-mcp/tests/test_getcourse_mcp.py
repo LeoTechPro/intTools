@@ -270,5 +270,15 @@ class GetCourseServerTests(unittest.TestCase):
         self.assertEqual(result, {"ok": False, "error": exc.message, "status_code": 403})
 
 
+class LauncherTests(unittest.TestCase):
+    def test_windows_launcher_uses_top_level_runtime_dependency_path(self) -> None:
+        launcher = (Path(__file__).resolve().parents[1] / "run-getcourse-mcp.cmd").read_text(
+            encoding="utf-8"
+        )
+
+        self.assertIn(r"%GETCOURSE_MCP_ROOT%..\.runtime\getcourse-mcp\.deps", launcher)
+        self.assertNotIn(r"%GETCOURSE_MCP_ROOT%..\..\..\.runtime", launcher)
+
+
 if __name__ == "__main__":
     unittest.main()
