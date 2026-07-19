@@ -6,6 +6,7 @@ from typing import Any
 
 import httpx
 
+from bitrix24_mcp.api_manifest import ManifestError, resolve_server_method
 from bitrix24_mcp.config import Config
 
 SECRET_FIELD_PARTS = ("token", "secret", "password", "webhook")
@@ -78,10 +79,18 @@ def normalize_method(method: str) -> str:
     return clean
 
 
+def normalize_manifest_method(method: str) -> str:
+    """Resolve an active official server method without accepting arbitrary URLs."""
+    try:
+        return str(resolve_server_method(method)["method"])
+    except ManifestError as exc:
+        raise Bitrix24APIError(str(exc), 400, {"method_classification": "rejected"}) from exc
+
+
 class Bitrix24Client:
     def __init__(self, config: Config) -> None:
         self.config = config
-        self._client = httpx.AsyncClient(timeout=config.timeout, follow_redirects=True)
+        self._client = httpx.AsyncClient(timeout=config.timeout, follow_redirects=False)
 
     async def close(self) -> None:
         await self._client.aclose()
@@ -90,7 +99,17 @@ class Bitrix24Client:
         if not self.config.webhook_url:
             raise Bitrix24APIError("BITRIX_WEBHOOK_URL is not configured", 400)
         clean_method = normalize_method(method)
-        response = await self._client.post(f"{self.config.webhook_url}{clean_method}.json", data=params or {})
+        return await self._call_clean(clean_method, params)
+
+    async def call_manifest(self, method: str, params: dict[str, Any] | None = None) -> Any:
+        """Call one method registered in the committed official manifest."""
+        if not self.config.webhook_url:
+            raise Bitrix24APIError("BITRIX_WEBHOOK_URL is not configured", 400)
+        clean_method = normalize_manifest_method(method)
+        return await self._call_clean(clean_method, params)
+
+    async def _call_clean(self, clean_method: str, params: dict[str, Any] | None) -> Any:
+        response = await self._client.post(f"{self.config.webhook_url}{clean_method}.json", json=params or {})
         payload = self._parse_response(response)
         if response.status_code >= 400:
             raise Bitrix24APIError("Bitrix24 REST returned an HTTP error", response.status_code, payload)

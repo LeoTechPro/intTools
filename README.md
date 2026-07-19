@@ -30,6 +30,7 @@ machine-readable registry remains `tools.catalog.v1.json`.
 ## Current Public Tools
 
 - `amocrm-mcp/` - agent-agnostic MCP connector for the complete documented amoCRM HTTP API surface (REST/Webhooks, Chats, Files and telephony) plus Umnico messaging; runtime secrets remain external.
+- `bitrix24-mcp/` - agent-agnostic manifest-backed MCP connector for the documented Bitrix24 public REST API; events, browser APIs and outdated pages remain explicit exclusions.
 - `dba/` - `intDBA`, a public first-party CLI for guarded Postgres/Supabase operator workflows.
 - `lockctl/` - removed; fully retired, historical coordination state was migrated before coordctl moved to intProbe client.
 - `connectors/` - reusable connector SDK and cookbook examples salvaged from retired `intNexus`.

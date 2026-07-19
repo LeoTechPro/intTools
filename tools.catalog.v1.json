@@ -13,6 +13,16 @@
       "migration_action": "Canonical source moved out of the Codex-specific subtree; deploy through native MCP host configuration."
     },
     {
+      "id": "bitrix24-mcp",
+      "root": "bitrix24-mcp",
+      "status": "public-tool",
+      "owner": "intData",
+      "public_surface": "Agent-agnostic manifest-backed MCP connector for the documented Bitrix24 public REST API.",
+      "runtime_state": "Webhook URLs, credentials, account data and dependency/runtime directories remain untracked and external.",
+      "target_home": "D:/int/tools/bitrix24-mcp",
+      "migration_action": "Canonical source moved out of the Codex-specific subtree; deploy through native MCP host configuration."
+    },
+    {
       "id": "agent-plane",
       "root": "agent_plane",
       "status": "public-tool",

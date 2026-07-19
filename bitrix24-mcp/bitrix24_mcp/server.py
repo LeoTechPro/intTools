@@ -7,6 +7,7 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
+from bitrix24_mcp.api_manifest import ManifestError, list_entries, load_manifest, resolve_server_method
 from bitrix24_mcp.client import Bitrix24APIError, Bitrix24Client, redact, trim_json
 from bitrix24_mcp.config import Config
 
@@ -32,9 +33,12 @@ def _get_client() -> Bitrix24Client:
 
 
 def _health_payload(config: Config) -> dict[str, Any]:
+    manifest = load_manifest()
     return {
         "ok": config.has_webhook_url,
         "has_webhook_url": config.has_webhook_url,
+        "manifest_official_commit": manifest["official_commit"],
+        "manifest_server_methods": manifest["counts"]["server_methods"],
         "transport": config.transport,
         "port": config.port,
         "env_file": str(config.root_dir / ".env"),
@@ -47,18 +51,31 @@ def _ok(data: Any, max_items: int = 25) -> dict[str, Any]:
 
 def _error(exc: Exception) -> dict[str, Any]:
     if isinstance(exc, Bitrix24APIError):
-        return {
+        payload = {
             "ok": False,
             "error": exc.message,
             "status_code": exc.status_code,
-            "detail": trim_json(redact(exc.detail), max_items=25),
         }
-    return {"ok": False, "error": str(exc)}
+        if isinstance(exc.detail, dict) and isinstance(exc.detail.get("error"), str):
+            payload["remote_error_code"] = exc.detail["error"][:120]
+        return payload
+    if isinstance(exc, ManifestError):
+        return {"ok": False, "error": str(exc), "status_code": 400}
+    return {"ok": False, "error": "internal Bitrix24 MCP error"}
 
 
 async def _call(method: str, params: dict[str, Any] | None = None, max_items: int = 25) -> dict[str, Any]:
     data = await _get_client().call(method, params=params)
     return _ok(data, max_items=max_items)
+
+
+async def _call_manifest(method: str, params: dict[str, Any] | None = None, max_items: int = 25) -> dict[str, Any]:
+    entry = resolve_server_method(method)
+    data = await _get_client().call_manifest(entry["method"], params=params)
+    result = _ok(data, max_items=max_items)
+    result["method"] = entry["method"]
+    result["risk"] = entry["risk"]
+    return result
 
 
 @mcp.tool()
@@ -81,6 +98,58 @@ async def bitrix24_raw_read_call(method: str, params: dict = None, max_items: in
     """Run an allowlisted read-only Bitrix24 REST call."""
     try:
         return await _call(method, params=params, max_items=max_items)
+    except Exception as exc:  # noqa: BLE001
+        return _error(exc)
+
+
+@mcp.tool()
+async def bitrix24_api_manifest() -> dict:
+    """Return safe parity metadata for the committed official Bitrix24 API registry."""
+    manifest = load_manifest()
+    return {
+        "ok": True,
+        "official_repository": manifest["official_repository"],
+        "official_commit": manifest["official_commit"],
+        "discovered_method_pages": manifest["discovered_method_pages"],
+        "counts": manifest["counts"],
+    }
+
+
+@mcp.tool()
+async def bitrix24_api_methods(
+    query: str = None,
+    kind: str = "server_method",
+    risk: str = None,
+    offset: int = 0,
+    limit: int = 50,
+) -> dict:
+    """List committed Bitrix24 manifest entries without account data or credentials."""
+    safe_offset = max(0, int(offset))
+    safe_limit = max(1, min(200, int(limit)))
+    rows = list_entries(query=query, kind=kind, risk=risk)
+    page = rows[safe_offset : safe_offset + safe_limit]
+    return {
+        "ok": True,
+        "total": len(rows),
+        "offset": safe_offset,
+        "limit": safe_limit,
+        "items": [
+            {
+                "id": row["id"],
+                "method": row["method"],
+                "kind": row["kind"],
+                "risk": row["risk"],
+            }
+            for row in page
+        ],
+    }
+
+
+@mcp.tool()
+async def bitrix24_api_call(method: str, params: dict = None, max_items: int = 25) -> dict:
+    """Call any active server method in the committed official Bitrix24 manifest."""
+    try:
+        return await _call_manifest(method, params=params, max_items=max_items)
     except Exception as exc:  # noqa: BLE001
         return _error(exc)
 

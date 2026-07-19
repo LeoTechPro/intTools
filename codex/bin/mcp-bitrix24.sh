@@ -2,11 +2,12 @@
 set -euo pipefail
 SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
 ROOT_DIR="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
+TOOLS_REPO_ROOT="$(cd "$ROOT_DIR/.." && pwd)"
 # shellcheck source=../lib/codex-env.sh
 source "$ROOT_DIR/lib/codex-env.sh"
 
 env_name="bitrix24-mcp.env"
-APP_ROOT="$ROOT_DIR/tools/bitrix24-mcp"
+APP_ROOT="$TOOLS_REPO_ROOT/bitrix24-mcp"
 codex_source_env_file "$env_name" || true
 
 if [[ -z "${BITRIX_WEBHOOK_URL:-}${BITRIX_WEBHOOK_BASE_URL:-}" ]]; then
