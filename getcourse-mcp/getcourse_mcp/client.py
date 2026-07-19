@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import json
 import logging
+import re
 from typing import Any
 
 import httpx
@@ -11,7 +12,11 @@ from getcourse_mcp.config import Config
 
 SECRET_FIELD_PARTS = ("key", "token", "secret", "password")
 ALLOWED_PATH_PREFIX = "/pl/api/account/"
+ALLOWED_READ_PATH_RE = re.compile(
+    r"^/pl/api/account/(?:users|deals|payments|groups|exports/[A-Za-z0-9_-]+|groups/[A-Za-z0-9_-]+/users)$"
+)
 ALLOWED_WRITE_PATHS = {"/pl/api/users", "/pl/api/deals"}
+FIELDS_PATH = "/pl/api/account/fields"
 TRANSIENT_ERROR_CODES = {903, 905}
 EXPORT_NOT_READY_ERROR_CODES = {910}
 
@@ -25,6 +30,27 @@ class GetCourseAPIError(Exception):
         self.message = message
         self.status_code = status_code
         self.detail = redact(detail)
+
+
+def is_false_value(value: Any) -> bool:
+    return value is False or value == 0 or (isinstance(value, str) and value.strip().lower() == "false")
+
+
+def is_true_value(value: Any) -> bool:
+    return value is True or value == 1 or (isinstance(value, str) and value.strip().lower() == "true")
+
+
+def is_failure_payload(payload: Any) -> bool:
+    return isinstance(payload, dict) and is_false_value(payload.get("success"))
+
+
+def is_import_failure_payload(payload: Any) -> bool:
+    if is_failure_payload(payload):
+        return True
+    result = payload.get("result") if isinstance(payload, dict) else None
+    return isinstance(result, dict) and (
+        is_false_value(result.get("success")) or is_true_value(result.get("error"))
+    )
 
 
 def redact(value: Any) -> Any:
@@ -81,7 +107,7 @@ def export_id_from_payload(payload: Any) -> str | None:
 
 def is_export_pending_payload(payload: Any) -> bool:
     """GetCourse can return success=false while an async export is being prepared."""
-    return isinstance(payload, dict) and payload.get("success") is False and bool(export_id_from_payload(payload))
+    return is_failure_payload(payload) and bool(export_id_from_payload(payload))
 
 
 def error_code_from_payload(payload: Any) -> int | None:
@@ -98,7 +124,7 @@ def error_code_from_payload(payload: Any) -> int | None:
 
     for key in ("error", "message"):
         value = payload.get(key)
-        if isinstance(value, int):
+        if isinstance(value, int) and not isinstance(value, bool):
             return value
         if isinstance(value, str):
             for token in value.replace(":", " ").replace(",", " ").split():
@@ -123,14 +149,12 @@ def is_export_not_ready_payload(payload: Any) -> bool:
 
 def normalize_path(path: str) -> str:
     normalized = "/" + path.strip().lstrip("/")
-    if not normalized.startswith(ALLOWED_PATH_PREFIX):
+    if not normalized.startswith(ALLOWED_PATH_PREFIX) or not ALLOWED_READ_PATH_RE.fullmatch(normalized):
         raise GetCourseAPIError(
-            "Only read-only GetCourse account API paths are allowed",
+            "Only documented read-only GetCourse account API paths are allowed",
             400,
             {"path": normalized, "allowed_prefix": ALLOWED_PATH_PREFIX},
         )
-    if any(part in normalized for part in ("..", "//")):
-        raise GetCourseAPIError("Unsafe API path", 400, {"path": normalized})
     return normalized
 
 
@@ -176,9 +200,9 @@ class GetCourseClient:
                 payload,
             )
 
-        if isinstance(payload, dict) and payload.get("success") is False and not is_export_pending_payload(payload):
+        if is_failure_payload(payload) and not is_export_pending_payload(payload):
             raise GetCourseAPIError(
-                str(payload.get("error") or payload.get("message") or "GetCourse API error"),
+                "GetCourse account API rejected the request",
                 response.status_code,
                 payload,
             )
@@ -212,13 +236,31 @@ class GetCourseClient:
                 payload,
             )
 
-        if isinstance(payload, dict) and payload.get("success") is False:
+        if is_import_failure_payload(payload):
             raise GetCourseAPIError(
-                str(payload.get("error") or payload.get("message") or "GetCourse API error"),
+                "GetCourse Import API rejected the request",
                 response.status_code,
                 payload,
             )
 
+        return payload
+
+    async def fields_get(self) -> Any:
+        """Read documented user/deal additional-field directories."""
+        if not self.config.account_domain:
+            raise GetCourseAPIError("GETCOURSE_ACCOUNT_DOMAIN is not configured", 400)
+        if not self.config.api_key:
+            raise GetCourseAPIError("GetCourse API key is not configured", 401)
+
+        response = await self._client.post(
+            FIELDS_PATH,
+            data={"action": "get", "key": self.config.api_key},
+        )
+        payload = self._parse_response(response)
+        if response.status_code >= 400:
+            raise GetCourseAPIError("GetCourse API returned an HTTP error", response.status_code, payload)
+        if is_failure_payload(payload):
+            raise GetCourseAPIError("GetCourse fields API rejected the request", response.status_code, payload)
         return payload
 
     @staticmethod

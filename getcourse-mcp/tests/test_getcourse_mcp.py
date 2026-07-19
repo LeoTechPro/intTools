@@ -2,17 +2,34 @@ from __future__ import annotations
 
 import asyncio
 import unittest
+from pathlib import Path
 from unittest import mock
 
-from getcourse_mcp import client, server
+import httpx
+
+from getcourse_mcp import api_manifest, client, config, server
 
 
 class GetCourseClientTests(unittest.TestCase):
+    def test_domain_normalization_accepts_hostname_and_rejects_paths(self) -> None:
+        self.assertEqual(config.normalize_domain("https://school.example.test/"), "school.example.test")
+        with self.assertRaises(ValueError):
+            config.normalize_domain("https://school.example.test/private")
+
     def test_pending_export_payload_is_not_error(self) -> None:
         payload = {"success": False, "info": {"export_id": 123}}
 
         self.assertTrue(client.is_export_pending_payload(payload))
         self.assertEqual(client.export_id_from_payload(payload), "123")
+
+    def test_string_boolean_and_nested_import_failures_are_detected(self) -> None:
+        self.assertTrue(client.is_failure_payload({"success": "false"}))
+        self.assertFalse(client.is_failure_payload({"success": "true"}))
+        self.assertTrue(
+            client.is_import_failure_payload(
+                {"success": "true", "result": {"success": "false", "error": "true"}}
+            )
+        )
 
     def test_redact_nested_secret_fields(self) -> None:
         payload = {"user": {"api_key": "secret", "name": "User"}}
@@ -32,8 +49,62 @@ class GetCourseClientTests(unittest.TestCase):
         self.assertTrue(client.is_export_not_ready_payload(payload))
         self.assertFalse(client.is_transient_export_error_payload(payload))
 
+    def test_fields_request_uses_fixed_post_action_and_configured_key(self) -> None:
+        async def run() -> None:
+            async def handler(request: httpx.Request) -> httpx.Response:
+                self.assertEqual(request.method, "POST")
+                self.assertEqual(request.url.path, "/pl/api/account/fields")
+                form = httpx.QueryParams(request.content.decode())
+                self.assertEqual(form["action"], "get")
+                self.assertEqual(form["key"], "test-api-key")
+                return httpx.Response(200, json={"success": True, "result": {}})
+
+            cfg = config.Config(
+                account_domain="school.example.test",
+                api_key="test-api-key",
+                transport="stdio",
+                port=8011,
+                timeout=30.0,
+                root_dir=Path("."),
+            )
+            instance = client.GetCourseClient(cfg)
+            await instance._client.aclose()
+            instance._client = httpx.AsyncClient(
+                base_url=cfg.api_base_url,
+                transport=httpx.MockTransport(handler),
+            )
+            try:
+                result = await instance.fields_get()
+                self.assertTrue(result["success"])
+            finally:
+                await instance.close()
+
+        asyncio.run(run())
+
+    def test_raw_read_path_is_limited_to_manifest_account_endpoints(self) -> None:
+        self.assertEqual(client.normalize_path("/pl/api/account/groups"), "/pl/api/account/groups")
+        self.assertEqual(
+            client.normalize_path("/pl/api/account/exports/export_42"),
+            "/pl/api/account/exports/export_42",
+        )
+        with self.assertRaises(client.GetCourseAPIError):
+            client.normalize_path("/pl/api/account/private/internal")
+        with self.assertRaises(client.GetCourseAPIError):
+            client.normalize_path("/pl/api/account/exports/../users")
+
 
 class GetCourseServerTests(unittest.TestCase):
+    def test_manifest_covers_registered_tools_and_official_surfaces(self) -> None:
+        manifest = api_manifest.load_manifest()
+        names = {tool.name for tool in asyncio.run(server.mcp.list_tools())}
+
+        self.assertEqual(manifest["official_source"], "https://getcourse.ru/help/api")
+        self.assertEqual(len(manifest["surfaces"]), 10)
+        self.assertTrue(api_manifest.tool_coverage() <= names)
+        self.assertIn("getcourse_api_manifest", names)
+        self.assertIn("getcourse_fields_list", names)
+        self.assertEqual(len(names), 18)
+
     def test_user_filters_use_getcourse_range_shape(self) -> None:
         params = server._build_user_filters(
             status="active",
@@ -53,6 +124,14 @@ class GetCourseServerTests(unittest.TestCase):
     def test_empty_typed_export_filters_are_rejected(self) -> None:
         with self.assertRaises(client.GetCourseAPIError):
             server._require_filter({}, "users")
+
+    def test_user_export_supports_email_and_non_filter_group_columns(self) -> None:
+        params = server._build_user_filters(email="user@example.test", idgrouplist="id_date")
+
+        self.assertEqual(params, {"email": "user@example.test", "idgrouplist": "id_date"})
+        server._require_filter(params, "users")
+        with self.assertRaises(client.GetCourseAPIError):
+            server._require_filter({"idgrouplist": "id_date"}, "users")
 
     def test_poll_bounds_are_clamped(self) -> None:
         self.assertEqual(server._bounded_int(99, minimum=1, maximum=10, name="attempts"), 10)
@@ -82,7 +161,7 @@ class GetCourseServerTests(unittest.TestCase):
             api_error = client.GetCourseAPIError(
                 "True",
                 200,
-                {"success": False, "error": True, "error_code": 910},
+                {"success": False, "error": True, "error_code": 910, "email": "user@example.test"},
             )
             fake_client = mock.Mock()
             fake_client.get = mock.AsyncMock(side_effect=api_error)
@@ -93,9 +172,16 @@ class GetCourseServerTests(unittest.TestCase):
         self.assertTrue(result["ok"])
         self.assertTrue(result["pending"])
         self.assertEqual(result["export_id"], "42")
+        self.assertEqual(result["data"], {"success": False, "error_code": 910})
 
     def test_users_export_start_rejects_unfiltered_call_without_api(self) -> None:
         result = asyncio.run(server.getcourse_users_export_start())
+
+        self.assertFalse(result["ok"])
+        self.assertEqual(result["status_code"], 400)
+
+    def test_generic_export_start_rejects_unfiltered_call_without_api(self) -> None:
+        result = asyncio.run(server.getcourse_start_export("users"))
 
         self.assertFalse(result["ok"])
         self.assertEqual(result["status_code"], 400)
@@ -171,6 +257,17 @@ class GetCourseServerTests(unittest.TestCase):
         self.assertTrue(result["transient"])
         self.assertEqual(result["error_code"], 903)
         self.assertIn("retry", result["retry_hint"])
+
+    def test_remote_error_envelope_omits_personal_payload(self) -> None:
+        exc = client.GetCourseAPIError(
+            "GetCourse account API rejected the request",
+            403,
+            {"error_code": 777, "email": "user@example.test", "phone": "+70000000000"},
+        )
+
+        result = server._error(exc)
+
+        self.assertEqual(result, {"ok": False, "error": exc.message, "status_code": 403})
 
 
 if __name__ == "__main__":

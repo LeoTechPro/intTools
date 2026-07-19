@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "official_source": "https://getcourse.ru/help/api",
+  "verified_on": "2026-07-19",
+  "surfaces": [
+    {
+      "id": "users_import",
+      "method": "POST",
+      "path": "/pl/api/users",
+      "action": "add",
+      "risk": "write",
+      "tools": ["getcourse_user_import"]
+    },
+    {
+      "id": "user_groups_update",
+      "method": "POST",
+      "path": "/pl/api/users",
+      "action": "update",
+      "risk": "write",
+      "tools": ["getcourse_user_groups_update"]
+    },
+    {
+      "id": "deals_import",
+      "method": "POST",
+      "path": "/pl/api/deals",
+      "action": "add",
+      "risk": "write",
+      "tools": ["getcourse_deal_import", "getcourse_deal_status_update"]
+    },
+    {
+      "id": "users_export",
+      "method": "GET",
+      "path": "/pl/api/account/users",
+      "action": null,
+      "risk": "read_job",
+      "tools": ["getcourse_users_export_start", "getcourse_users_export_wait", "getcourse_start_export"]
+    },
+    {
+      "id": "groups_list",
+      "method": "GET",
+      "path": "/pl/api/account/groups",
+      "action": null,
+      "risk": "read",
+      "tools": ["getcourse_groups_list"]
+    },
+    {
+      "id": "group_users_export",
+      "method": "GET",
+      "path": "/pl/api/account/groups/{group_id}/users",
+      "action": null,
+      "risk": "read_job",
+      "tools": ["getcourse_group_users_export"]
+    },
+    {
+      "id": "deals_export",
+      "method": "GET",
+      "path": "/pl/api/account/deals",
+      "action": null,
+      "risk": "read_job",
+      "tools": ["getcourse_deals_export_start", "getcourse_deals_export_wait", "getcourse_start_export"]
+    },
+    {
+      "id": "payments_export",
+      "method": "GET",
+      "path": "/pl/api/account/payments",
+      "action": null,
+      "risk": "read_job",
+      "tools": ["getcourse_payments_export_start", "getcourse_start_export"]
+    },
+    {
+      "id": "export_result",
+      "method": "GET",
+      "path": "/pl/api/account/exports/{export_id}",
+      "action": null,
+      "risk": "read",
+      "tools": ["getcourse_export_get", "getcourse_export_wait"]
+    },
+    {
+      "id": "additional_fields",
+      "method": "POST",
+      "path": "/pl/api/account/fields",
+      "action": "get",
+      "risk": "read",
+      "tools": ["getcourse_fields_list"]
+    }
+  ]
+}

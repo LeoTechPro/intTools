@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlsplit
 
 API_KEY_ENV_NAMES = (
     "GETCOURSE_API_KEY",
@@ -36,10 +37,15 @@ def load_env_file(path: Path) -> None:
 
 
 def normalize_domain(value: str) -> str:
-    domain = value.strip()
-    domain = domain.removeprefix("https://")
-    domain = domain.removeprefix("http://")
-    return domain.strip("/")
+    raw = value.strip()
+    if not raw:
+        return ""
+    parsed = urlsplit(raw if "://" in raw else f"https://{raw}")
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+        raise ValueError("GETCOURSE_ACCOUNT_DOMAIN must be a valid hostname")
+    if parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path not in {"", "/"}:
+        raise ValueError("GETCOURSE_ACCOUNT_DOMAIN must not contain credentials, path, query, or fragment")
+    return parsed.hostname.lower()
 
 
 @dataclass(frozen=True)

@@ -23,6 +23,16 @@
       "migration_action": "Canonical source moved out of the Codex-specific subtree; deploy through native MCP host configuration."
     },
     {
+      "id": "getcourse-mcp",
+      "root": "getcourse-mcp",
+      "status": "public-tool",
+      "owner": "intData",
+      "public_surface": "Agent-agnostic manifest-backed MCP connector for the documented GetCourse Import and Export API.",
+      "runtime_state": "Account domain, API key, exported account data and dependency/runtime directories remain untracked and external.",
+      "target_home": "D:/int/tools/getcourse-mcp",
+      "migration_action": "Canonical source moved out of the Codex-specific subtree; deploy through native MCP host configuration."
+    },
+    {
       "id": "agent-plane",
       "root": "agent_plane",
       "status": "public-tool",

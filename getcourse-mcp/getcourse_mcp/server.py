@@ -7,6 +7,7 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
+from getcourse_mcp.api_manifest import load_manifest
 from getcourse_mcp.client import (
     GetCourseAPIError,
     GetCourseClient,
@@ -34,6 +35,24 @@ WRITE_ENDPOINTS = {
 }
 MAX_POLL_ATTEMPTS = 10
 MAX_POLL_INTERVAL_SECONDS = 10.0
+EXPORT_FILTER_KEYS = {
+    "users": ("status", "email", "created_at[from]", "created_at[to]"),
+    "group_users": ("status", "created_at[from]", "created_at[to]", "added_at[from]", "added_at[to]"),
+    "deals": (
+        "status",
+        "created_at[from]",
+        "created_at[to]",
+        "payed_at[from]",
+        "payed_at[to]",
+        "finished_at[from]",
+        "finished_at[to]",
+        "status_changed_at[from]",
+        "status_changed_at[to]",
+        "user_id",
+        "user_in_group",
+    ),
+    "payments": ("status", "created_at[from]", "created_at[to]", "status_changed_at[from]", "status_changed_at[to]"),
+}
 
 mcp = FastMCP("GetCourse MCP Server")
 
@@ -61,11 +80,14 @@ def _get_client() -> GetCourseClient:
 
 
 def _health_payload(config: Config) -> dict[str, Any]:
+    manifest = load_manifest()
     return {
         "ok": bool(config.account_domain),
         "account_domain": config.account_domain or None,
         "api_base_url": config.api_base_url if config.account_domain else None,
         "has_api_key": config.has_api_key,
+        "manifest_source": manifest["official_source"],
+        "manifest_surfaces": len(manifest["surfaces"]),
         "transport": config.transport,
         "port": config.port,
         "env_file": str(config.root_dir / ".env"),
@@ -78,13 +100,19 @@ def _ok(data: Any, max_items: int = 25) -> dict[str, Any]:
 
 def _error(exc: Exception) -> dict[str, Any]:
     if isinstance(exc, GetCourseAPIError):
-        detail = trim_json(redact(exc.detail), max_items=25)
         result: dict[str, Any] = {
             "ok": False,
             "error": exc.message,
             "status_code": exc.status_code,
-            "detail": detail,
         }
+        if isinstance(exc.detail, dict):
+            safe_detail = {
+                key: exc.detail[key]
+                for key in ("dataset", "reason", "resource", "safety")
+                if key in exc.detail and isinstance(exc.detail[key], (str, int, float, bool))
+            }
+            if safe_detail:
+                result["detail"] = safe_detail
         if is_transient_export_error_payload(exc.detail):
             result["transient"] = True
             result["retry_hint"] = (
@@ -96,7 +124,7 @@ def _error(exc: Exception) -> dict[str, Any]:
                 result["error_code"] = error_code
         return result
 
-    return {"ok": False, "error": str(exc)}
+    return {"ok": False, "error": "internal GetCourse MCP error"}
 
 
 def _bounded_int(value: int, *, minimum: int, maximum: int, name: str) -> int:
@@ -127,7 +155,10 @@ def _compact_params(params: dict[str, Any]) -> dict[str, Any]:
 
 
 def _require_filter(params: dict[str, Any], dataset: str) -> None:
-    if not params:
+    filter_keys = EXPORT_FILTER_KEYS.get(dataset)
+    if filter_keys is None:
+        raise GetCourseAPIError("Unsupported export dataset", 400, {"dataset": dataset})
+    if not any(params.get(key) not in (None, "") for key in filter_keys):
         raise GetCourseAPIError(
             "At least one export filter is required",
             400,
@@ -143,12 +174,11 @@ def _build_user_filters(
     status: str | None = None,
     created_from: str | None = None,
     created_to: str | None = None,
-    added_from: str | None = None,
-    added_to: str | None = None,
+    email: str | None = None,
+    idgrouplist: str | None = None,
 ) -> dict[str, Any]:
-    params: dict[str, Any] = {"status": status}
+    params: dict[str, Any] = {"status": status, "email": email, "idgrouplist": idgrouplist}
     _add_range(params, "created_at", created_from, created_to)
-    _add_range(params, "added_at", added_from, added_to)
     return _compact_params(params)
 
 
@@ -227,7 +257,8 @@ async def _post_import(
 
 
 async def _start_export(dataset: str, params: dict[str, Any] | None = None, max_items: int = 25) -> dict[str, Any]:
-    endpoint = EXPORT_ENDPOINTS.get(dataset.strip().lower())
+    normalized_dataset = dataset.strip().lower()
+    endpoint = EXPORT_ENDPOINTS.get(normalized_dataset)
     if endpoint is None:
         raise GetCourseAPIError(
             "Unsupported export dataset",
@@ -235,7 +266,9 @@ async def _start_export(dataset: str, params: dict[str, Any] | None = None, max_
             {"dataset": dataset, "allowed": sorted(EXPORT_ENDPOINTS)},
         )
 
-    data = await _get_client().get(endpoint, params=params)
+    safe_params = params or {}
+    _require_filter(safe_params, "deals" if normalized_dataset == "orders" else normalized_dataset)
+    data = await _get_client().get(endpoint, params=safe_params)
     result = _ok(data, max_items=max_items)
     export_id = export_id_from_payload(data)
     if export_id:
@@ -253,9 +286,10 @@ async def _read_export(export_id: str, max_items: int = 25) -> dict[str, Any]:
         data = await _get_client().get(f"/pl/api/account/exports/{safe_export_id}")
     except GetCourseAPIError as exc:
         if exc.status_code == 200 and is_export_not_ready_payload(exc.detail):
+            error_code = error_code_from_payload(exc.detail)
             return {
                 "ok": True,
-                "data": trim_json(redact(exc.detail), max_items=max_items),
+                "data": {"success": False, "error_code": error_code},
                 "export_id": safe_export_id,
                 "pending": True,
                 "message": "Export is still pending; call getcourse_export_get later.",
@@ -312,12 +346,45 @@ async def getcourse_health() -> dict:
 
 
 @mcp.tool()
+async def getcourse_api_manifest() -> dict:
+    """Return safe coverage metadata for the committed official GetCourse API manifest."""
+    manifest = load_manifest()
+    return {
+        "ok": True,
+        "official_source": manifest["official_source"],
+        "verified_on": manifest["verified_on"],
+        "surface_count": len(manifest["surfaces"]),
+        "surfaces": [
+            {
+                "id": row["id"],
+                "method": row["method"],
+                "path": row["path"],
+                "action": row["action"],
+                "risk": row["risk"],
+                "tools": row["tools"],
+            }
+            for row in manifest["surfaces"]
+        ],
+    }
+
+
+@mcp.tool()
 async def getcourse_groups_list(max_items: int = 50) -> dict:
     """List GetCourse groups using a read-only account API request."""
     try:
         data = await _get_client().get("/pl/api/account/groups")
         return _ok(data, max_items=max_items)
     except Exception as exc:  # noqa: BLE001 - returned to MCP caller as data
+        return _error(exc)
+
+
+@mcp.tool()
+async def getcourse_fields_list(max_items: int = 50) -> dict:
+    """Read documented user and deal additional-field directories."""
+    try:
+        data = await _get_client().fields_get()
+        return _ok(data, max_items=max_items)
+    except Exception as exc:  # noqa: BLE001
         return _error(exc)
 
 
@@ -366,6 +433,8 @@ async def getcourse_export_wait(
 async def getcourse_group_users_export(
     group_id: str,
     status: str | None = None,
+    created_from: str | None = None,
+    created_to: str | None = None,
     added_from: str | None = None,
     added_to: str | None = None,
     max_items: int = 25,
@@ -377,6 +446,7 @@ async def getcourse_group_users_export(
             raise GetCourseAPIError("group_id is required", 400)
 
         params: dict[str, Any] = {"status": status}
+        _add_range(params, "created_at", created_from, created_to)
         _add_range(params, "added_at", added_from, added_to)
         params = _compact_params(params)
         _require_filter(params, "group_users")
@@ -392,8 +462,8 @@ async def getcourse_users_export_start(
     status: str | None = None,
     created_from: str | None = None,
     created_to: str | None = None,
-    added_from: str | None = None,
-    added_to: str | None = None,
+    email: str | None = None,
+    idgrouplist: str | None = None,
     max_items: int = 25,
 ) -> dict:
     """Start a users export with typed safe filters."""
@@ -402,8 +472,8 @@ async def getcourse_users_export_start(
             status=status,
             created_from=created_from,
             created_to=created_to,
-            added_from=added_from,
-            added_to=added_to,
+            email=email,
+            idgrouplist=idgrouplist,
         )
         _require_filter(params, "users")
         return await _start_export("users", params=params, max_items=max_items)
@@ -476,8 +546,8 @@ async def getcourse_users_export_wait(
     status: str | None = None,
     created_from: str | None = None,
     created_to: str | None = None,
-    added_from: str | None = None,
-    added_to: str | None = None,
+    email: str | None = None,
+    idgrouplist: str | None = None,
     attempts: int = 5,
     interval_seconds: float = 2.0,
     max_items: int = 25,
@@ -488,8 +558,8 @@ async def getcourse_users_export_wait(
             status=status,
             created_from=created_from,
             created_to=created_to,
-            added_from=added_from,
-            added_to=added_to,
+            email=email,
+            idgrouplist=idgrouplist,
             max_items=max_items,
         )
         export_id = start_result.get("export_id")
@@ -661,7 +731,7 @@ async def getcourse_raw_get(
     params: dict = None,
     max_items: int = 25,
 ) -> dict:
-    """Run a safe read-only GET request under /pl/api/account/..."""
+    """Run a read-only GET limited to documented manifest account endpoints."""
     try:
         data = await _get_client().get(path, params=params)
         return _ok(data, max_items=max_items)
