@@ -356,7 +356,14 @@ def _systemd_store_write(bundle: dict[str, Any], path: pathlib.Path) -> None:
 
 def _systemd_store_read(path: pathlib.Path) -> dict[str, Any]:
     result = subprocess.run(
-        ["systemd-creds", "decrypt", "--user", str(path), "-"],
+        [
+            "systemd-creds",
+            "decrypt",
+            "--user",
+            f"--name={SYSTEMD_CREDENTIAL_NAME}",
+            str(path),
+            "-",
+        ],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )

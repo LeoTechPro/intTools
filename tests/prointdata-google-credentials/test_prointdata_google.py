@@ -166,6 +166,22 @@ class BundleTests(unittest.TestCase):
         self.assertNotIn("scopes", envelope)
         self.assertEqual(envelope["refresh_token"], "test-refresh")
 
+    def test_systemd_decrypt_uses_matching_credential_name(self):
+        bundle = MODULE.bundle_from_authorized_user(token_payload())
+        completed = mock.Mock(returncode=0, stdout=MODULE._canonical_json(bundle))
+        with mock.patch.object(
+            MODULE.subprocess, "run", return_value=completed
+        ) as run:
+            self.assertEqual(
+                MODULE._systemd_store_read(pathlib.Path("/tmp/bundle.cred")),
+                bundle,
+            )
+        command = run.call_args.args[0]
+        self.assertIn(
+            f"--name={MODULE.SYSTEMD_CREDENTIAL_NAME}",
+            command,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
