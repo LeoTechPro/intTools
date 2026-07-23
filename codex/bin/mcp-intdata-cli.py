@@ -50,6 +50,14 @@ def _mutation_props() -> dict[str, Any]:
     }
 
 
+def _spec_level_prop() -> dict[str, Any]:
+    return {
+        "type": "string",
+        "enum": ["delta", "full"],
+        "description": "Risk-based OpenSpec profile. `none` must not create a change package.",
+    }
+
+
 def _tool(name: str, description: str, properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
     return {"name": name, "description": description, "inputSchema": _schema(properties, required)}
 
@@ -70,13 +78,13 @@ BROWSER_PROFILE_NAMES = sorted(BROWSER_PROFILE_REGISTRY)
 OPEN_SPEC_TOOLS = [
     _tool("openspec_list", "List OpenSpec changes or specs.", {**COMMON_RUN_PROPS, "specs": {"type": "boolean"}}),
     _tool("openspec_show", "Show an OpenSpec change or spec.", {**COMMON_RUN_PROPS, "item": {"type": "string"}, "json": {"type": "boolean"}}, ["item"]),
-    _tool("openspec_validate", "Validate an OpenSpec change/spec or full catalog.", {**COMMON_RUN_PROPS, "item": {"type": "string"}, "strict": {"type": "boolean"}}),
+    _tool("openspec_validate", "Validate an OpenSpec change/spec or full catalog, optionally enforcing a delta/full profile.", {**COMMON_RUN_PROPS, "item": {"type": "string"}, "strict": {"type": "boolean"}, "spec_level": _spec_level_prop()}),
     _tool("openspec_status", "Show OpenSpec artifact completion status.", {**COMMON_RUN_PROPS, "item": {"type": "string"}}),
     _tool("openspec_instructions", "Output enriched OpenSpec instructions for an artifact.", {**COMMON_RUN_PROPS, "artifact": {"type": "string"}, "args": _args_prop("Additional OpenSpec instruction arguments.")}, ["artifact"]),
     _tool("openspec_archive", "Archive a completed OpenSpec change. Mutating; requires confirmation and issue context.", {**COMMON_RUN_PROPS, **_mutation_props(), "change_name": {"type": "string"}, "args": _args_prop()}, ["confirm_mutation", "issue_context", "change_name"]),
     _tool("openspec_change_mutate", "Run a mutating `openspec change` subcommand. Requires confirmation and issue context.", {**COMMON_RUN_PROPS, **_mutation_props(), "subcommand": {"type": "string"}, "args": _args_prop()}, ["confirm_mutation", "issue_context", "subcommand"]),
     _tool("openspec_spec_mutate", "Run a mutating `openspec spec` subcommand. Requires confirmation and issue context.", {**COMMON_RUN_PROPS, **_mutation_props(), "subcommand": {"type": "string"}, "args": _args_prop()}, ["confirm_mutation", "issue_context", "subcommand"]),
-    _tool("openspec_new", "Run `openspec new`. Mutating; requires confirmation and issue context.", {**COMMON_RUN_PROPS, **_mutation_props(), "args": _args_prop()}, ["confirm_mutation", "issue_context"]),
+    _tool("openspec_new", "Create a delta/full OpenSpec change. `none` is rejected.", {**COMMON_RUN_PROPS, **_mutation_props(), "spec_level": _spec_level_prop(), "args": _args_prop()}, ["confirm_mutation", "issue_context", "spec_level", "args"]),
     _tool("openspec_exec_mutate", "Run a mutating structured OpenSpec CLI command. Requires confirmation and issue context.", {**COMMON_RUN_PROPS, **_mutation_props(), "args": _args_prop("Arguments after the openspec executable.")}, ["confirm_mutation", "issue_context", "args"]),
 ]
 
@@ -160,6 +168,78 @@ def _require_mutation(arguments: dict[str, Any]) -> None:
         raise PermissionError("mutating command requires issue_context like #800")
 
 
+def _require_spec_level(arguments: dict[str, Any]) -> str:
+    level = arguments.get("spec_level")
+    if level not in {"delta", "full"}:
+        raise ValueError("spec_level must be `delta` or `full`; `none` must not create an OpenSpec change")
+    return str(level)
+
+
+def _new_change_name(arguments: dict[str, Any]) -> str:
+    args = _safe_args(arguments.get("args"))
+    if len(args) < 2 or args[0] != "change":
+        raise ValueError("openspec_new args must start with `change` followed by `issue-N-slug`")
+    change_name = args[1]
+    match = re.fullmatch(r"issue-([1-9][0-9]*)-[a-z0-9][a-z0-9-]*", change_name)
+    if not match:
+        raise ValueError("OpenSpec change name must match issue-N-slug")
+    issue_match = re.fullmatch(r"#([1-9][0-9]*)", str(arguments.get("issue_context") or "").strip())
+    if not issue_match or match.group(1) != issue_match.group(1):
+        raise ValueError(f"OpenSpec change {change_name!r} does not match issue_context")
+    return change_name
+
+
+def _openspec_profile_errors(repo_root: Path, change_name: str, spec_level: str) -> list[str]:
+    change_dir = repo_root / "openspec" / "changes" / change_name
+    if not change_dir.is_dir():
+        return [f"missing OpenSpec change directory: {change_dir}"]
+
+    errors: list[str] = []
+    name_match = re.fullmatch(r"issue-([1-9][0-9]*)-[a-z0-9][a-z0-9-]*", change_name)
+    if not name_match:
+        errors.append("change name must match issue-N-slug")
+
+    proposal = change_dir / "proposal.md"
+    specs_root = change_dir / "specs"
+    specs = sorted(specs_root.glob("*/spec.md")) if specs_root.is_dir() else []
+    if not proposal.is_file():
+        errors.append("missing proposal.md")
+    if not specs:
+        errors.append("missing specs/<capability>/spec.md")
+    if proposal.is_file() and name_match:
+        issue_url = f"https://github.com/LeoTechPro/int/issues/{name_match.group(1)}"
+        if issue_url not in proposal.read_text(encoding="utf-8"):
+            errors.append(f"proposal.md must link to {issue_url}")
+
+    design = change_dir / "design.md"
+    tasks = change_dir / "tasks.md"
+    readme = change_dir / "README.md"
+    if spec_level == "delta":
+        for forbidden in (design, tasks, readme):
+            if forbidden.exists():
+                errors.append(f"delta profile forbids {forbidden.name}")
+    elif spec_level == "full":
+        if not design.is_file():
+            errors.append("full profile requires design.md")
+        if not tasks.is_file():
+            errors.append("full profile requires tasks.md")
+        if design.is_file() and not re.search(
+            r"^## (?:Rollback|Migration Plan)\b",
+            design.read_text(encoding="utf-8"),
+            re.MULTILINE,
+        ):
+            errors.append("full profile design.md requires a Rollback or Migration Plan section")
+    else:
+        errors.append("spec_level must be delta or full")
+    return errors
+
+
+def _remove_scaffold_readme(cwd: str, change_name: str) -> None:
+    readme = Path(cwd) / "openspec" / "changes" / change_name / "README.md"
+    if readme.is_file():
+        readme.unlink()
+
+
 def _run(argv: list[str], *, cwd: str, timeout_sec: int | None = None) -> dict[str, Any]:
     timeout = int(timeout_sec or 60)
     completed = subprocess.run(argv, cwd=cwd, text=True, capture_output=True, timeout=timeout, shell=False)
@@ -217,6 +297,8 @@ def _call_openspec(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             args.append("--strict")
         if arguments.get("item"):
             args.append(str(arguments["item"]))
+        if arguments.get("spec_level") is not None and not arguments.get("item"):
+            raise ValueError("profile validation requires `item` with an issue-N-slug change name")
     elif name == "openspec_status":
         args = ["status"]
         if arguments.get("item"):
@@ -238,6 +320,8 @@ def _call_openspec(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             raise ValueError("openspec_spec_mutate cannot run read-only subcommands")
     elif name == "openspec_new":
         _require_mutation(arguments)
+        _require_spec_level(arguments)
+        change_name = _new_change_name(arguments)
         args = ["new", *_safe_args(arguments.get("args"))]
     elif name == "openspec_exec_mutate":
         _require_mutation(arguments)
@@ -246,7 +330,19 @@ def _call_openspec(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             raise ValueError("openspec_exec_mutate cannot run read-only commands")
     else:
         raise ValueError(f"unknown openspec tool: {name}")
-    return _run([*_openspec_base(), *args], cwd=cwd, timeout_sec=timeout)
+    result = _run([*_openspec_base(), *args], cwd=cwd, timeout_sec=timeout)
+    if name == "openspec_validate" and arguments.get("spec_level") is not None:
+        profile_errors = _openspec_profile_errors(
+            Path(cwd),
+            str(arguments["item"]),
+            _require_spec_level(arguments),
+        )
+        result["profile_errors"] = profile_errors
+        if profile_errors:
+            result["ok"] = False
+    elif name == "openspec_new" and result.get("ok"):
+        _remove_scaffold_readme(cwd, change_name)
+    return result
 
 
 def _call_governance(name: str, arguments: dict[str, Any]) -> dict[str, Any]:

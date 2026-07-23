@@ -12,7 +12,8 @@ description: Internal intData skill entrypoint for the intdata-control plugin. U
 - Local sync-gate wrappers removed/forbidden: use explicit native git commands and repo hooks instead of `int_git_sync_gate` or `sync_gate_*` tools.
 - Перед tracked-правками в `/int/tools` используй внешний probe-owned CLI `coordctl` для session/intent lease, если он доступен в PATH.
 - Mutating tools без `confirm_mutation=true`, `issue_context=#N` и owner
-  approval не вызывать.
+  approval не вызывать. Для `openspec_new` также обязателен
+  `spec_level=delta|full`; уровень `none` запрещает создание package.
 
 ## Capability skills
 
