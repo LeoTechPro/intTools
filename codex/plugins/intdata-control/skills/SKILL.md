@@ -6,11 +6,13 @@ description: Internal intData skill entrypoint for the intdata-control plugin. U
 # Маршрутизатор intData Control
 
 - Используй этот skill как входную точку для OpenSpec и routing.
-- Для `INT-*` используй authenticated `gh` против `LeoTechPro/int` и tracked workspace mapping; `intdata-control` не является issue proxy.
+- Для активной задачи используй реальный GitHub Issue `#N` из
+  `LeoTechPro/int`; `intdata-control` не является issue proxy.
 - Local delivery publish wrappers removed/forbidden: do not use `/int/tools/delivery/bin/publish_*`, `/int/tools/codex/bin/publish_*.ps1`, or an `intdata-control` `publish` tool.
 - Local sync-gate wrappers removed/forbidden: use explicit native git commands and repo hooks instead of `int_git_sync_gate` or `sync_gate_*` tools.
 - Перед tracked-правками в `/int/tools` используй внешний probe-owned CLI `coordctl` для session/intent lease, если он доступен в PATH.
-- Mutating tools без `confirm_mutation=true`, `issue_context=INT-*` и owner approval не вызывать.
+- Mutating tools без `confirm_mutation=true`, `issue_context=#N` и owner
+  approval не вызывать.
 
 ## Capability skills
 
@@ -23,6 +25,7 @@ description: Internal intData skill entrypoint for the intdata-control plugin. U
 ## Общие правила
 
 - Сначала выбирай capability skill, затем конкретную tool-card.
-- Не вызывай mutating/high-risk tools без owner approval, `confirm_mutation=true` и `issue_context=INT-*`.
+- Не вызывай mutating/high-risk tools без owner approval,
+  `confirm_mutation=true` и `issue_context=#N`.
 - Если required args неизвестны, остановись как blocker и не подменяй MCP прямым shell fallback.
 - Active coordination runtime — внешний probe-owned CLI `coordctl`; intdata-control больше не экспортирует coordctl MCP tools.

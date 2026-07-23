@@ -5,6 +5,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -41,7 +42,11 @@ def _path_prop(description: str) -> dict[str, Any]:
 def _mutation_props() -> dict[str, Any]:
     return {
         "confirm_mutation": {"type": "boolean"},
-        "issue_context": {"type": "string", "description": "Current LeoTechPro/int GitHub issue identifier, e.g. INT-222."},
+        "issue_context": {
+            "type": "string",
+            "pattern": r"^#[1-9][0-9]*$",
+            "description": "Current LeoTechPro/int GitHub issue identifier, e.g. #800.",
+        },
     }
 
 
@@ -151,8 +156,8 @@ def _require_mutation(arguments: dict[str, Any]) -> None:
     if arguments.get("confirm_mutation") is not True:
         raise PermissionError("mutating command requires confirm_mutation=true")
     issue = str(arguments.get("issue_context") or "").strip()
-    if not issue.startswith("INT-"):
-        raise PermissionError("mutating command requires issue_context like INT-222")
+    if not re.fullmatch(r"#[1-9][0-9]*", issue):
+        raise PermissionError("mutating command requires issue_context like #800")
 
 
 def _run(argv: list[str], *, cwd: str, timeout_sec: int | None = None) -> dict[str, Any]:
