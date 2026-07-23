@@ -1,12 +1,19 @@
 # Tilda MCP
 
-Minimal read/export MCP server for the official Tilda API.
+Read/export MCP for all seven methods in the official Tilda API. It does not
+edit or publish pages.
 
-Secrets are expected from environment variables:
+Both wrappers call `launcher.py`:
 
-- `TILDA_PUBLIC_KEY`
-- `TILDA_SECRET_KEY`
-- `TILDA_PROJECT_ID` optional default project id
+- Windows: `run-tilda-mcp.cmd`
+- Linux: `run-tilda-mcp.sh`
 
-The server intentionally does not implement the Tilda webhook. Webhook handling
-belongs to an always-on HTTP service because Tilda calls it after Publish.
+The launcher reads only a protected env file. Default pointers:
+
+- Windows: `%LOCALAPPDATA%\intdata\secrets\punkt-b\tilda.env`
+- VDS: `/home/agents/.hermes/secrets/punkt-b/tilda/secrets.env`
+
+Override only the pointer with `TILDA_SECRET_FILE`. The file must contain
+`TILDA_PUBLIC_KEY`, `TILDA_SECRET_KEY` and optional `TILDA_PROJECT_ID`; on
+POSIX it must be mode `0600` or stricter. Do not place keys in Codex/Hermes
+configuration or repository files.
