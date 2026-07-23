@@ -71,6 +71,11 @@ def test_windows_launcher_forwards_arguments() -> None:
     assert 'launcher.py" %*' in launcher.read_text(encoding="utf-8")
 
 
+def test_linux_launcher_forwards_arguments() -> None:
+    launcher = Path(__file__).parents[1] / "run-tilda-mcp.sh"
+    assert 'launcher.py" "$@"' in launcher.read_text(encoding="utf-8")
+
+
 def test_client_requires_keys(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("TILDA_PUBLIC_KEY", raising=False)
     monkeypatch.delenv("TILDA_SECRET_KEY", raising=False)
