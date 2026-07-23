@@ -1,3 +1,3 @@
 @echo off
 setlocal
-python "%~dp0launcher.py"
+python "%~dp0launcher.py" %*
