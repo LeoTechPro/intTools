@@ -438,7 +438,6 @@ def _gog_import(bundle: dict[str, Any], gog_bin: str) -> str:
         "email": ACCOUNT,
         "client": "default",
         "services": list(DEFAULT_SERVICES),
-        "scopes": bundle["oauth"]["scopes"],
         "created_at": bundle["created_at"],
         "refresh_token": bundle["oauth"]["refresh_token"],
     }

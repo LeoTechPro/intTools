@@ -154,6 +154,18 @@ class BundleTests(unittest.TestCase):
         self.assertNotIn("access-only-in-env", command)
         self.assertEqual(environment["GOOGLE_WORKSPACE_CLI_TOKEN"], "access-only-in-env")
 
+    def test_gog_import_omits_large_scope_metadata(self):
+        bundle = MODULE.bundle_from_authorized_user(token_payload())
+        completed = mock.Mock(returncode=0)
+        with (
+            mock.patch.object(MODULE.shutil, "which", return_value="gog"),
+            mock.patch.object(MODULE.subprocess, "run", return_value=completed) as run,
+        ):
+            self.assertEqual(MODULE._gog_import(bundle, "gog"), "gog:keyring")
+        envelope = json.loads(run.call_args.kwargs["input"])
+        self.assertNotIn("scopes", envelope)
+        self.assertEqual(envelope["refresh_token"], "test-refresh")
+
 
 if __name__ == "__main__":
     unittest.main()
