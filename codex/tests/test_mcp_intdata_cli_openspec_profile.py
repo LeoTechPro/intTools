@@ -82,13 +82,18 @@ class OpenSpecProfileTest(unittest.TestCase):
             MODULE, "_run", return_value={"ok": True, "returncode": 0}
         ) as run:
             result = MODULE._call_openspec(
-                "openspec_validate", {"cwd": "/int/tools", "item": "legacy-change", "strict": True}
+                "openspec_validate",
+                {
+                    "cwd": str(MODULE.ROOT_DIR),
+                    "item": "legacy-change",
+                    "strict": True,
+                },
             )
         self.assertTrue(result["ok"])
         self.assertNotIn("profile_errors", result)
         run.assert_called_once_with(
             ["openspec", "validate", "--strict", "legacy-change"],
-            cwd="/int/tools",
+            cwd=str(MODULE.ROOT_DIR),
             timeout_sec=None,
         )
 
@@ -99,7 +104,7 @@ class OpenSpecProfileTest(unittest.TestCase):
             result = MODULE._call_openspec(
                 "openspec_new",
                 {
-                    "cwd": "/int/tools",
+                    "cwd": str(MODULE.ROOT_DIR),
                     "confirm_mutation": True,
                     "issue_context": "#801",
                     "spec_level": "full",
@@ -107,7 +112,10 @@ class OpenSpecProfileTest(unittest.TestCase):
                 },
             )
         self.assertTrue(result["ok"])
-        remove.assert_called_once_with("/int/tools", "issue-801-risk-based-openspec")
+        remove.assert_called_once_with(
+            str(MODULE.ROOT_DIR),
+            "issue-801-risk-based-openspec",
+        )
 
 
 if __name__ == "__main__":
